@@ -5,6 +5,7 @@ import Layout from '../../layouts/Layout.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
 import FlowDiagram from '../../components/FlowDiagram.astro';
 import { routeMeta } from '../../data/routes';
+import { assetPath } from '../../data/asset-path';
 
 export async function getStaticPaths() {
   const allProjects = await getCollection('projects');
@@ -30,15 +31,15 @@ const meta = routeMeta(`${base}projects/${project.slug}`, base);
     {
       data.cover ? (
         <div class="cover-banner" data-reveal data-tilt data-spotlight>
-          <img src={data.cover} alt={`${data.title} — product screenshot`} />
+          <img src={assetPath(data.cover)} alt={`${data.title} — product screenshot`} />
         </div>
       ) : (
-        data.logo && <div class="cover-strip cover-strip--logo" style={`background-image:url(${data.logo})`} />
+        data.logo && <div class="cover-strip cover-strip--logo" style={`background-image:url(${assetPath(data.logo)})`} />
       )
     }
     <header class="project-header" data-reveal>
       <div class="title-row">
-        {data.logo && <img src={data.logo} alt="" class="project-logo" width="40" height="40" />}
+        {data.logo && <img src={assetPath(data.logo)} alt="" class="project-logo" width="40" height="40" />}
         <h1>{data.title}</h1>
         <StatusBadge status={data.status} />
       </div>

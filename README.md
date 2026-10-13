@@ -1,43 +1,28 @@
-# Astro Starter Kit: Minimal
+# Oscar Portfolio
 
-```sh
-npm create astro@latest -- --template minimal
-```
+Existing Astro portfolio with project case studies, credentials, learning log, animations, and media assets.
 
-> 🧑‍🚀 **Seasoned astronaut?** Delete this file. Have fun!
+## Local development
 
-## 🚀 Project Structure
+Requires Node.js 22.12 or newer and npm. Install the locked dependencies with `npm ci`.
 
-Inside of your Astro project, you'll see the following folders and files:
+- Validate: `npm run astro -- check`
+- Build: `npm run build` (output: `dist/`)
+- Start development in background mode: `npm run dev -- --background`
+- Manage development: `npm run astro -- dev status`, `npm run astro -- dev logs`, `npm run astro -- dev stop`
 
-```text
-/
-├── public/
-├── src/
-│   └── pages/
-│       └── index.astro
-└── package.json
-```
+## GitHub and deployment
 
-Astro looks for `.astro` or `.md` files in the `src/pages/` directory. Each page is exposed as a route based on its file name.
+Source repository: https://github.com/Oscar1-dev/Portfolio
 
-There's nothing special about `src/components/`, but that's where we like to put any Astro/React/Vue/Svelte/Preact components.
+Astro is configured for https://Oscar1-dev.github.io/Portfolio/ using the `/Portfolio/` base path. Local navigation and image paths include this base.
 
-Any static assets, like images, can be placed in the `public/` directory.
+The existing GitHub Pages workflow uses Node.js 22 and `npm ci`. Pushes to `main` run validation and build only. Deployment requires a manual workflow run after owner approval and GitHub Pages configuration (Settings > Pages > Source: GitHub Actions).
 
-## 🧞 Commands
+The old Git remote is retained locally as `old-origin` for reference. Project repository links under the former account remain historical references until those individual projects are migrated.
 
-All commands are run from the root of the project, from a terminal:
+No sitemap is generated, so robots.txt does not advertise one.
 
-| Command                   | Action                                           |
-| :------------------------ | :----------------------------------------------- |
-| `npm install`             | Installs dependencies                            |
-| `npm run dev`             | Starts local dev server at `localhost:4321`      |
-| `npm run build`           | Build your production site to `./dist/`          |
-| `npm run preview`         | Preview your build locally, before deploying     |
-| `npm run astro ...`       | Run CLI commands like `astro add`, `astro check` |
-| `npm run astro -- --help` | Get help using the Astro CLI                     |
+## Known dependency findings
 
-## 👀 Want to learn more?
-
-Feel free to check [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).
+At migration, `npm audit` reported five affected packages (one low, three high, one critical). Resolving all findings proposes a major Astro upgrade. Dependencies were preserved during migration; address these findings in a separate tested maintenance change.

@@ -6,6 +6,7 @@ import ProjectCard from '../components/ProjectCard.astro';
 import Capabilities from '../components/Capabilities.astro';
 import ParticleName from '../components/ParticleName.astro';
 import tryhackme from '../data/tryhackme.json';
+import { assetPath } from '../data/asset-path';
 
 const allProjects = await getCollection('projects');
 const sorted = allProjects.sort((a, b) => a.data.order - b.data.order);
@@ -59,7 +60,7 @@ const base = import.meta.env.BASE_URL;
 
     <a href={`${base}projects/${flagship.slug}`} data-page-link data-tilt data-spotlight class="flagship-card" data-reveal>
       <span class="flagship-cover">
-        <img src={flagship.data.cover} alt="NOPS investigation workspace — a live investigations table with observable type, mode, status, findings and source coverage" loading="eager" />
+        <img src={assetPath(flagship.data.cover!)} alt="NOPS investigation workspace — a live investigations table with observable type, mode, status, findings and source coverage" loading="eager" />
       </span>
       <span class="flagship-body">
         <span class="flagship-tagline" data-typewriter>{flagship.data.tagline}</span>
@@ -125,7 +126,7 @@ const base = import.meta.env.BASE_URL;
   <section class="sec cta-section wrap" data-reveal>
     <div>
       <h2>Ready to discuss an apprenticeship?</h2>
-      <p>Every claim on this site links back to real, inspectable source. Start with <a href="https://github.com/NopsFR" target="_blank" rel="noopener noreferrer">github.com/NopsFR</a>.</p>
+      <p>Every claim on this site links back to real, inspectable source. Start with <a href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">github.com/Oscar1-dev</a>.</p>
     </div>
     <a href={`${base}about`} data-page-link class="btn btn-primary">Get in touch</a>
   </section>

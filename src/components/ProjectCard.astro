@@ -1,6 +1,7 @@
 ---
 // src/components/ProjectCard.astro
 import StatusBadge from './StatusBadge.astro';
+import { assetPath } from '../data/asset-path';
 
 export interface Props {
   slug: string;
@@ -22,13 +23,13 @@ const base = import.meta.env.BASE_URL;
   {
     cover && (
       <span class="card-cover" aria-hidden="true">
-        <img src={cover} alt="" loading="lazy" />
+        <img src={assetPath(cover)} alt="" loading="lazy" />
       </span>
     )
   }
   <div class="card-body">
     <div class="card-header">
-      {logo && <img src={logo} alt="" class="card-logo" loading="lazy" width="28" height="28" />}
+      {logo && <img src={assetPath(logo)} alt="" class="card-logo" loading="lazy" width="28" height="28" />}
       <div class="card-heading">
         <span class="project-type">{projectType}</span>
         <h3>{title}</h3>
