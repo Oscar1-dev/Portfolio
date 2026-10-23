@@ -3,10 +3,10 @@ const base = import.meta.env.BASE_URL;
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer">
+<footer class="site-footer" data-progress="pass" data-scene="contact">
   <div class="wrap">
     <p class="footer-big display" aria-hidden="true">Oscar <span class="foil">Senior</span></p>
-    <div class="footer-cols">
+    <div class="footer-cols glass" data-glass>
       <div>
         <p class="meta">Contact</p>
         <a href="mailto:nopsrust@gmail.com">nopsrust@gmail.com</a>
@@ -40,14 +40,17 @@ const year = new Date().getFullYear();
   }
   .footer-big {
     margin: 0 0 clamp(2.5rem, 6vw, 4.5rem);
-    font-size: clamp(3.2rem, 14.5vw, 15rem);
+    font-size: clamp(2.4rem, 10vw, 12rem);
     line-height: 0.82;
     white-space: nowrap;
+    /* Slides in from the left as the footer rises, settling flush. */
+    translate: calc((0.45 - min(var(--p, 0.45), 0.45)) * -14%) 0;
   }
   .footer-cols {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr);
     gap: 28px;
+    padding: clamp(22px, 3vw, 34px);
   }
   .footer-cols div {
     display: flex;

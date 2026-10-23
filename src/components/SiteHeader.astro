@@ -12,7 +12,7 @@ const links = [
 ---
 
 <header class="site-header" data-site-header transition:persist>
-  <div class="site-header-inner wrap">
+  <div class="site-header-inner glass" data-glass>
     <a class="brand" href={base} aria-label="Oscar Senior, home">
       <span class="brand-mark" aria-hidden="true">
         <svg viewBox="0 0 32 32"><path d="M5 26 16 5l11 21M10 17.5h12"></path></svg>
@@ -35,9 +35,9 @@ const links = [
       </button>
     </div>
   </div>
-  <div class="menu" id="site-menu" data-menu data-open="false">
+  <div class="menu glass-strong" id="site-menu" data-menu data-open="false">
     <nav aria-label="Main (mobile)">
-      {links.map((l) => <a data-nav href={l.href}><span class="nav-n">{l.n}</span><span class="display">{l.label}</span></a>)}
+      {links.map((l, i) => <a data-nav href={l.href} style={`--i:${i}`}><span class="nav-n">{l.n}</span><span class="display">{l.label}</span></a>)}
     </nav>
     <p class="meta">nopsrust@gmail.com · github.com/Oscar1-dev</p>
   </div>
@@ -46,24 +46,32 @@ const links = [
 <style>
   .site-header {
     position: fixed;
-    inset: 0 0 auto;
+    inset: 14px 0 auto;
     z-index: 60;
-    height: var(--header-h);
-    border-bottom: 1px solid transparent;
-    transition:
-      background var(--t) var(--ease),
-      border-color var(--t) var(--ease);
-  }
-  .site-header:global(.is-condensed) {
-    background: rgb(6 6 8 / 0.84);
-    backdrop-filter: blur(14px) saturate(1.2);
-    border-bottom-color: var(--line);
+    display: flex;
+    justify-content: center;
+    padding-inline: 14px;
+    pointer-events: none;
   }
   .site-header-inner {
-    height: 100%;
+    pointer-events: auto;
+    width: min(100%, 1240px);
+    height: 58px;
     display: flex;
     align-items: center;
-    gap: 32px;
+    gap: 28px;
+    padding: 0 10px 0 14px;
+    border-radius: 999px;
+    --glass-bg: rgb(16 15 22 / 0.32);
+    transition:
+      height var(--t) var(--ease),
+      width var(--t-slow) var(--ease),
+      background var(--t) var(--ease);
+  }
+  .site-header:global(.is-condensed) .site-header-inner {
+    height: 52px;
+    width: min(100%, 1120px);
+    --glass-bg: rgb(14 13 20 / 0.62);
   }
   .brand {
     display: flex;
@@ -75,19 +83,20 @@ const links = [
     place-items: center;
     width: 34px;
     height: 34px;
-    border-radius: 8px;
-    border: 1px solid var(--line-2);
-    transition: border-color var(--t) var(--ease);
+    border-radius: 50%;
+    background: var(--foil);
+    background-size: 220% 100%;
+    transition: background-position 1.2s var(--ease);
   }
   .brand:hover .brand-mark {
-    border-color: var(--sig-magenta);
+    background-position: 100% 0;
   }
   .brand-mark svg {
-    width: 18px;
-    height: 18px;
+    width: 16px;
+    height: 16px;
     fill: none;
-    stroke: var(--text);
-    stroke-width: 2.4;
+    stroke: var(--accent-ink);
+    stroke-width: 2.6;
     stroke-linejoin: round;
     stroke-linecap: round;
   }
@@ -121,23 +130,31 @@ const links = [
     display: flex;
     align-items: baseline;
     gap: 6px;
-    padding: 8px 12px;
+    padding: 9px 14px;
     border-radius: 999px;
     font-size: 14px;
     font-weight: 500;
     color: var(--text-2);
-    transition: color var(--t-fast);
+    transition:
+      color var(--t-fast),
+      background var(--t) var(--ease);
   }
-  .nav a:hover,
+  .nav a:hover {
+    color: var(--text);
+    background: rgb(255 255 255 / 0.05);
+  }
+  /* The current page: a lit pill with a foil hairline. */
   .nav a[aria-current='page'] {
     color: var(--text);
+    background: rgb(255 255 255 / 0.09);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
   }
   .nav a[aria-current='page']::after {
     content: '';
     position: absolute;
-    left: 12px;
-    right: 12px;
-    bottom: 1px;
+    left: 30%;
+    right: 30%;
+    bottom: 3px;
     height: 2px;
     border-radius: 2px;
     background: var(--foil);
@@ -165,7 +182,7 @@ const links = [
   }
   .header-gh:hover {
     color: var(--text);
-    background: rgb(255 255 255 / 0.06);
+    background: rgb(255 255 255 / 0.08);
   }
   .header-gh svg {
     width: 19px;
@@ -174,16 +191,16 @@ const links = [
   .menu-toggle {
     display: none;
     position: relative;
-    width: 42px;
-    height: 42px;
-    border: 1px solid var(--line-2);
+    width: 40px;
+    height: 40px;
+    border: 1px solid rgb(255 255 255 / 0.16);
     border-radius: 50%;
-    background: none;
+    background: rgb(255 255 255 / 0.05);
   }
   .menu-toggle i {
     position: absolute;
-    left: 13px;
-    right: 13px;
+    left: 12px;
+    right: 12px;
     height: 1.6px;
     background: var(--text);
     transition:
@@ -191,17 +208,17 @@ const links = [
       top var(--t) var(--ease);
   }
   .menu-toggle i:first-of-type {
-    top: 16px;
+    top: 15px;
   }
   .menu-toggle i:last-of-type {
-    top: 24px;
+    top: 23px;
   }
   .menu-toggle[aria-expanded='true'] i:first-of-type {
-    top: 20px;
+    top: 19px;
     transform: rotate(45deg);
   }
   .menu-toggle[aria-expanded='true'] i:last-of-type {
-    top: 20px;
+    top: 19px;
     transform: rotate(-45deg);
   }
   .menu {
@@ -218,22 +235,29 @@ const links = [
       display: block;
     }
     .menu {
+      pointer-events: auto;
       position: fixed;
-      inset: var(--header-h) 0 0;
+      inset: 0;
+      z-index: -1;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 24px var(--gutter) 32px;
-      background: var(--ink-0);
-      opacity: 0;
+      padding: 100px var(--gutter) 34px;
+      background: rgb(8 8 12 / 0.72);
+      -webkit-backdrop-filter: blur(28px) saturate(1.4);
+      backdrop-filter: blur(28px) saturate(1.4);
+      clip-path: circle(0% at calc(100% - 40px) 40px);
       visibility: hidden;
       transition:
-        opacity var(--t) var(--ease),
-        visibility var(--t);
+        clip-path 800ms var(--ease),
+        visibility 0s linear 800ms;
     }
     .menu[data-open='true'] {
-      opacity: 1;
+      clip-path: circle(150% at calc(100% - 40px) 40px);
       visibility: visible;
+      transition:
+        clip-path 900ms var(--ease),
+        visibility 0s;
     }
     .menu nav {
       display: flex;
@@ -245,9 +269,19 @@ const links = [
       gap: 14px;
       padding: 12px 0;
       border-bottom: 1px solid var(--line);
+      opacity: 0;
+      translate: 0 24px;
+      transition:
+        opacity 600ms var(--ease),
+        translate 800ms var(--ease);
+    }
+    .menu[data-open='true'] a {
+      opacity: 1;
+      translate: none;
+      transition-delay: calc(120ms + var(--i) * 55ms);
     }
     .menu a .display {
-      font-size: clamp(2rem, 9vw, 3.4rem);
+      font-size: clamp(2.2rem, 11vw, 3.6rem);
     }
     .menu a[aria-current='page'] .display {
       background: var(--foil);

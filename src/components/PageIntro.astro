@@ -8,9 +8,9 @@ interface Props {
 const { index, label, title, accent } = Astro.props;
 ---
 
-<header class="intro wrap">
+<header class="intro wrap" data-scene="page">
   <p class="intro-meta"><span class="mono">{index}</span><span class="meta">{label}</span></p>
-  <h1 class="display intro-title" data-reveal="clip">
+  <h1 class="display intro-title" data-split data-reveal>
     {title}
     {accent ? <span class="foil foil-live">{accent}</span> : null}
   </h1>

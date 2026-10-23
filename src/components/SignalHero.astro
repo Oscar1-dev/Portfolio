@@ -1,6 +1,7 @@
 ---
-// Home hero. The <h1> is the real name (SEO, screen readers, no-JS); the
-// particle field draws over it only once it's ready, then the text hides.
+// Home hero: a pinned scroll sequence. The <h1> is the real name (SEO,
+// screen readers, no JS); the particle field draws over it once ready. As you
+// scroll, the name disperses into the scene and the copy lifts away.
 interface Props {
   projectCount: number;
   rooms: number;
@@ -11,50 +12,66 @@ const base = import.meta.env.BASE_URL;
 const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Software engineering'];
 ---
 
-<section class="hero" aria-labelledby="hero-name">
-  <div class="hero-grid blueprint" aria-hidden="true"></div>
-  <div class="wrap hero-inner">
-    <div class="hero-top">
-      <p class="eyebrow">Software engineering / Cybersecurity</p>
-      <p class="hero-flap" data-flap={roles.join('|')}>{roles[0]}</p>
-    </div>
-
-    <div class="hero-stage" data-hero-stage>
-      <h1 id="hero-name" class="hero-name display">
-        <span>Oscar</span>
-        <span class="foil">Senior</span>
-      </h1>
-      <div class="hero-field" data-signal-field aria-hidden="true"></div>
-    </div>
-
-    <div class="hero-bottom">
-      <p class="hero-bio">
-        I'm Oscar, also Nops: a final-year DISC student in cybersecurity and IT, founder and developer of
-        <a href={`${base}projects/kush/`}>KUSH</a>, and Chief Security Officer at Velnqo. I build real
-        systems (a threat-intelligence platform, Rust and Tauri desktop apps, Discord-native platforms with real auth, rate
-        limiting and audit logging) and practise offensive and defensive security on TryHackMe.
-      </p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href={`${base}projects/kush/`}>
-          KUSH case study
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-        </a>
-        <a class="btn btn-outline" href={`${base}projects/`}>All {projectCount} projects</a>
-        <a class="btn btn-outline" href={`${base}#experience`}>Experience</a>
+<section class="hero" aria-labelledby="hero-name" data-progress="pin" data-scene="hero" data-hero>
+  <div class="hero-frame">
+    <div class="wrap hero-inner">
+      <div class="hero-top">
+        <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Software engineering / Cybersecurity</p>
+        <p class="hero-flap" data-flap={roles.join('|')}>{roles[0]}</p>
       </div>
-      <dl class="hero-facts">
-        <div><dt>Projects</dt><dd class="mono">{projectCount}</dd></div>
-        <div><dt>TryHackMe rooms</dt><dd class="mono">{rooms}</dd></div>
-        <div><dt>Badges</dt><dd class="mono">{badges}</dd></div>
-      </dl>
+
+      <div class="hero-stage" data-hero-stage>
+        <h1 id="hero-name" class="hero-name display">
+          <span>Oscar</span>
+          <span class="foil">Senior</span>
+        </h1>
+        <div class="hero-field" data-signal-field aria-hidden="true"></div>
+      </div>
+
+      <div class="hero-bottom">
+        <div class="hero-copy">
+          <p class="hero-bio">
+            I'm Oscar, also Nops: a final-year DISC student in cybersecurity and IT, founder and developer of
+            <a href={`${base}projects/kush/`}>KUSH</a>, and Chief Security Officer at Velnqo. I build real systems (a
+            threat-intelligence platform, Rust and Tauri desktop apps, Discord-native platforms with real auth, rate limiting
+            and audit logging) and practise offensive and defensive security on TryHackMe.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href={`${base}projects/kush/`}>
+              KUSH case study
+              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+            </a>
+            <a class="btn btn-glass" href={`${base}projects/`}>All {projectCount} projects</a>
+            <a class="btn btn-glass" href={`${base}#experience`}>Experience</a>
+          </div>
+        </div>
+        <aside class="hero-plate glass" data-glass aria-label="At a glance">
+          <p class="plate-head mono"><span>STATUS</span><span>2026</span></p>
+          <ul class="plate-roles">
+            <li><span class="plate-k">CSO</span><span>Velnqo</span></li>
+            <li><span class="plate-k">Founder</span><span>KUSH</span></li>
+            <li><span class="plate-k">Student</span><span>DISC · Cybersecurity & IT</span></li>
+          </ul>
+          <dl class="plate-facts">
+            <div><dt>Projects</dt><dd>{projectCount}</dd></div>
+            <div><dt>THM rooms</dt><dd>{rooms}</dd></div>
+            <div><dt>Badges</dt><dd>{badges}</dd></div>
+          </dl>
+        </aside>
+      </div>
     </div>
+    <a class="hero-scroll" href="#featured" aria-label="Scroll to featured work">
+      <span class="meta">Scroll</span>
+      <i aria-hidden="true"></i>
+    </a>
   </div>
-  <a class="hero-scroll meta" href="#featured">Scroll</a>
 </section>
 
 <script>
-  type Field = { dispose: () => void };
+  import { onScrollTick } from '../scripts/scroll-fx';
+  type Field = { dispose: () => void; setScatter: (n: number) => void };
   let field: Field | null = null;
+  let off: (() => void) | null = null;
 
   const lowPower = () => {
     const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
@@ -70,15 +87,20 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
 
   document.addEventListener('astro:page-load', () => {
     const host = document.querySelector<HTMLElement>('[data-signal-field]');
-    if (!host || !document.documentElement.classList.contains('motion-ok') || lowPower() || !webgl()) return;
+    const hero = document.querySelector<HTMLElement>('[data-hero]');
+    if (!host || !hero || !document.documentElement.classList.contains('motion-ok') || lowPower() || !webgl()) return;
     const narrow = window.innerWidth < 720;
-    // Load three.js only when the hero is actually going to animate.
     void import('../scripts/signal-field').then(async ({ mountSignalField }) => {
       field = await mountSignalField(host, narrow ? ['OSCAR', 'SENIOR'] : ['OSCAR SENIOR']);
-      if (field) host.closest('[data-hero-stage]')?.setAttribute('data-live', 'true');
+      if (!field) return;
+      host.closest('[data-hero-stage]')?.setAttribute('data-live', 'true');
+      // The name disperses as the pinned hero scrolls away.
+      off = onScrollTick(() => field?.setScatter(Number(hero.style.getPropertyValue('--p')) * 1.6));
     });
   });
   document.addEventListener('astro:before-swap', () => {
+    off?.();
+    off = null;
     field?.dispose();
     field = null;
   });
@@ -87,19 +109,23 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
 <style>
   .hero {
     position: relative;
-    min-height: 100svh;
+    --p: 0;
+    overflow-x: clip;
+  }
+  :global(.motion-ok) .hero {
+    height: 175vh;
+  }
+  .hero-frame {
+    position: relative;
+    height: 100svh;
+    min-height: 640px;
     display: flex;
     flex-direction: column;
-    padding-top: calc(var(--header-h) + 24px);
-    overflow: hidden;
-    isolation: isolate;
+    padding-top: calc(var(--header-h) + 34px);
   }
-  .hero-grid {
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    -webkit-mask-image: linear-gradient(180deg, transparent, #000 25%, #000 70%, transparent);
-    mask-image: linear-gradient(180deg, transparent, #000 25%, #000 70%, transparent);
+  :global(.motion-ok) .hero-frame {
+    position: sticky;
+    top: 0;
   }
   .hero-inner {
     flex: 1;
@@ -113,9 +139,26 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
     gap: 20px;
     padding-bottom: 18px;
     border-bottom: 1px solid var(--line);
+    opacity: calc(1 - var(--p) * 2.2);
   }
   .hero-top .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin: 0;
+  }
+  .live-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--sig-magenta);
+    box-shadow: 0 0 0 4px rgb(255 95 200 / 0.18);
+    animation: pulse 2.4s var(--ease-in-out) infinite;
+  }
+  @keyframes pulse {
+    50% {
+      box-shadow: 0 0 0 7px rgb(255 95 200 / 0.04);
+    }
   }
   .hero-flap {
     margin: 0;
@@ -125,9 +168,11 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
   .hero-stage {
     position: relative;
     flex: 1;
-    min-height: clamp(220px, 38vh, 440px);
+    min-height: clamp(200px, 34vh, 420px);
     display: grid;
     align-items: center;
+    transform: scale(calc(1 + var(--p) * 0.06));
+    transform-origin: 50% 60%;
   }
   .hero-name {
     display: flex;
@@ -140,7 +185,7 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
   }
   .hero-field {
     position: absolute;
-    inset: 0;
+    inset: -12% -4%;
     pointer-events: none;
   }
   .hero-field :global(canvas) {
@@ -148,78 +193,151 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
     width: 100%;
     height: 100%;
   }
-  /* Once the particles are live the real text steps back (still in the DOM). */
   .hero-stage[data-live='true'] .hero-name {
     opacity: 0;
   }
   .hero-bottom {
     display: grid;
-    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
-    grid-template-areas:
-      'bio facts'
-      'actions facts';
-    gap: 22px 48px;
-    padding: 24px 0 40px;
-    border-top: 1px solid var(--line);
+    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
+    gap: 28px 56px;
+    align-items: end;
+    padding: 20px 0 44px;
+  }
+  .hero-copy {
+    translate: 0 calc(var(--p) * -90px);
+    opacity: calc(1 - var(--p) * 1.8);
   }
   .hero-bio {
-    grid-area: bio;
-    margin: 0;
-    max-width: 62ch;
-    font-size: clamp(1.02rem, 1.3vw, 1.16rem);
+    margin: 0 0 22px;
+    max-width: 60ch;
+    font-size: clamp(1.02rem, 1.3vw, 1.15rem);
     line-height: 1.65;
     color: var(--text-2);
   }
   .hero-actions {
-    grid-area: actions;
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
   }
-  .hero-facts {
-    grid-area: facts;
+  /* Glass status plate: floats in front of the scene, lifts faster on scroll. */
+  .hero-plate {
+    padding: 18px 20px 20px;
+    translate: 0 calc(var(--p) * -160px);
+    opacity: calc(1 - var(--p) * 1.6);
+  }
+  .plate-head {
+    display: flex;
+    justify-content: space-between;
+    margin: 0 0 12px;
+    font-size: 10.5px;
+    letter-spacing: 0.16em;
+    color: var(--text-3);
+  }
+  .plate-roles {
+    list-style: none;
+    margin: 0 0 16px;
+    padding: 0;
+  }
+  .plate-roles li {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 9px 0;
+    border-top: 1px solid rgb(255 255 255 / 0.07);
+    font-size: 15px;
+  }
+  .plate-k {
+    min-width: 66px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    background: var(--foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .plate-facts {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-self: end;
     margin: 0;
+    padding-top: 14px;
+    border-top: 1px solid rgb(255 255 255 / 0.07);
   }
-  .hero-facts div {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-    padding: 0 0 0 18px;
-    border-left: 1px solid var(--line);
-  }
-  .hero-facts dt {
+  .plate-facts dt {
     font-family: var(--font-mono);
-    font-size: 10.5px;
-    letter-spacing: 0.14em;
+    font-size: 10px;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
     color: var(--text-3);
   }
-  .hero-facts dd {
-    margin: 6px 0 0;
-    font-size: clamp(1.8rem, 3vw, 2.6rem);
-    color: var(--text);
+  .plate-facts dd {
+    margin: 4px 0 0;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 118;
+    font-weight: 800;
+    font-size: 2rem;
+    line-height: 1;
   }
   .hero-scroll {
     position: absolute;
     right: var(--gutter);
-    bottom: 22px;
+    bottom: 26px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    opacity: calc(1 - var(--p) * 4);
+  }
+  .hero-scroll .meta {
     writing-mode: vertical-rl;
-    color: var(--text-3);
+  }
+  .hero-scroll i {
+    position: relative;
+    width: 1px;
+    height: 42px;
+    background: var(--line-2);
+    overflow: hidden;
+  }
+  .hero-scroll i::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 40%;
+    background: var(--foil);
+    animation: drip 2.2s var(--ease-in-out) infinite;
+  }
+  @keyframes drip {
+    from {
+      translate: 0 -100%;
+    }
+    to {
+      translate: 0 260%;
+    }
+  }
+  @media (max-width: 960px) {
+    .hero-bottom {
+      grid-template-columns: 1fr;
+    }
+    .hero-scroll {
+      display: none;
+    }
   }
   @media (max-width: 860px) {
+    :global(.motion-ok) .hero {
+      height: auto;
+    }
+    :global(.motion-ok) .hero-frame {
+      position: relative;
+    }
     .hero-top {
       flex-direction: column;
       align-items: flex-start;
     }
-    .hero-bottom {
-      grid-template-columns: 1fr;
-      grid-template-areas: 'bio' 'actions' 'facts';
-    }
-    .hero-scroll {
-      display: none;
+    .hero-frame {
+      min-height: 100svh;
+      height: auto;
     }
   }
 </style>

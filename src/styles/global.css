@@ -23,7 +23,8 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
   font-feature-settings: 'ss01', 'cv11';
-  overflow-x: hidden;
+  /* clip, not hidden: hidden would break position: sticky (pinned scenes). */
+  overflow-x: clip;
 }
 img,
 svg,
@@ -266,6 +267,7 @@ h4 {
 }
 .chip,
 .tag {
+  max-width: 100%;
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -430,5 +432,192 @@ h4 {
   }
   .sec-title {
     font-size: clamp(2.05rem, 10vw, 3rem);
+  }
+}
+
+/* ------------------------------------------------------------ glass */
+
+.glass {
+  position: relative;
+  isolation: isolate;
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  border-radius: var(--glass-radius);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.07),
+    var(--shadow-deep);
+}
+/* Bevelled edge: brighter where light hits the top-left of the pane. */
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(155deg, rgb(255 255 255 / 0.26), rgb(255 255 255 / 0.04) 38%, rgb(255 255 255 / 0.02) 62%, rgb(255 255 255 / 0.12));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+/* Specular highlight that follows the cursor across the pane (glass.ts). */
+.glass::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(560px circle at var(--mx, 50%) var(--my, 0%), rgb(255 255 255 / 0.075), transparent 46%);
+  opacity: var(--lit, 0);
+  transition: opacity 600ms var(--ease);
+  pointer-events: none;
+}
+.glass-strong {
+  background: var(--glass-bg-strong);
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .glass {
+    background: rgb(15 14 21 / 0.94);
+  }
+}
+
+.btn-glass {
+  position: relative;
+  color: var(--text);
+  background: rgb(255 255 255 / 0.06);
+  -webkit-backdrop-filter: blur(14px) saturate(1.5);
+  backdrop-filter: blur(14px) saturate(1.5);
+  border: 1px solid rgb(255 255 255 / 0.14);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
+  overflow: hidden;
+}
+.btn-glass:hover {
+  background: rgb(255 255 255 / 0.1);
+  border-color: rgb(255 255 255 / 0.24);
+}
+/* A light sweep across buttons on hover. */
+.btn-primary,
+.btn-glass,
+.btn-foil {
+  overflow: hidden;
+  position: relative;
+}
+.btn-primary::after,
+.btn-glass::after,
+.btn-foil::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.45) 50%, transparent 70%);
+  translate: -120% 0;
+  transition: translate 900ms var(--ease);
+  pointer-events: none;
+}
+.btn-glass::after {
+  background: linear-gradient(105deg, transparent 30%, rgb(255 255 255 / 0.16) 50%, transparent 70%);
+}
+.btn-primary:hover::after,
+.btn-glass:hover::after,
+.btn-foil:hover::after {
+  translate: 120% 0;
+}
+
+/* ------------------------------------------------------------ kinetic type */
+
+/* [data-split] text is split into words (split.ts); each word rises out of a
+   mask with a stagger when the element is revealed. */
+[data-split] .w {
+  display: inline-block;
+  overflow: clip;
+  overflow-clip-margin: 0.12em;
+  vertical-align: top;
+  padding-bottom: 0.06em;
+  max-width: 100%;
+}
+/* A word longer than the line (narrow phones) wraps inside its mask
+   instead of pushing the page sideways. */
+[data-split] .w > span {
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.motion-ok [data-split]:not(.is-in) .w > span {
+  translate: 0 108%;
+  rotate: 4deg;
+}
+.motion-ok [data-split] .w > span {
+  transition:
+    translate 1100ms var(--ease),
+    rotate 1100ms var(--ease);
+  transition-delay: calc(var(--i, 0) * 45ms + var(--reveal-delay, 0ms));
+}
+/* Split elements reveal through their words, not by fading the whole block. */
+.motion-ok [data-split][data-reveal]:not(.is-in) {
+  opacity: 1;
+  translate: none;
+}
+
+/* Scene canvas: the 3D environment behind every page. */
+.scene {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1.4s var(--ease);
+}
+.scene[data-ready='true'] {
+  opacity: 1;
+}
+/* Content sits above the scene. */
+main,
+.site-footer {
+  position: relative;
+  z-index: 1;
+}
+/* Gentle vignette so text stays readable over the 3D light. */
+.atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(180deg, rgb(6 6 8 / 0.15), transparent 30%, transparent 70%, rgb(6 6 8 / 0.5)),
+    linear-gradient(90deg, rgb(6 6 8 / 0.45), transparent 35%, transparent 65%, rgb(6 6 8 / 0.25));
+}
+
+/* Lenis */
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: clip;
+}
+
+@media (max-width: 560px) {
+  /* Long labels wrap on phones instead of widening their row. */
+  .tag {
+    height: auto;
+    min-height: 26px;
+    padding-block: 4px;
+    white-space: normal;
+  }
+  .btn {
+    max-width: 100%;
+    height: auto;
+    min-height: 46px;
+    white-space: normal;
+  }
+  .scene {
+    opacity: 0.7;
   }
 }

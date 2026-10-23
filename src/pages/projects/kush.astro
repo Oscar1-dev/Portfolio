@@ -37,20 +37,20 @@ const status = [
 
 <Layout title="KUSH" description={`KUSH case study: ${data.description}`} article>
   <article class="kcase">
-    <header class="khero wrap">
+    <header class="khero wrap" data-scene="case">
       <a class="meta kback" href={`${base}projects/`}>← All projects</a>
       <div class="khero-top">
         <p class="meta">Case study · Founder & developer</p>
         <p class="meta">2026 – present</p>
       </div>
-      <h1 class="display kword" data-reveal="clip">KUSH</h1>
+      <h1 class="display kword" data-split data-reveal>KUSH</h1>
       <div class="khero-grid">
         <p class="kdesc">{data.description}</p>
         <div>
           <p class="kstatus mono">◐ {data.statusNote}</p>
           <div class="kactions">
             <a class="btn btn-kush" href="https://github.com/Oscar1-dev/KUSH" target="_blank" rel="noopener noreferrer">Source on GitHub ↗</a>
-            <a class="btn btn-outline" href="#architecture">Architecture</a>
+            <a class="btn btn-glass" href="#architecture">Architecture</a>
           </div>
         </div>
       </div>
@@ -66,11 +66,12 @@ const status = [
       </dl>
     </header>
 
-    <section class="kscreens" aria-label="KUSH website screenshots">
+    <section class="kscreens" aria-label="KUSH website screenshots" data-progress="pin" data-scene="kush" style={`--n:${screens.length}`}>
+      <div class="kscreens-frame">
       <div class="kscreens-track">
         {
           screens.map((s, i) => (
-            <figure class="kscreen" data-reveal>
+            <figure class="kscreen" style={`--si:${i}`}>
               <img src={assetPath(s.src)} alt={s.caption} width="1600" height="1000" loading={i ? 'lazy' : 'eager'} decoding="async" />
               <figcaption>
                 <span class="mono">{String(i + 1).padStart(2, '0')}</span> {s.caption}
@@ -80,18 +81,19 @@ const status = [
         }
       </div>
       <p class="wrap faint kscreens-note">Screenshots of the KUSH website running locally. Account and staff areas aren't shown: they hold real account data.</p>
+      </div>
     </section>
 
-    <section id="architecture" class="wrap ksec">
+    <section id="architecture" class="wrap ksec" data-scene="case">
       <div class="sec-head">
         <div>
           <p class="sec-index">01 · Architecture</p>
-          <h2 class="sec-title">One record,<br /><span class="kfoil">every surface.</span></h2>
+          <h2 class="sec-title" data-split data-reveal>One record,<br /><span class="kfoil">every surface.</span></h2>
         </div>
         <span class="meta">High level · no internal details</span>
         <span class="sec-rule" aria-hidden="true"></span>
       </div>
-      <div class="arch blueprint" data-reveal>
+      <div class="arch glass" data-glass data-reveal>
         <div class="arch-col">
           <p class="arch-label meta">People</p>
           <div class="node">Customers<span>browser</span></div>
@@ -128,7 +130,7 @@ const status = [
       <div class="sec-head">
         <div>
           <p class="sec-index">02 · The build</p>
-          <h2 class="sec-title">What's real,<br /><span class="kfoil">and how.</span></h2>
+          <h2 class="sec-title" data-split data-reveal>What's real,<br /><span class="kfoil">and how.</span></h2>
         </div>
         <span class="sec-rule" aria-hidden="true"></span>
       </div>
@@ -136,7 +138,7 @@ const status = [
         <div class="prose">
           <Content />
         </div>
-        <aside class="kside">
+        <aside class="kside glass" data-glass>
           <p class="meta">My responsibilities</p>
           <ul class="klist">
             {responsibilities.map((r) => <li>{r}</li>)}
@@ -160,7 +162,7 @@ const status = [
       <div class="sec-head">
         <div>
           <p class="sec-index">03 · Status</p>
-          <h2 class="sec-title">Honest<br /><span class="kfoil">progress.</span></h2>
+          <h2 class="sec-title" data-split data-reveal>Honest<br /><span class="kfoil">progress.</span></h2>
         </div>
         <span class="meta">October 2026</span>
         <span class="sec-rule" aria-hidden="true"></span>
@@ -168,7 +170,7 @@ const status = [
       <div class="kstatus-grid">
         {
           status.map((col, i) => (
-            <div class="kstate" data-state={i} data-reveal>
+            <div class="kstate glass" data-glass data-state={i} data-reveal style={`--reveal-delay:${i * 90}ms`}>
               <p class="kstate-title">
                 <i aria-hidden="true" />
                 {col.state}
@@ -188,7 +190,7 @@ const status = [
       <div class="sec-head">
         <div>
           <p class="sec-index">04 · Engineering</p>
-          <h2 class="sec-title">What it<br /><span class="kfoil">demonstrates.</span></h2>
+          <h2 class="sec-title" data-split data-reveal>What it<br /><span class="kfoil">demonstrates.</span></h2>
         </div>
         <span class="sec-rule" aria-hidden="true"></span>
       </div>
@@ -298,8 +300,26 @@ const status = [
   .kfacts dd {
     margin: 8px 0 0;
   }
+  /* Screens: a pinned horizontal strip. Vertical scroll drives the track
+     sideways (--p from scroll-fx) and each screen swings flat as it passes. */
   .kscreens {
+    --p: 0;
+    position: relative;
     padding-block: clamp(2.5rem, 6vw, 5rem);
+  }
+  :global(.motion-ok) .kscreens {
+    height: calc(var(--n) * 75vh);
+    padding-block: 0;
+  }
+  :global(.motion-ok) .kscreens-frame {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    perspective: 1800px;
   }
   .kscreens-track {
     display: grid;
@@ -311,17 +331,31 @@ const status = [
     padding: 0 var(--gutter) 14px;
     scrollbar-width: thin;
   }
+  :global(.motion-ok) .kscreens-track {
+    width: max-content;
+    overflow: visible;
+    gap: 48px;
+    grid-auto-columns: min(66vw, 900px);
+    translate: calc(var(--p) * (100vw - 100%)) 0;
+    transform-style: preserve-3d;
+  }
   .kscreen {
+    --d: calc(var(--p) * (var(--n) - 1) - var(--si));
     margin: 0;
     scroll-snap-align: center;
   }
+  :global(.motion-ok) .kscreen {
+    transform: rotateY(calc(clamp(-1, var(--d), 1) * 16deg)) scale(calc(1 - min(1, max(var(--d), calc(var(--d) * -1))) * 0.08));
+    opacity: calc(1 - min(1, max(var(--d), calc(var(--d) * -1))) * 0.45);
+  }
   .kscreen img {
     width: 100%;
-    border-radius: 12px;
-    border: 1px solid var(--line-2);
+    border-radius: 16px;
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow: 0 50px 90px -40px rgb(0 0 0 / 0.95);
   }
   .kscreen figcaption {
-    margin-top: 12px;
+    margin-top: 14px;
     color: var(--text-2);
     font-size: 14px;
   }
@@ -343,8 +377,7 @@ const status = [
     grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr) 36px minmax(0, 1.15fr) 36px minmax(0, 1.1fr);
     align-items: center;
     padding: clamp(20px, 3vw, 36px);
-    border: 1px solid rgb(143 211 255 / 0.18);
-    border-radius: var(--radius);
+    --glass-bg: rgb(12 12 20 / 0.5);
   }
   .arch-col {
     display: flex;
@@ -360,11 +393,19 @@ const status = [
     flex-direction: column;
     gap: 3px;
     padding: 12px 14px;
-    border: 1px solid rgb(143 211 255 / 0.28);
-    border-radius: 6px;
-    background: rgb(6 6 8 / 0.75);
+    border: 1px solid rgb(255 255 255 / 0.1);
+    border-radius: 14px;
+    background: linear-gradient(160deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.015));
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1);
     font-weight: 600;
     font-size: 14.5px;
+    transition:
+      translate var(--t) var(--ease),
+      border-color var(--t) var(--ease);
+  }
+  .node:hover {
+    translate: 0 -3px;
+    border-color: rgb(203 188 255 / 0.5);
   }
   .node span {
     font-family: var(--font-mono);
@@ -423,6 +464,7 @@ const status = [
     margin-top: 0;
   }
   .kside {
+    padding: 22px;
     position: sticky;
     top: calc(var(--header-h) + 24px);
     align-self: start;
@@ -461,14 +503,10 @@ const status = [
   .kstatus-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    border-top: 1px solid var(--line);
+    gap: 16px;
   }
   .kstate {
-    padding: 22px 22px 22px 0;
-  }
-  .kstate + .kstate {
-    padding-left: 22px;
-    border-left: 1px solid var(--line);
+    padding: 22px;
   }
   .kstate-title {
     display: flex;
@@ -562,13 +600,28 @@ const status = [
       padding-left: 0;
       border-left: 0;
     }
-    .kstate + .kstate {
-      padding-left: 0;
-      border-left: 0;
-      border-top: 1px solid var(--line);
-    }
     .kside {
       position: static;
+    }
+    :global(.motion-ok) .kscreens {
+      height: auto;
+      padding-block: 2.5rem;
+    }
+    :global(.motion-ok) .kscreens-frame {
+      position: relative;
+      height: auto;
+      overflow: visible;
+    }
+    :global(.motion-ok) .kscreens-track {
+      width: auto;
+      overflow-x: auto;
+      translate: none;
+      gap: 16px;
+      grid-auto-columns: 84vw;
+    }
+    :global(.motion-ok) .kscreen {
+      transform: none;
+      opacity: 1;
     }
   }
 </style>

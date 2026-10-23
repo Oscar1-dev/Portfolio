@@ -6,7 +6,7 @@ const base = import.meta.env.BASE_URL;
 <ol class="experience">
   {
     roles.map((role, i) => (
-      <li class="role" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+      <li class="role glass" data-glass style={`--ri:${i}`}>
         <div class="role-when">
           <span class="mono">{role.period}</span>
           {role.kind ? <span class="meta">{role.kind}</span> : null}
@@ -36,22 +36,28 @@ const base = import.meta.env.BASE_URL;
 </ol>
 
 <style>
+  /* Stacked glass panes: each role pins as you scroll and the next slides over
+     it, offset a little lower, so the roles read as layers in depth. */
   .experience {
     list-style: none;
     margin: 0;
     padding: 0;
-    border-bottom: 1px solid var(--line);
-  }
-  .role:first-child {
-    border-top: 0;
-    padding-top: 0;
   }
   .role {
     display: grid;
     grid-template-columns: 200px minmax(0, 1.4fr) minmax(0, 1fr);
     gap: 18px clamp(20px, 3.5vw, 56px);
-    padding-block: clamp(1.8rem, 3.6vw, 3rem);
-    border-top: 1px solid var(--line);
+    padding: clamp(24px, 3vw, 40px);
+    margin-bottom: 26px;
+    --glass-bg: rgb(15 14 22 / 0.62);
+  }
+  :global(.motion-ok) .role {
+    position: sticky;
+    top: calc(var(--header-h) + 34px + var(--ri) * 26px);
+    margin-bottom: 22vh;
+  }
+  :global(.motion-ok) .role:last-child {
+    margin-bottom: 4vh;
   }
   .role-when {
     display: flex;
@@ -88,10 +94,10 @@ const base = import.meta.env.BASE_URL;
     margin: 0 0 14px;
   }
   .role-org {
-    font-size: clamp(2rem, 4vw, 3.4rem);
+    font-size: clamp(2.2rem, 4.4vw, 3.8rem);
   }
   .role-position {
-    font-size: 1.1rem;
+    font-size: 1.12rem;
     font-weight: 600;
     background: var(--foil);
     -webkit-background-clip: text;
@@ -122,7 +128,7 @@ const base = import.meta.env.BASE_URL;
   }
   .role-focus li {
     padding: 7px 0;
-    border-bottom: 1px dashed var(--line);
+    border-bottom: 1px dashed rgb(255 255 255 / 0.08);
     font-size: 14px;
     color: var(--text-2);
   }
@@ -134,6 +140,11 @@ const base = import.meta.env.BASE_URL;
   @media (max-width: 960px) {
     .role {
       grid-template-columns: 1fr;
+    }
+    :global(.motion-ok) .role {
+      position: relative;
+      top: auto;
+      margin-bottom: 18px;
     }
     .role-when {
       flex-direction: row;

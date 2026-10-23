@@ -1,0 +1,76 @@
+---
+// A pinned statement, in Oscar's own words (from the About page): each word
+// lights up as you scroll through it.
+const base = import.meta.env.BASE_URL;
+const text = 'I learn by building. Every project on this site started from a real problem or a specific thing I wanted to understand.';
+const words = text.split(' ');
+---
+
+<section class="statement" data-progress="pin" data-scene="statement" aria-label="How I work">
+  <div class="statement-frame wrap">
+    <p class="sec-index">From the About page</p>
+    <p class="statement-text display" aria-label={text}>
+      {
+        words.map((w, i) => (
+          <span class:list={['sw', { hl: /building|real|understand/.test(w) }]} style={`--wi:${(i / words.length).toFixed(3)}`} aria-hidden="true">
+            {w}{' '}
+          </span>
+        ))
+      }
+    </p>
+    <a class="link-arrow statement-link" href={`${base}about/`}>More about me <span class="arr" aria-hidden="true">→</span></a>
+  </div>
+</section>
+
+<style>
+  .statement {
+    position: relative;
+    --p: 1;
+  }
+  :global(.motion-ok) .statement {
+    height: 240vh;
+    --p: 0;
+  }
+  .statement-frame {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 34px;
+  }
+  :global(.motion-ok) .statement-frame {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+  }
+  .statement .sec-index {
+    margin: 0;
+  }
+  .statement-text {
+    margin: 0;
+    max-width: 18ch;
+    font-size: clamp(2.4rem, 6.4vw, 6.6rem);
+    line-height: 0.98;
+    letter-spacing: -0.035em;
+  }
+  /* Each word brightens as scroll progress passes its position in the line. */
+  .sw {
+    opacity: clamp(0.12, calc((var(--p) * 1.18 - var(--wi)) * 9), 1);
+    transition: opacity 120ms linear;
+  }
+  .sw.hl {
+    background: var(--foil);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .statement-link {
+    opacity: clamp(0, calc((var(--p) - 0.85) * 8), 1);
+  }
+  @media (max-width: 640px) {
+    .statement-text {
+      max-width: none;
+    }
+  }
+</style>

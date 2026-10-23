@@ -1,6 +1,7 @@
 ---
-// KUSH, the lead project. Uses KUSH's own pastel foil (its brand), framed by
-// the portfolio's system; real screenshots of the KUSH website.
+// KUSH, the lead project: a pinned scroll sequence. The copy sits on a glass
+// plate; real screenshots of the KUSH website travel through 3D depth as you
+// scroll. KUSH's own pastel foil is used here (its brand).
 import type { Project } from '../data/links';
 import { assetPath } from '../data/asset-path';
 interface Props {
@@ -15,23 +16,29 @@ const pillars = [
   { k: 'Discord', v: 'Provisioned server, permission evaluator, tickets, referrals, bot' },
   { k: 'Commerce', v: 'Commissions, orders, store credit, Stripe (simulated locally)' },
 ];
+const shots = [
+  { src: '/images/projects/kush-home.webp', label: 'Home' },
+  { src: '/images/projects/kush-services.webp', label: 'Services' },
+  { src: '/images/projects/kush-commission.webp', label: 'Start a project' },
+  { src: '/images/projects/kush-pricing.webp', label: 'Pricing' },
+];
 ---
 
-<section class="kush" aria-labelledby="kush-title">
-  <div class="wrap">
-    <div class="kush-head">
-      <p class="sec-index">01 · Featured</p>
-      <p class="meta">Founder & developer · 2026 – present</p>
-    </div>
-    <div class="kush-grid">
-      <div class="kush-copy">
+<section class="kush" aria-labelledby="kush-title" data-progress="pin" data-scene="kush" style={`--n:${shots.length}`}>
+  <div class="kush-frame">
+    <div class="wrap kush-grid">
+      <div class="kush-plate glass" data-glass>
+        <div class="kush-head">
+          <p class="sec-index">01 · Featured</p>
+          <p class="meta">Founder & developer · 2026 – present</p>
+        </div>
         <h2 id="kush-title" class="display kush-word">KUSH</h2>
         <p class="kush-lede">{data.description}</p>
         <p class="kush-status mono"><span aria-hidden="true">◐</span> {data.statusNote}</p>
         <dl class="kush-pillars">
           {
             pillars.map((p) => (
-              <div data-reveal>
+              <div>
                 <dt>{p.k}</dt>
                 <dd>{p.v}</dd>
               </div>
@@ -43,19 +50,28 @@ const pillars = [
             Read the KUSH case study
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
           </a>
-          <a class="btn btn-outline" href="https://github.com/Oscar1-dev/KUSH" target="_blank" rel="noopener noreferrer">Source on GitHub ↗</a>
+          <a class="btn btn-glass" href="https://github.com/Oscar1-dev/KUSH" target="_blank" rel="noopener noreferrer">Source ↗</a>
         </div>
       </div>
-      <a class="kush-stack" href={`${base}projects/kush/`} aria-label="KUSH case study" tabindex="-1">
-        <img class="shot shot-back" src={assetPath('/images/projects/kush-services.webp')} alt="" loading="lazy" width="1600" height="1000" />
-        <img class="shot shot-mid" src={assetPath('/images/projects/kush-commission.webp')} alt="" loading="lazy" width="1600" height="1000" />
-        <img class="shot shot-front" src={assetPath('/images/projects/kush-home.webp')} alt="The KUSH website home page: BUILT DIFFERENT in large type with the holographic leaf." loading="lazy" width="1600" height="1000" />
-      </a>
+
+      <div class="kush-stage" aria-label="KUSH website screenshots">
+        {
+          shots.map((s, i) => (
+            <figure class="kshot" style={`--si:${i}`}>
+              <img src={assetPath(s.src)} alt={`KUSH website: ${s.label} page`} loading="lazy" decoding="async" width="1600" height="1000" />
+              <figcaption class="mono">
+                <span>{String(i + 1).padStart(2, '0')}</span> {s.label}
+              </figcaption>
+            </figure>
+          ))
+        }
+        <div class="kush-progress" aria-hidden="true"><i></i></div>
+      </div>
     </div>
-    <dl class="kush-metrics">
+    <dl class="kush-metrics wrap">
       {
         Object.entries(data.metrics ?? {}).map(([k, v]) => (
-          <div data-reveal>
+          <div>
             <dt>{k}</dt>
             <dd>{v}</dd>
           </div>
@@ -68,67 +84,89 @@ const pillars = [
 <style>
   .kush {
     position: relative;
-    padding-block: clamp(4rem, 9vw, 8rem);
-    border-top: 1px solid var(--line);
+    --p: 0.25;
+    overflow-x: clip;
+  }
+  :global(.motion-ok) .kush {
+    height: 340vh;
+  }
+  .kush-frame {
+    min-height: 100svh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 26px;
+    padding: calc(var(--header-h) + 30px) 0 30px;
+  }
+  :global(.motion-ok) .kush-frame {
+    position: sticky;
+    top: 0;
+    height: 100svh;
+  }
+  .kush-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.2fr);
+    gap: clamp(24px, 4vw, 64px);
+    align-items: center;
+  }
+  .kush-plate {
+    padding: clamp(22px, 2.6vw, 36px);
+    --glass-bg: rgb(16 15 24 / 0.5);
   }
   .kush-head {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+    gap: 12px;
+    margin-bottom: 8px;
   }
-  .kush-head .sec-index {
+  .kush-head .sec-index,
+  .kush-head .meta {
     margin: 0;
   }
-  .kush-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
-    gap: clamp(28px, 5vw, 80px);
-    align-items: center;
-  }
   .kush-word {
-    margin: 0 0 22px;
-    font-size: clamp(4.5rem, 10vw, 9.5rem);
+    margin: 0 0 16px;
+    font-size: clamp(4rem, 8.4vw, 8.4rem);
     line-height: 0.8;
     background: var(--kush-holo);
     background-size: 220% 100%;
+    background-position: calc(var(--p) * 120%) 0;
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
-    animation: foil-drift 18s linear infinite;
   }
   .kush-lede {
-    margin: 0 0 16px;
-    max-width: 52ch;
-    font-size: 1.1rem;
+    margin: 0 0 12px;
+    max-width: 50ch;
+    font-size: 1.04rem;
     line-height: 1.6;
     color: var(--text-2);
   }
   .kush-status {
-    margin: 0 0 28px;
-    font-size: 12.5px;
+    margin: 0 0 18px;
+    font-size: 12px;
     color: #f4eec0;
   }
   .kush-pillars {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 0 24px;
-    margin: 0 0 30px;
+    gap: 0 22px;
+    margin: 0 0 22px;
   }
   .kush-pillars div {
-    padding: 14px 0;
-    border-top: 1px solid var(--line);
+    padding: 11px 0;
+    border-top: 1px solid rgb(255 255 255 / 0.07);
   }
   .kush-pillars dt {
     font-family: var(--font-mono);
-    font-size: 11px;
+    font-size: 10.5px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: #cbbcff;
   }
   .kush-pillars dd {
-    margin: 6px 0 0;
-    font-size: 14px;
+    margin: 5px 0 0;
+    font-size: 13.5px;
     color: var(--text-2);
   }
   .kush-actions {
@@ -145,89 +183,135 @@ const pillars = [
   .btn-kush:hover {
     background-position: 100% 0;
   }
-  /* Three real screenshots, fanned in depth. */
-  .kush-stack {
+
+  /* The screenshot carousel lives in 3D: each shot's distance from the
+     current scroll position (--d) sets its depth, angle and opacity. */
+  .kush-stage {
     position: relative;
-    display: block;
     aspect-ratio: 16 / 11;
-    perspective: 1400px;
+    perspective: 1600px;
+    perspective-origin: 30% 50%;
+    transform-style: preserve-3d;
   }
-  .shot {
+  .kshot {
+    --d: calc(var(--p) * (var(--n) - 1) * 1.08 - var(--si));
+    --ad: max(var(--d), calc(var(--d) * -1));
     position: absolute;
-    width: 82%;
-    border-radius: 10px;
-    border: 1px solid var(--line-2);
-    box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
-    transition: transform 1.1s var(--ease);
+    inset: 6% 0 auto 0;
+    margin: 0;
+    transform: translate3d(calc(var(--d) * -46%), calc(var(--ad) * 6%), calc(var(--ad) * -420px)) rotateY(calc(var(--d) * 22deg));
+    opacity: clamp(0, calc(1.25 - var(--ad) * 0.75), 1);
+    filter: saturate(calc(1 - var(--ad) * 0.4)) brightness(calc(1 - var(--ad) * 0.35));
+    z-index: calc(10 - var(--si));
+    will-change: transform;
   }
-  .shot-back {
-    right: 0;
-    top: 0;
-    transform: rotateY(-14deg) translateZ(-80px);
-    opacity: 0.55;
+  .kshot img {
+    width: 100%;
+    border-radius: 14px;
+    border: 1px solid rgb(255 255 255 / 0.14);
+    box-shadow: 0 50px 90px -40px rgb(0 0 0 / 0.95);
   }
-  .shot-mid {
-    right: 7%;
-    top: 12%;
-    transform: rotateY(-10deg) translateZ(-30px);
-    opacity: 0.8;
+  .kshot figcaption {
+    margin-top: 12px;
+    font-size: 12px;
+    color: var(--text-2);
+    opacity: clamp(0, calc(1 - var(--ad) * 2), 1);
   }
-  .shot-front {
+  .kshot figcaption span {
+    color: #cbbcff;
+    margin-right: 6px;
+  }
+  .kush-progress {
+    position: absolute;
     left: 0;
+    right: 0;
     bottom: 0;
-    transform: rotateY(-6deg);
+    height: 2px;
+    background: rgb(255 255 255 / 0.08);
+    border-radius: 2px;
+    overflow: hidden;
   }
-  .kush-stack:hover .shot-back {
-    transform: rotateY(-8deg) translate(4%, -4%) translateZ(-80px);
-  }
-  .kush-stack:hover .shot-mid {
-    transform: rotateY(-6deg) translate(2%, -2%) translateZ(-30px);
-  }
-  .kush-stack:hover .shot-front {
-    transform: rotateY(0deg) translateY(-4px);
+  .kush-progress i {
+    display: block;
+    height: 100%;
+    width: 100%;
+    background: var(--kush-holo);
+    transform-origin: left;
+    transform: scaleX(var(--p));
   }
   .kush-metrics {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
-    border-top: 1px solid var(--line);
-    border-bottom: 1px solid var(--line);
+    margin-block: 0;
   }
   .kush-metrics div {
-    padding: 18px 18px 18px 0;
+    padding: 14px 16px 0 0;
+    border-top: 1px solid var(--line);
   }
   .kush-metrics div + div {
-    padding-left: 18px;
-    border-left: 1px solid var(--line);
+    padding-left: 16px;
   }
   .kush-metrics dt {
     font-family: var(--font-mono);
-    font-size: 10.5px;
+    font-size: 10px;
     letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--text-3);
   }
   .kush-metrics dd {
-    margin: 8px 0 0;
-    font-size: 15px;
-    color: var(--text);
+    margin: 6px 0 0;
+    font-size: 14px;
   }
-  @media (max-width: 640px) {
-    .kush-head {
-      flex-direction: column;
-      gap: 6px;
+  /* Without pinning (reduced motion, or small screens) the shots sit in a row. */
+  :global(:root:not(.motion-ok)) .kush-stage {
+    aspect-ratio: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  :global(:root:not(.motion-ok)) .kshot {
+    position: static;
+    transform: none;
+    opacity: 1;
+    filter: none;
+  }
+  @media (max-width: 1100px) {
+    :global(.motion-ok) .kush {
+      height: auto;
     }
-  }
-  @media (max-width: 960px) {
+    :global(.motion-ok) .kush-frame {
+      position: relative;
+      height: auto;
+    }
     .kush-grid {
       grid-template-columns: 1fr;
+    }
+    .kush-stage {
+      aspect-ratio: auto;
+      display: grid;
+      grid-auto-flow: column;
+      grid-auto-columns: 82%;
+      gap: 14px;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      perspective: none;
+      padding-bottom: 10px;
+    }
+    .kshot {
+      position: static;
+      transform: none !important;
+      opacity: 1 !important;
+      filter: none !important;
+      scroll-snap-align: start;
+    }
+    .kush-progress {
+      display: none;
     }
     .kush-metrics {
       grid-template-columns: 1fr 1fr;
     }
     .kush-metrics div:nth-child(3) {
       padding-left: 0;
-      border-left: 0;
     }
   }
   @media (max-width: 560px) {

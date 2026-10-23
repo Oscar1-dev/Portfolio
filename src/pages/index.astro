@@ -3,6 +3,7 @@
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
 import SignalHero from '../components/SignalHero.astro';
+import ScrollStatement from '../components/ScrollStatement.astro';
 import KushSpotlight from '../components/KushSpotlight.astro';
 import FeatureProject from '../components/FeatureProject.astro';
 import Experience from '../components/Experience.astro';
@@ -27,15 +28,17 @@ const base = import.meta.env.BASE_URL;
 >
   <SignalHero projectCount={all.length} rooms={tryhackme.stats.totalRoomsCompleted} badges={tryhackme.stats.totalBadges} />
 
+  <ScrollStatement />
+
   <div id="featured">
     <KushSpotlight project={kush} />
   </div>
 
-  <section class="sec wrap" aria-labelledby="lead-title">
+  <section class="sec wrap" aria-labelledby="lead-title" data-scene="work">
     <div class="sec-head">
       <div>
         <p class="sec-index">02 · Selected work</p>
-        <h2 id="lead-title" class="sec-title">Built, shipped,<br /><span class="foil">documented.</span></h2>
+        <h2 id="lead-title" class="sec-title" data-split data-reveal>Built, shipped,<br /><span class="foil">documented.</span></h2>
       </div>
       <a class="link-arrow" href={`${base}projects/`}>Every project ({all.length}) <span class="arr" aria-hidden="true">→</span></a>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -43,11 +46,11 @@ const base = import.meta.env.BASE_URL;
     {lead.map((project, i) => <FeatureProject project={project} index={String(i + 1).padStart(2, '0')} flip={i % 2 === 1} />)}
   </section>
 
-  <section id="experience" class="sec wrap" aria-labelledby="experience-title">
+  <section id="experience" class="sec wrap" aria-labelledby="experience-title" data-scene="experience">
     <div class="sec-head">
       <div>
         <p class="sec-index">03 · Experience</p>
-        <h2 id="experience-title" class="sec-title">Where I<br /><span class="foil">work now.</span></h2>
+        <h2 id="experience-title" class="sec-title" data-split data-reveal>Where I<br /><span class="foil">work now.</span></h2>
       </div>
       <span class="meta">Current roles</span>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -55,11 +58,11 @@ const base = import.meta.env.BASE_URL;
     <Experience />
   </section>
 
-  <section id="security" class="sec wrap" aria-labelledby="security-title">
+  <section id="security" class="sec wrap" aria-labelledby="security-title" data-scene="security">
     <div class="sec-head">
       <div>
         <p class="sec-index">04 · Cybersecurity</p>
-        <h2 id="security-title" class="sec-title">Break it,<br /><span class="foil">then build it right.</span></h2>
+        <h2 id="security-title" class="sec-title" data-split data-reveal>Break it,<br /><span class="foil">then build it right.</span></h2>
       </div>
       <a class="link-arrow" href={`${base}credentials/`}>Security record <span class="arr" aria-hidden="true">→</span></a>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -67,11 +70,11 @@ const base = import.meta.env.BASE_URL;
     <CyberSummary />
   </section>
 
-  <section class="sec wrap" aria-labelledby="archive-title">
+  <section class="sec wrap" aria-labelledby="archive-title" data-scene="archive">
     <div class="sec-head">
       <div>
         <p class="sec-index">05 · Archive</p>
-        <h2 id="archive-title" class="sec-title">Everything<br /><span class="foil">else I've made.</span></h2>
+        <h2 id="archive-title" class="sec-title" data-split data-reveal>Everything<br /><span class="foil">else I've made.</span></h2>
       </div>
       <a class="link-arrow" href={`${base}projects/`}>Search the archive <span class="arr" aria-hidden="true">→</span></a>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -79,11 +82,11 @@ const base = import.meta.env.BASE_URL;
     <ArchiveRows projects={rest} />
   </section>
 
-  <section class="sec wrap" aria-labelledby="stack-title">
+  <section class="sec wrap" aria-labelledby="stack-title" data-scene="stack">
     <div class="sec-head">
       <div>
         <p class="sec-index">06 · Stack</p>
-        <h2 id="stack-title" class="sec-title">What I<br /><span class="foil">reach for.</span></h2>
+        <h2 id="stack-title" class="sec-title" data-split data-reveal>What I<br /><span class="foil">reach for.</span></h2>
       </div>
       <span class="meta">Every line links to the project it comes from</span>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -91,17 +94,17 @@ const base = import.meta.env.BASE_URL;
     <Capabilities />
   </section>
 
-  <section id="contact" class="sec wrap contact" aria-labelledby="contact-title">
+  <section id="contact" class="sec wrap contact" aria-labelledby="contact-title" data-scene="contact">
     <p class="sec-index">07 · Contact</p>
     <h2 id="contact-title" class="display contact-title">
       <a href="mailto:nopsrust@gmail.com">nopsrust<wbr /><span class="foil">@gmail.com</span></a>
     </h2>
-    <div class="contact-row">
+    <div class="contact-row glass" data-glass>
       <p class="lede">Security work, a project, or something KUSH could build: email is quickest. Code and history are on GitHub; security practice is on TryHackMe.</p>
       <div class="contact-links">
         <a class="btn btn-primary" href="mailto:nopsrust@gmail.com">Email me</a>
-        <a class="btn btn-outline" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-        <a class="btn btn-outline" href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe ↗</a>
+        <a class="btn btn-glass" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a class="btn btn-glass" href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe ↗</a>
       </div>
     </div>
   </section>
@@ -120,15 +123,18 @@ const base = import.meta.env.BASE_URL;
   .contact-title a:hover {
     opacity: 0.85;
   }
+  .contact {
+    padding-bottom: clamp(5rem, 10vw, 9rem);
+  }
   .contact-row {
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
-    align-items: flex-end;
+    align-items: center;
     gap: 24px;
-    padding-top: 24px;
-    border-top: 1px solid var(--line);
+    padding: clamp(22px, 3vw, 36px);
   }
+
   .contact-row .lede {
     margin: 0;
   }

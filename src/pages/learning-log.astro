@@ -36,14 +36,14 @@ const periods = [...byPeriod.keys()];
     <p>Every entry below comes directly from a project's own timeline data — {entries.length} milestones across {projects.length} projects, in order. Nothing here is a separate narrative; click through to the project for the full picture.</p>
   </PageIntro>
 
-  <section class="sec wrap timeline">
+  <section class="sec wrap timeline" data-scene="archive">
     <ol class="rail">
       {
         periods.map((period, i) => (
           <li class="period" data-reveal style={`--i:${i}`}>
             <span class="period-node" aria-hidden="true" />
             <div class="period-label">{period}</div>
-            <ul class="period-entries">
+            <ul class="period-entries glass" data-glass>
               {byPeriod.get(period)!.map((e) => (
                 <li>
                   <a href={`${base}projects/${e.slug}/`} class="project-tag">
@@ -122,7 +122,7 @@ const periods = [...byPeriod.keys()];
   .period-entries {
     list-style: none;
     margin: 0;
-    padding: 0;
+    padding: 18px 22px;
     display: flex;
     flex-direction: column;
     gap: var(--space-3, 0.75rem);

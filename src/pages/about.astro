@@ -43,7 +43,7 @@ const notes = [
     <p>I'm a final-year student at DISC, specialising in cybersecurity and IT, and I'm looking for a paid cybersecurity apprenticeship, IT apprenticeship, or junior technical role.</p>
   </PageIntro>
 
-  <section class="sec notes wrap">
+  <section class="sec notes wrap" data-scene="page">
     {
       notes.map((note) => (
         <article class="note" data-reveal>
@@ -63,11 +63,11 @@ const notes = [
     }
   </section>
 
-  <section class="sec wrap personal-sec">
+  <section class="sec wrap personal-sec" data-scene="stack">
     <div class="sec-head" data-reveal>
       <div>
         <p class="sec-index">05</p>
-        <h2 class="sec-title">Off the clock</h2>
+        <h2 class="sec-title" data-split data-reveal>Off the clock</h2>
       </div>
       <span class="meta">Not the CV version</span>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -98,7 +98,7 @@ const notes = [
     <div class="sec-head" data-reveal>
       <div>
         <p class="sec-index">06</p>
-        <h2 class="sec-title">Technical capabilities</h2>
+        <h2 class="sec-title" data-split data-reveal>Technical capabilities</h2>
       </div>
       <span class="meta">Grouped by what each decision demonstrates</span>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -110,7 +110,7 @@ const notes = [
     <div class="sec-head" data-reveal>
       <div>
         <p class="sec-index">07</p>
-        <h2 class="sec-title">Skills breakdown</h2>
+        <h2 class="sec-title" data-split data-reveal>Skills breakdown</h2>
       </div>
       <span class="meta">Computed from {projects.length} projects — never hand-typed</span>
       <span class="sec-rule" aria-hidden="true"></span>
@@ -118,11 +118,11 @@ const notes = [
     <Skills />
   </section>
 
-  <section class="sec contact-sec wrap" data-reveal>
-    <div class="contact-inner">
+  <section class="sec contact-sec wrap" data-scene="contact" data-reveal>
+    <div class="contact-inner glass" data-glass>
       <div>
         <p class="sec-index">08</p>
-        <h2 class="sec-title">Contact</h2>
+        <h2 class="sec-title" data-split data-reveal>Contact</h2>
         <p class="cta-line">Interested in an apprentice or junior hire? <a href="mailto:nopsrust@gmail.com">Let's talk</a>.</p>
       </div>
       <ul class="contact-list">
@@ -236,6 +236,7 @@ const notes = [
     grid-template-columns: minmax(0, 1.1fr) minmax(240px, 0.9fr);
     gap: clamp(1.5rem, 4vw, 3rem);
     align-items: start;
+    padding: clamp(22px, 3.5vw, 44px);
   }
 
   .cta-line {

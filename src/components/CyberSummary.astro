@@ -16,28 +16,28 @@ const engineered = [
 ];
 ---
 
-<div class="cyber">
-  <div class="term" data-reveal>
+<div class="cyber" data-progress="pass">
+  <div class="term glass" data-glass>
     <div class="term-bar" aria-hidden="true">
       <i></i><i></i><i></i>
       <span class="mono">oscar@signal: ~/security</span>
     </div>
     <div class="term-body mono">
-      <p><span class="prompt">$</span> thm --profile {profile.username}</p>
-      <dl class="term-stats">
+      <p style="--li:0"><span class="prompt">$</span> thm --profile {profile.username}</p>
+      <dl class="term-stats" style="--li:1">
         <div><dt>rooms completed</dt><dd>{stats.totalRoomsCompleted}</dd></div>
         <div><dt>badges</dt><dd>{stats.totalBadges}</dd></div>
         <div><dt>epic / rare / common</dt><dd>{stats.epicBadges} / {stats.rareBadges} / {stats.commonBadges}</dd></div>
       </dl>
-      <p><span class="prompt">$</span> thm --badges epic</p>
-      <ul class="term-list">
+      <p style="--li:2"><span class="prompt">$</span> thm --badges epic</p>
+      <ul class="term-list" style="--li:3">
         {epic.map((b) => <li><span class="term-ok">●</span> {b}</li>)}
       </ul>
-      <p><span class="prompt">$</span> cat focus.txt</p>
-      <ul class="term-list term-focus">
+      <p style="--li:4"><span class="prompt">$</span> cat focus.txt</p>
+      <ul class="term-list term-focus" style="--li:5">
         {focus.map((f) => <li>{f}</li>)}
       </ul>
-      <p class="term-cursor"><span class="prompt">$</span> <span class="caret" aria-hidden="true"></span></p>
+      <p class="term-cursor" style="--li:6"><span class="prompt">$</span> <span class="caret" aria-hidden="true"></span></p>
     </div>
   </div>
 
@@ -54,8 +54,8 @@ const engineered = [
       }
     </ul>
     <div class="cyber-links">
-      <a class="btn btn-outline" href={`${base}credentials/`}>Full security record</a>
-      <a class="btn btn-outline" href={profile.profileUrl} target="_blank" rel="noopener noreferrer">TryHackMe profile ↗</a>
+      <a class="btn btn-glass" href={`${base}credentials/`}>Full security record</a>
+      <a class="btn btn-glass" href={profile.profileUrl} target="_blank" rel="noopener noreferrer">TryHackMe profile ↗</a>
     </div>
     <p class="faint cyber-honest">TryHackMe progress, not formal certification. Most rooms are foundational; the record page says which.</p>
   </div>
@@ -68,20 +68,26 @@ const engineered = [
     gap: clamp(24px, 4vw, 64px);
     align-items: start;
   }
+  .cyber {
+    --p: 1;
+  }
   .term {
-    border: 1px solid var(--line-2);
-    border-radius: var(--radius);
-    background:
-      repeating-linear-gradient(180deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 3px),
-      var(--ink-1);
+    --glass-bg: rgb(10 10 16 / 0.55);
     overflow: hidden;
+    transform: perspective(1400px) rotateY(calc((0.5 - var(--p)) * 10deg));
+  }
+  /* Each block of output "prints" as the terminal scrolls up into view. */
+  :global(.motion-ok) .term-body > * {
+    opacity: clamp(0, calc((var(--p) * 2.4 - var(--li) * 0.16) * 4), 1);
+    translate: 0 calc((1 - clamp(0, calc((var(--p) * 2.4 - var(--li) * 0.16) * 4), 1)) * 8px);
   }
   .term-bar {
     display: flex;
     align-items: center;
     gap: 7px;
     padding: 11px 14px;
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid rgb(255 255 255 / 0.07);
+    background: rgb(255 255 255 / 0.025);
   }
   .term-bar i {
     width: 10px;
@@ -165,8 +171,17 @@ const engineered = [
     display: flex;
     flex-direction: column;
     gap: 4px;
-    padding: 14px 0;
+    padding: 14px 16px;
+    margin-inline: -16px;
     border-top: 1px solid var(--line);
+    border-radius: 12px;
+    transition:
+      background var(--t) var(--ease),
+      translate var(--t) var(--ease);
+  }
+  .engineered li:hover {
+    background: rgb(255 255 255 / 0.035);
+    translate: 6px 0;
   }
   .eng-what {
     color: var(--text);

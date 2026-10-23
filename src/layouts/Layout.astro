@@ -65,6 +65,8 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <canvas class="scene" data-scene-canvas aria-hidden="true" transition:persist="scene"></canvas>
+    <div class="atmosphere" aria-hidden="true" transition:persist="atmosphere"></div>
     <SiteHeader />
     <main id="main" tabindex="-1">
       <slot />
@@ -74,13 +76,54 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
       import { mountReveal } from '../scripts/reveal';
       import { mountSplitFlaps } from '../scripts/split-flap';
       import { mountHeader } from '../scripts/header';
+      import { mountSplit } from '../scripts/split';
+      import { mountGlass } from '../scripts/glass';
+      import { destroyScroll, mountScroll } from '../scripts/scroll-fx';
+
+      type Scene = { refresh: () => void; dispose: () => void };
+      let scene: Scene | null = null;
+      let loading = false;
+
+      const capable = () => {
+        const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+        if (nav.connection?.saveData) return null;
+        try {
+          if (!document.createElement('canvas').getContext('webgl2')) return null;
+        } catch {
+          return null;
+        }
+        const weak = (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || window.innerWidth < 900;
+        return { rich: !weak };
+      };
+
+      /** The 3D environment loads after the page is idle, once per visit. */
+      const startScene = () => {
+        if (scene || loading || !document.documentElement.classList.contains('motion-ok')) return scene?.refresh();
+        const ability = capable();
+        const canvas = document.querySelector<HTMLCanvasElement>('[data-scene-canvas]');
+        if (!ability || !canvas) return;
+        loading = true;
+        const go = () =>
+          void import('../scripts/scene').then(({ mountScene }) => {
+            scene = mountScene(canvas, ability.rich);
+            loading = false;
+          });
+        if ('requestIdleCallback' in window) window.requestIdleCallback(go, { timeout: 1200 });
+        else setTimeout(go, 400);
+      };
+
       // Runs on first load and after every client-side navigation.
       document.addEventListener('astro:page-load', () => {
         document.documentElement.classList.toggle('motion-ok', !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
         mountHeader();
+        mountSplit();
         mountReveal();
         mountSplitFlaps();
+        mountGlass();
+        mountScroll();
+        startScene();
       });
+      document.addEventListener('astro:before-swap', () => destroyScroll());
     </script>
   </body>
 </html>

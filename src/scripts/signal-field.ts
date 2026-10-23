@@ -9,6 +9,8 @@
 
 interface Field {
   dispose: () => void;
+  /** 0 = the name, 1 = fully dispersed (driven by scroll). */
+  setScatter: (amount: number) => void;
 }
 
 const vertexSource = /* glsl */ `#version 300 es
@@ -136,6 +138,14 @@ export async function mountSignalField(host: HTMLElement, lines: string[]): Prom
   const vel = new Float32Array(count * 2);
   const colour = new Float32Array(count * 3);
   const sizes = new Float32Array(count);
+  // Each particle's escape direction when the name disperses on scroll.
+  const away = new Float32Array(count * 2);
+  for (let i = 0; i < count; i++) {
+    const a = Math.random() * Math.PI * 2;
+    const reach = 0.4 + Math.random() * 0.9;
+    away[i * 2] = Math.cos(a) * reach;
+    away[i * 2 + 1] = Math.sin(a) * reach * 0.7 + 0.35;
+  }
   for (let i = 0; i < count; i++) {
     const [x, y] = homes[i]!;
     home[i * 2] = x;
@@ -187,6 +197,8 @@ export async function mountSignalField(host: HTMLElement, lines: string[]): Prom
 
   let visible = true;
   let frame = 0;
+  let scatter = 0;
+  let scatterSmooth = 0;
   const radius = Math.max(70, width * 0.07);
   const started = performance.now();
   let last = started;
@@ -200,11 +212,15 @@ export async function mountSignalField(host: HTMLElement, lines: string[]): Prom
     // Assembly: springs stiffen over the first ~1.6 s.
     const k = 10 + 22 * Math.min(1, t / 1.6);
     const damping = Math.exp(-6.5 * dt);
+    scatterSmooth += (scatter - scatterSmooth) * (1 - Math.exp(-dt * 8));
+    const spread = Math.pow(scatterSmooth, 1.4) * Math.max(width, height) * 0.9;
     for (let i = 0; i < count; i++) {
       const ix = i * 2;
       const iy = ix + 1;
-      let fx = (home[ix]! - pos[ix]!) * k;
-      let fy = (home[iy]! - pos[iy]!) * k;
+      const hx = home[ix]! + away[ix]! * spread;
+      const hy = home[iy]! + away[iy]! * spread;
+      let fx = (hx - pos[ix]!) * k;
+      let fy = (hy - pos[iy]!) * k;
       if (pointer.active) {
         const dx = pos[ix]! - pointer.x;
         const dy = pos[iy]! - pointer.y;
@@ -252,6 +268,9 @@ export async function mountSignalField(host: HTMLElement, lines: string[]): Prom
   frame = requestAnimationFrame(tick);
 
   return {
+    setScatter(amount: number) {
+      scatter = Math.min(1, Math.max(0, amount));
+    },
     dispose() {
       cancelAnimationFrame(frame);
       io.disconnect();
