@@ -1,6 +1,8 @@
-// The site's 3D environment: one faceted glass prism with a lattice core,
-// lit by lights that follow the cursor, travelling through the page as you
-// scroll. Each section declares where the prism should be and how it should
+// The site's 3D environment: a faceted holographic crystal with a lattice
+// core floating over a landscape of dots (terrain.ts). The crystal shatters
+// into shards when you scroll fast or bring the cursor near it, then pulls
+// itself back together; lights and camera follow the pointer. It travels
+// through the page as you scroll. Each section declares where the prism should be and how it should
 // look (data-scene="hero" etc.); the scene blends between the states of the
 // sections in view, so the environment evolves instead of cutting.
 //
@@ -10,9 +12,7 @@ import {
   ACESFilmicToneMapping,
   BackSide,
   DoubleSide,
-  AdditiveBlending,
   BufferAttribute,
-  BufferGeometry,
   Color,
   EdgesGeometry,
   Group,
@@ -27,15 +27,15 @@ import {
   PlaneGeometry,
   PMREMGenerator,
   PointLight,
-  Points,
-  PointsMaterial,
   Scene,
   SRGBColorSpace,
+  Vector3,
   WebGLRenderer,
 } from 'three';
 import { onScrollTick } from './scroll-fx';
+import { createTerrain, FLOOR_Y } from './terrain';
 
-type Palette = 'signal' | 'kush' | 'alert' | 'ice';
+type Palette = 'signal' | 'kush' | 'alert' | 'ice' | 'aurora' | 'ember';
 interface State {
   /** Horizontal position, −1 (left edge) … 1 (right edge). */
   x: number;
@@ -46,30 +46,34 @@ interface State {
   spin: number;
   /** 0 → wireframe lattice only, 1 → full glass shell. */
   glass: number;
+  /** Height of the landscape's waves. */
+  wave: number;
   palette: Palette;
 }
 
 const STATES: Record<string, State> = {
-  hero: { x: 0.66, y: -0.28, z: -1, scale: 1.05, spin: 0.22, glass: 1, palette: 'signal' },
-  statement: { x: 0.72, y: -0.1, z: -4, scale: 1.5, spin: 0.08, glass: 0.25, palette: 'signal' },
-  kush: { x: -0.62, y: -0.05, z: -0.5, scale: 0.95, spin: 0.16, glass: 1, palette: 'kush' },
-  work: { x: 0.78, y: 0.5, z: -2.5, scale: 0.7, spin: 0.12, glass: 0.8, palette: 'ice' },
-  experience: { x: 0.55, y: 0.05, z: -2, scale: 1.3, spin: 0.06, glass: 1, palette: 'signal' },
-  security: { x: -0.7, y: 0.25, z: -1, scale: 1, spin: 0.3, glass: 0.15, palette: 'alert' },
-  archive: { x: 0.95, y: 0.6, z: -5, scale: 0.6, spin: 0.1, glass: 0.6, palette: 'ice' },
-  stack: { x: 0.95, y: -0.65, z: -5, scale: 0.6, spin: 0.1, glass: 0.7, palette: 'signal' },
-  contact: { x: 0.6, y: 0, z: -1.5, scale: 1.2, spin: 0.35, glass: 1, palette: 'signal' },
-  page: { x: 0.68, y: 0.45, z: -1.5, scale: 0.75, spin: 0.14, glass: 1, palette: 'signal' },
-  case: { x: 0.7, y: 0.3, z: -1, scale: 0.9, spin: 0.14, glass: 1, palette: 'kush' },
-  detail: { x: 0.82, y: 0.2, z: -3, scale: 0.7, spin: 0.1, glass: 0.7, palette: 'ice' },
+  hero: { x: 0.66, y: -0.22, z: -1, scale: 1.05, spin: 0.22, glass: 1, wave: 1.15, palette: 'signal' },
+  statement: { x: 0.72, y: -0.05, z: -4, scale: 1.5, spin: 0.08, glass: 0.25, wave: 0.45, palette: 'ember' },
+  kush: { x: -0.62, y: -0.05, z: -0.5, scale: 0.95, spin: 0.16, glass: 1, wave: 0.8, palette: 'kush' },
+  work: { x: 0.78, y: 0.5, z: -2.5, scale: 0.7, spin: 0.12, glass: 0.8, wave: 1, palette: 'ice' },
+  experience: { x: 0.55, y: 0.05, z: -2, scale: 1.3, spin: 0.06, glass: 1, wave: 0.7, palette: 'signal' },
+  security: { x: -0.7, y: 0.25, z: -1, scale: 1, spin: 0.3, glass: 0.15, wave: 1.6, palette: 'alert' },
+  archive: { x: 0.95, y: 0.6, z: -5, scale: 0.6, spin: 0.1, glass: 0.6, wave: 0.9, palette: 'aurora' },
+  stack: { x: 0.95, y: -0.65, z: -5, scale: 0.6, spin: 0.1, glass: 0.7, wave: 1.1, palette: 'aurora' },
+  contact: { x: 0.6, y: 0.05, z: -1.5, scale: 1.2, spin: 0.35, glass: 1, wave: 1.35, palette: 'signal' },
+  page: { x: 0.68, y: 0.45, z: -1.5, scale: 0.75, spin: 0.14, glass: 1, wave: 0.9, palette: 'signal' },
+  case: { x: 0.7, y: 0.3, z: -1, scale: 0.9, spin: 0.14, glass: 1, wave: 0.8, palette: 'kush' },
+  detail: { x: 0.82, y: 0.2, z: -3, scale: 0.7, spin: 0.1, glass: 0.7, wave: 0.9, palette: 'ice' },
 };
 
 const PALETTES: Record<Palette, [string, string, string]> = {
-  // core, key light, rim light
-  signal: ['#ff5fc8', '#ff4d6d', '#8fd3ff'],
-  kush: ['#cbbcff', '#f6c3ea', '#b4e3ff'],
-  alert: ['#ff4d6d', '#ff4d6d', '#b98cff'],
-  ice: ['#8fd3ff', '#b98cff', '#ffd9ec'],
+  // primary, secondary, highlight
+  signal: ['#ff4d6d', '#ff5fc8', '#8fd3ff'],
+  kush: ['#cbbcff', '#f6c3ea', '#b4f0d9'],
+  alert: ['#ff3355', '#ff7a45', '#b98cff'],
+  ice: ['#5fb8ff', '#b98cff', '#ffd9ec'],
+  aurora: ['#3dffc5', '#5fb8ff', '#b98cff'],
+  ember: ['#ff7a45', '#ff4d6d', '#ffd9ec'],
 };
 
 export interface SceneHandle {
@@ -121,7 +125,29 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
     opacity: 1,
     envMapIntensity: 1.4,
   });
-  const shell = new Mesh(new IcosahedronGeometry(1.6, 1), shellMaterial);
+  const shellGeometry = shardGeometry(new IcosahedronGeometry(1.6, 1));
+  const explode = { value: 0 };
+  const clock = { value: 0 };
+  shellMaterial.onBeforeCompile = (shader) => {
+    shader.uniforms.uExplode = explode;
+    shader.uniforms.uTime = clock;
+    shader.vertexShader =
+      'attribute vec3 aCentroid;\nattribute float aRand;\nuniform float uExplode;\nuniform float uTime;\n' +
+      shader.vertexShader.replace(
+        '#include <begin_vertex>',
+        `#include <begin_vertex>
+        // Each facet is its own shard: it flies out along its normal, shrinks
+        // about its centre and tumbles a little, by its own random amount.
+        float e = uExplode * (0.4 + aRand * 1.1);
+        vec3 dir = normalize(aCentroid);
+        vec3 local = transformed - aCentroid;
+        float a = e * (aRand - 0.5) * 2.4;
+        float ca = cos(a), sa = sin(a);
+        local = vec3(local.x * ca - local.z * sa, local.y, local.x * sa + local.z * ca);
+        transformed = aCentroid + dir * (e * 1.15 + sin(uTime * 1.3 + aRand * 6.28) * 0.012) + local * (1.0 - e * 0.28);`,
+      );
+  };
+  const shell = new Mesh(shellGeometry, shellMaterial);
   prism.add(shell);
 
   const lattice = new LineSegments(
@@ -145,21 +171,9 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
   rim.position.set(-4, -2, 3);
   scene.add(key, rim);
 
-  // ---- depth dust: a sparse field that parallaxes with scroll
-  const dustCount = rich ? 700 : 320;
-  const dustPos = new Float32Array(dustCount * 3);
-  for (let i = 0; i < dustCount; i++) {
-    dustPos[i * 3] = (Math.random() - 0.5) * 30;
-    dustPos[i * 3 + 1] = (Math.random() - 0.5) * 40;
-    dustPos[i * 3 + 2] = -2 - Math.random() * 14;
-  }
-  const dustGeometry = new BufferGeometry();
-  dustGeometry.setAttribute('position', new BufferAttribute(dustPos, 3));
-  const dust = new Points(
-    dustGeometry,
-    new PointsMaterial({ color: 0xd9d6ff, size: 0.035, sizeAttenuation: true, transparent: true, opacity: 0.55, blending: AdditiveBlending, depthWrite: false }),
-  );
-  scene.add(dust);
+  // ---- the landscape
+  const terrain = createTerrain(rich, dpr);
+  scene.add(terrain.points);
 
   // ---- state blending
   let sections: { el: HTMLElement; state: State }[] = [];
@@ -179,7 +193,7 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
   const blend = () => {
     const vh = window.innerHeight;
     let total = 0;
-    const acc = { x: 0, y: 0, z: 0, scale: 0, spin: 0, glass: 0 };
+    const acc = { x: 0, y: 0, z: 0, scale: 0, spin: 0, glass: 0, wave: 0 };
     const accColours = [new Color(0, 0, 0), new Color(0, 0, 0), new Color(0, 0, 0)];
     let best: State | null = null;
     let bestW = 0;
@@ -196,6 +210,7 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
       acc.scale += state.scale * w;
       acc.spin += state.spin * w;
       acc.glass += state.glass * w;
+      acc.wave += state.wave * w;
       PALETTES[state.palette].forEach((hex, i) => accColours[i]!.add(new Color(hex).multiplyScalar(w)));
       if (w > bestW) {
         bestW = w;
@@ -210,21 +225,33 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
       scale: acc.scale / total,
       spin: acc.spin / total,
       glass: acc.glass / total,
+      wave: acc.wave / total,
     });
     accColours.forEach((c, i) => targetColours[i]!.copy(c.multiplyScalar(1 / total)));
   };
 
   // ---- pointer
-  const pointer = { x: 0, y: 0, sx: 0, sy: 0 };
+  const pointer = { x: 0, y: 0, sx: 0, sy: 0, moved: 0 };
   const onPointer = (e: PointerEvent) => {
     pointer.x = (e.clientX / window.innerWidth) * 2 - 1;
     pointer.y = -((e.clientY / window.innerHeight) * 2 - 1);
+    pointer.moved = 1;
   };
+  const ray = new Vector3();
+  const prismScreen = new Vector3();
+  // Scene colours are mirrored into CSS so glass edges, labels and the
+  // header progress line take on the colours of the section in view.
+  const root = document.documentElement;
+  const channel = (v: number) => Math.round(Math.min(1, Math.max(0, v)) * 255);
+  const rgb = (c: Color) => `${channel(c.r)} ${channel(c.g)} ${channel(c.b)}`;
+  let cssFrame = 0;
+  let shatter = 0;
   window.addEventListener('pointermove', onPointer, { passive: true });
 
-  let scrollY = 0;
-  const offScroll = onScrollTick((y) => {
-    scrollY = y;
+  // Scroll speed drives the flow of the landscape; the engine reports it.
+  let velocity = 0;
+  const offScroll = onScrollTick(() => {
+    velocity = Number(root.style.getPropertyValue('--scroll-v')) || 0;
   });
 
   const resize = () => {
@@ -247,7 +274,7 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
     last = now;
     blend();
     const k = 1 - Math.exp(-dt * 2.6); // smooth approach, framerate-independent
-    for (const key of ['x', 'y', 'z', 'scale', 'spin', 'glass'] as const) current[key] += (target[key] - current[key]) * k;
+    for (const key of ['x', 'y', 'z', 'scale', 'spin', 'glass', 'wave'] as const) current[key] += (target[key] - current[key]) * k;
     colours.forEach((c, i) => c.lerp(targetColours[i]!, k));
 
     // World size of the viewport at the prism's depth, so x/y are responsive.
@@ -262,7 +289,6 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
 
     pointer.sx += (pointer.x - pointer.sx) * k * 1.6;
     pointer.sy += (pointer.y - pointer.sy) * k * 1.6;
-    const velocity = Number(document.documentElement.style.getPropertyValue('--scroll-v')) || 0;
     spinAngle += dt * (current.spin + Math.abs(velocity) * 1.4);
     prism.rotation.set(0.35 + pointer.sy * 0.25 + Math.sin(spinAngle * 0.5) * 0.15, spinAngle + pointer.sx * 0.35, 0.12);
     lattice.rotation.y = -spinAngle * 1.6;
@@ -283,8 +309,45 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
     key.position.set(prism.position.x + 3 + pointer.sx * 4, prism.position.y + 2 + pointer.sy * 3, 5);
     rim.position.set(prism.position.x - 4 - pointer.sx * 2, prism.position.y - 2, 3);
 
-    dust.position.y = (scrollY * 0.0025) % 20;
-    dust.rotation.y = pointer.sx * 0.04;
+    // Shatter: fast scrolling, or the cursor close to the crystal on screen.
+    prismScreen.copy(prism.position).project(camera);
+    const reach = Math.hypot(prismScreen.x - pointer.sx, (prismScreen.y - pointer.sy) / camera.aspect);
+    const near = Math.max(0, 1 - reach / 0.3) * pointer.moved;
+    const shatterTarget = Math.min(1, Math.abs(velocity) * 1.6 + near * near * 0.75);
+    // Breaks apart quickly, reassembles slowly.
+    const rate = shatterTarget > shatter ? 9 : 1.8;
+    shatter += (shatterTarget - shatter) * (1 - Math.exp(-dt * rate));
+    explode.value = shatter;
+    clock.value = now / 1000;
+
+    // The camera drifts with the pointer: parallax between crystal and floor.
+    camera.position.x += (pointer.sx * 0.6 - camera.position.x) * k;
+    camera.position.y += (pointer.sy * 0.35 - camera.position.y) * k;
+    camera.lookAt(0, -0.4, 0);
+
+    // Landscape.
+    const u = terrain.uniforms;
+    u.uTime.value = now / 1000;
+    u.uFlow.value += dt * (1.6 + Math.abs(velocity) * 26);
+    u.uWave.value = current.wave * (1 + Math.abs(velocity) * 0.6);
+    u.uColA.value.copy(colours[0]!);
+    u.uColB.value.copy(colours[1]!);
+    u.uColC.value.copy(colours[2]!);
+    // Where the pointer's ray meets the floor.
+    ray.set(pointer.sx, pointer.sy, 0.5).unproject(camera).sub(camera.position).normalize();
+    let onFloor = 0;
+    if (ray.y < -0.01) {
+      const t = (FLOOR_Y - camera.position.y) / ray.y;
+      u.uPointer.value.set(camera.position.x + ray.x * t, camera.position.z + ray.z * t);
+      onFloor = pointer.moved;
+    }
+    u.uPointerAmt.value += (onFloor - u.uPointerAmt.value) * k;
+
+    if (++cssFrame % 4 === 0) {
+      root.style.setProperty('--scene-a', rgb(colours[0]!));
+      root.style.setProperty('--scene-b', rgb(colours[1]!));
+      root.style.setProperty('--scene-c', rgb(colours[2]!));
+    }
     renderer.render(scene, camera);
   };
   frame = requestAnimationFrame(render);
@@ -307,6 +370,7 @@ export function mountScene(canvas: HTMLCanvasElement, rich: boolean): SceneHandl
       pmrem.dispose();
       renderer.dispose();
       delete canvas.dataset.ready;
+      for (const v of ['--scene-a', '--scene-b', '--scene-c']) root.style.removeProperty(v);
     },
   };
 }
@@ -336,4 +400,24 @@ function studio(): Scene {
     room.add(m);
   }
   return room;
+}
+
+/** Adds per-facet attributes to a non-indexed polyhedron so the vertex shader
+ *  can move each triangle as a separate shard. */
+function shardGeometry(geometry: IcosahedronGeometry) {
+  const pos = geometry.getAttribute('position');
+  const count = pos.count;
+  const centroid = new Float32Array(count * 3);
+  const rand = new Float32Array(count);
+  for (let f = 0; f < count; f += 3) {
+    const r = Math.random();
+    for (let axis = 0; axis < 3; axis++) {
+      const c = (pos.getComponent(f, axis) + pos.getComponent(f + 1, axis) + pos.getComponent(f + 2, axis)) / 3;
+      for (let v = 0; v < 3; v++) centroid[(f + v) * 3 + axis] = c;
+    }
+    for (let v = 0; v < 3; v++) rand[f + v] = r;
+  }
+  geometry.setAttribute('aCentroid', new BufferAttribute(centroid, 3));
+  geometry.setAttribute('aRand', new BufferAttribute(rand, 1));
+  return geometry;
 }

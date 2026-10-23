@@ -57,6 +57,8 @@ function tick(time: number) {
   lastY = y;
   velocity += (Math.max(-1, Math.min(1, dy / 60)) - velocity) * 0.12;
   document.documentElement.style.setProperty('--scroll-v', velocity.toFixed(3));
+  const max = document.documentElement.scrollHeight - window.innerHeight;
+  document.documentElement.style.setProperty('--page-p', max > 0 ? (y / max).toFixed(4) : '0');
   measure();
   listeners.forEach((fn) => fn(y));
   frame = requestAnimationFrame(tick);
