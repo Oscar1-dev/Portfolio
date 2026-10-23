@@ -7,6 +7,8 @@ const projects = defineCollection({
     description: z.string(),
     projectType: z.string(),
     status: z.enum(['Production', 'Active', 'Learning', 'Archived']),
+    /** Plain-language status where the enum isn't enough (e.g. "In development, not launched"). */
+    statusNote: z.string().optional(),
     year: z.number(),
     featured: z.boolean(),
     order: z.number(),

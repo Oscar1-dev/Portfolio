@@ -1,373 +1,340 @@
 ---
-// src/pages/projects/[slug].astro
+// src/pages/projects/[slug].astro — every project's case study (KUSH has
+// its own page at projects/kush.astro).
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
-import StatusBadge from '../../components/StatusBadge.astro';
 import FlowDiagram from '../../components/FlowDiagram.astro';
-import { routeMeta } from '../../data/routes';
+import ProjectLinks from '../../components/ProjectLinks.astro';
 import { assetPath } from '../../data/asset-path';
+import { byOrder } from '../../data/links';
 
 export async function getStaticPaths() {
-  const allProjects = await getCollection('projects');
-  return allProjects.map((project) => ({
-    params: { slug: project.slug },
-    props: { project },
-  }));
+  const projects = (await getCollection('projects')).sort(byOrder);
+  return projects
+    .map((project, i) => ({ project, prev: projects[i - 1], next: projects[i + 1] }))
+    .filter(({ project }) => project.slug !== 'kush')
+    .map(({ project, prev, next }) => ({ params: { slug: project.slug }, props: { project, prev, next } }));
 }
 
-const { project } = Astro.props;
+const { project, prev, next } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 const base = import.meta.env.BASE_URL;
-const meta = routeMeta(`${base}projects/${project.slug}`, base);
+const image = data.cover ?? data.logo;
+const humanise = (key: string) => key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 ---
 
-<Layout title={data.title} description={data.description} accent={meta.accent}>
-  <article class="project-detail wrap">
-    <p class="crumb" data-reveal>
-      <span class="sec-index">Case study</span>
-    </p>
-
-    {
-      data.cover ? (
-        <div class="cover-banner" data-reveal data-tilt data-spotlight>
-          <img src={assetPath(data.cover)} alt={`${data.title} — product screenshot`} />
+<Layout title={data.title} description={data.description} article>
+  <article class="case">
+    <header class="case-head wrap">
+      <a class="case-back meta" href={`${base}projects/`}>← All projects</a>
+      <p class="case-meta">
+        <span class="status" data-status={data.status}>{data.status}</span>
+        <span class="meta">{data.projectType}</span>
+        <span class="mono faint">{data.year}</span>
+      </p>
+      <h1 class="display case-title" data-reveal="clip">{data.title}</h1>
+      <div class="case-intro">
+        <p class="lede">{data.tagline ?? data.description}</p>
+        <div>
+          {data.tagline ? <p class="case-desc muted">{data.description}</p> : null}
+          {data.statusNote ? <p class="case-note mono">{data.statusNote}</p> : null}
+          <ProjectLinks project={project} />
         </div>
-      ) : (
-        data.logo && <div class="cover-strip cover-strip--logo" style={`background-image:url(${assetPath(data.logo)})`} />
-      )
-    }
-    <header class="project-header" data-reveal>
-      <div class="title-row">
-        {data.logo && <img src={assetPath(data.logo)} alt="" class="project-logo" width="40" height="40" />}
-        <h1>{data.title}</h1>
-        <StatusBadge status={data.status} />
       </div>
-      {data.tagline && <p class="case-tagline">{data.tagline}</p>}
-      <p class="tagline">{data.description}</p>
-      <div class="meta-row">
-        <span class="meta-tag">{data.projectType}</span>
-        <span class="meta-tag">{data.year}</span>
-      </div>
-      {
-        data.links && (
-          <div class="links-row">
-            {data.links.live && (
-              <a href={data.links.live} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
-                Live Demo
-              </a>
-            )}
-            {data.links.github && (
-              <a href={data.links.github} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
-                GitHub
-              </a>
-            )}
-            {data.links.documentation && (
-              <a href={data.links.documentation} target="_blank" rel="noopener noreferrer" class="btn btn-outline">
-                Docs
-              </a>
-            )}
-          </div>
-        )
-      }
     </header>
 
     {
-      data.flow && data.flow.length > 0 && (
-        <section class="flow-section" data-reveal>
-          <h2>How it works</h2>
-          <FlowDiagram steps={data.flow} />
-        </section>
-      )
+      image ? (
+        <figure class="case-cover wrap" data-reveal>
+          <img src={assetPath(image)} alt={`${data.title}: screenshot`} width="1600" height="1000" decoding="async" />
+        </figure>
+      ) : null
     }
 
-    <section class="tech-section" data-reveal>
-      <h2>Technology Stack</h2>
-      {
-        Object.entries(data.technologies).map(([category, techs]) => (
-          <div class="tech-group">
-            <h3>{category}</h3>
-            <div class="tech-tags">
-              {techs.map((tech) => (
-                <span class="tech-tag">{tech}</span>
-              ))}
-            </div>
-          </div>
-        ))
-      }
-    </section>
+    {
+      data.flow && data.flow.length > 0 ? (
+        <section class="wrap case-block blueprint-panel" data-reveal>
+          <p class="sec-index">How it works</p>
+          <FlowDiagram steps={data.flow} />
+        </section>
+      ) : null
+    }
 
-    <section class="competencies-section" data-reveal>
-      <h2>Competencies</h2>
-      <ul class="competency-list">
-        {data.competencies.map((c) => <li>{c}</li>)}
-      </ul>
+    <section class="wrap case-grid">
+      <div class="case-block">
+        <p class="sec-index">Technology</p>
+        <dl class="stack">
+          {
+            Object.entries(data.technologies).map(([group, items]) => (
+              <div class="stack-row">
+                <dt class="meta cap">{group}</dt>
+                <dd>
+                  {items.map((t) => (
+                    <span class="tag">{t}</span>
+                  ))}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
+      </div>
+      <div class="case-block">
+        <p class="sec-index">What it demonstrates</p>
+        <ul class="competencies">
+          {data.competencies.map((c) => <li>{c}</li>)}
+        </ul>
+      </div>
     </section>
 
     {
-      data.timeline && data.timeline.length > 0 && (
-        <section class="timeline-section" data-reveal>
-          <h2>Timeline</h2>
+      data.metrics || data.recognition ? (
+        <section class="wrap case-grid">
+          {data.metrics ? (
+            <div class="case-block">
+              <p class="sec-index">Numbers</p>
+              <dl class="metrics">
+                {Object.entries(data.metrics).map(([k, v]) => (
+                  <div>
+                    <dt class="meta">{humanise(k)}</dt>
+                    <dd>{v}</dd>
+                  </div>
+                ))}
+              </dl>
+            </div>
+          ) : null}
+          {data.recognition ? (
+            <div class="case-block">
+              <p class="sec-index">Recognition</p>
+              <ul class="competencies">
+                {data.recognition.map((r) => (
+                  <li>{r}</li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
+        </section>
+      ) : null
+    }
+
+    {
+      data.timeline && data.timeline.length > 0 ? (
+        <section class="wrap case-block">
+          <p class="sec-index">Timeline</p>
           <ol class="timeline">
-            {data.timeline.map((entry) => (
-              <li>
-                <span class="timeline-date">{entry.date}</span>
-                <span class="timeline-event">{entry.event}</span>
+            {data.timeline.map((t) => (
+              <li data-reveal>
+                <span class="mono">{t.date}</span>
+                <span>{t.event}</span>
               </li>
             ))}
           </ol>
         </section>
-      )
+      ) : null
     }
 
-    {
-      data.metrics && (
-        <section class="metrics-section" data-reveal>
-          <h2>Metrics</h2>
-          <dl class="metrics-grid">
-            {Object.entries(data.metrics).map(([key, value]) => (
-              <div class="metric">
-                <dt>{key}</dt>
-                <dd class="neon">{value}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
-      )
-    }
-
-    {
-      data.recognition && data.recognition.length > 0 && (
-        <section class="recognition-section" data-reveal>
-          <h2>Recognition</h2>
-          <ul>
-            {data.recognition.map((r) => (
-              <li>{r}</li>
-            ))}
-          </ul>
-        </section>
-      )
-    }
-
-    <section class="content-section" data-reveal>
-      <Content />
+    <section class="wrap case-block">
+      <p class="sec-index">Write-up</p>
+      <div class="prose">
+        <Content />
+      </div>
     </section>
 
-    <p class="back-link">
-      <a href={`${base}projects`} data-page-link class="link-arrow"><span class="arr">←</span> All projects</a>
-    </p>
+    <nav class="wrap pager" aria-label="More projects">
+      {
+        prev ? (
+          <a href={`${base}projects/${prev.slug}/`} class="pager-link">
+            <span class="meta">← Previous</span>
+            <span class="display">{prev.data.title}</span>
+          </a>
+        ) : (
+          <span />
+        )
+      }
+      {
+        next ? (
+          <a href={`${base}projects/${next.slug}/`} class="pager-link pager-next">
+            <span class="meta">Next →</span>
+            <span class="display">{next.data.title}</span>
+          </a>
+        ) : null
+      }
+    </nav>
   </article>
 </Layout>
 
 <style>
-  .project-detail {
-    max-width: 800px;
-    padding-top: clamp(2rem, 5vw, 3.5rem);
-    padding-bottom: var(--space-16);
+  .case-head {
+    padding-top: calc(var(--header-h) + clamp(2.5rem, 6vw, 5rem));
   }
-
-  .crumb {
-    margin: 0 0 var(--space-6);
-  }
-
-  .cover-strip {
-    margin: 0 0 var(--space-8);
-    height: clamp(140px, 22vw, 240px);
-    background-size: contain;
-    background-repeat: no-repeat;
-    background-position: center;
-    background-color: var(--color-bg-raised);
-    border: 1px solid var(--color-border);
-    border-radius: 0.75rem;
-  }
-
-  .cover-banner {
-    margin: 0 0 var(--space-8);
-    border: 1px solid var(--color-border-strong);
-    border-radius: 0.75rem;
-    overflow: hidden;
-    background: #000;
-    box-shadow: 0 24px 60px -30px rgba(0, 0, 0, 0.7);
-    transform: perspective(1200px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    transition: transform 0.4s var(--ease-out-expo), border-color var(--transition-safe);
-  }
-
-  .cover-banner:hover {
-    border-color: var(--page-accent);
-  }
-
-  .cover-banner img {
-    display: block;
-    width: 100%;
-    height: auto;
-  }
-
-  .case-tagline {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--text-lg);
-    color: var(--color-text-primary);
-    margin: var(--space-4) 0 0;
-    line-height: 1.4;
-  }
-
-  .title-row {
-    display: flex;
-    align-items: baseline;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-
-  .title-row h1 {
-    margin: 0;
-    overflow-wrap: break-word;
-  }
-
-  .project-logo {
-    border-radius: 0.375rem;
-    object-fit: cover;
-  }
-
-  .tagline {
-    color: var(--color-text-secondary);
-    font-size: var(--text-lg);
-    margin: var(--space-4) 0;
-  }
-
-  .meta-row,
-  .links-row {
-    display: flex;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-    margin-bottom: var(--space-4);
-  }
-
-  .meta-tag {
-    padding: var(--space-1) var(--space-4);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 1rem;
-    font-size: var(--text-xs);
-    color: var(--color-text-secondary);
-  }
-
-  section {
-    margin-top: var(--space-12);
-  }
-
-  h2 {
-    font-size: var(--text-xl);
-    margin-bottom: var(--space-4);
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: var(--space-2);
-  }
-
-  .tech-group {
-    margin-bottom: var(--space-4);
-  }
-
-  .tech-group h3 {
-    font-size: var(--text-sm);
-    text-transform: capitalize;
-    color: var(--color-text-secondary);
-    margin-bottom: var(--space-2);
-  }
-
-  .tech-tags {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-
-  .tech-tag {
+  .case-back {
     display: inline-block;
-    padding: var(--space-1) var(--space-4);
-    background: color-mix(in srgb, var(--page-accent) 10%, transparent);
-    border: 1px solid var(--page-accent);
-    border-radius: 1rem;
-    font-size: var(--text-xs);
-    color: var(--color-text-primary);
+    margin-bottom: 28px;
+    transition: color var(--t-fast);
   }
-
-  .competency-list {
+  .case-back:hover {
+    color: var(--text);
+  }
+  .case-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px 18px;
+    margin: 0 0 18px;
+  }
+  .case-title {
+    margin: 0 0 30px;
+    font-size: clamp(3rem, 10vw, 9rem);
+    overflow-wrap: anywhere;
+  }
+  .case-intro {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-2) var(--space-6);
-    padding-left: var(--space-6);
-    color: var(--color-text-secondary);
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 24px 56px;
+    padding-bottom: clamp(2rem, 4vw, 3rem);
+    border-bottom: 1px solid var(--line);
   }
-
+  .case-intro .lede {
+    margin: 0;
+    color: var(--text);
+  }
+  .case-desc {
+    margin: 0 0 14px;
+  }
+  .case-note {
+    margin: 0 0 14px;
+    font-size: 12.5px;
+    color: var(--warn);
+  }
+  .case-cover {
+    margin-block: clamp(2rem, 4vw, 3.5rem);
+  }
+  .case-cover img {
+    width: 100%;
+    border-radius: var(--radius);
+    border: 1px solid var(--line);
+  }
+  .case-block {
+    padding-block: clamp(1.8rem, 3.5vw, 2.8rem);
+  }
+  .blueprint-panel {
+    padding-inline: 0;
+  }
+  .case-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0 clamp(24px, 4vw, 64px);
+    border-top: 1px solid var(--line);
+  }
+  .stack {
+    margin: 0;
+  }
+  .stack-row {
+    display: grid;
+    grid-template-columns: 120px minmax(0, 1fr);
+    gap: 14px;
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+  }
+  .stack-row dd {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+  }
+  .competencies {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .competencies li {
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+    color: var(--text-2);
+  }
+  .competencies li::before {
+    content: '+ ';
+    font-family: var(--font-mono);
+    color: var(--sig-violet);
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    margin: 0;
+  }
+  .metrics div {
+    padding: 14px 14px 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .metrics dd {
+    margin: 6px 0 0;
+    font-size: 1.05rem;
+  }
   .timeline {
     list-style: none;
+    margin: 0;
     padding: 0;
-    border-left: 2px solid var(--color-border);
+    border-left: 1px solid var(--line-2);
   }
-
   .timeline li {
-    padding: 0 0 var(--space-4) var(--space-6);
     position: relative;
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 14px;
+    padding: 10px 0 10px 22px;
+    color: var(--text-2);
   }
-
   .timeline li::before {
     content: '';
     position: absolute;
-    left: -5px;
-    top: 4px;
-    width: 8px;
-    height: 8px;
+    left: -4px;
+    top: 17px;
+    width: 7px;
+    height: 7px;
     border-radius: 50%;
-    background: var(--page-accent);
-    box-shadow: 0 0 8px var(--page-accent);
+    background: var(--sig-magenta);
   }
-
-  .timeline-date {
-    display: block;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--page-accent);
-    text-shadow: 0 0 1px var(--color-bg), 0 1px 4px var(--color-bg), 0 0 14px var(--color-bg);
+  .timeline .mono {
+    font-size: 12.5px;
+    color: var(--text);
   }
-
-  .metrics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-4);
+  .pager {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+    padding-top: 2rem;
+    border-top: 1px solid var(--line);
   }
-
-  .metric {
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: 0.5rem;
-    padding: var(--space-4);
+  .pager-link {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-width: 48%;
   }
-
-  .metric dt {
-    font-size: var(--text-xs);
-    color: var(--color-text-secondary);
-    text-transform: capitalize;
+  .pager-link .display {
+    font-size: clamp(1.4rem, 3vw, 2.4rem);
+    overflow-wrap: anywhere;
+    transition: opacity var(--t);
   }
-
-  .metric dd {
-    margin: 0;
-    font-size: var(--text-lg);
-    font-family: var(--font-mono);
-    color: var(--page-accent);
+  .pager-link:hover .display {
+    background: var(--foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
-
-  .content-section :global(h2) {
-    border-bottom: none;
-    padding-bottom: 0;
+  .pager-next {
+    text-align: right;
+    margin-left: auto;
   }
-
-  .back-link {
-    margin-top: var(--space-16);
-  }
-
-  .back-link .link-arrow .arr {
-    order: -1;
-  }
-
-  .back-link .link-arrow:hover .arr {
-    transform: translateX(-4px);
+  @media (max-width: 860px) {
+    .case-intro,
+    .case-grid {
+      grid-template-columns: 1fr;
+    }
+    .stack-row,
+    .timeline li {
+      grid-template-columns: 1fr;
+      gap: 6px;
+    }
   }
 </style>

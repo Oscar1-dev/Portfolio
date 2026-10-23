@@ -1,18 +1,20 @@
 # Third-party notices
 
-## bilingual-astro-editorial-template
+## Fonts
 
-The full-screen space background, particle hero title, and page-transition effects on this
-site are adapted from techniques in
-[EloyEMC/bilingual-astro-editorial-template](https://github.com/EloyEMC/bilingual-astro-editorial-template),
-used under the [MIT License](https://github.com/EloyEMC/bilingual-astro-editorial-template/blob/main/LICENSE).
-Only the visual/interaction technique is reused (the Three.js scene structure, the shader-based
-particle-text approach, and the Canvas2D transition overlay) — this site's content, data,
-routing, and page structure are original and unrelated to the template's bilingual book layout.
+- [Archivo](https://github.com/Omnibus-Type/Archivo) (variable, width axis) via `@fontsource-variable/archivo` — SIL Open Font License 1.1.
+- [Inter](https://github.com/rsms/inter) via `@fontsource-variable/inter` — SIL Open Font License 1.1.
+- [IBM Plex Mono](https://github.com/IBM/plex) via `@fontsource/ibm-plex-mono` — SIL Open Font License 1.1.
 
-Copyright (c) 2026 Sterling Books template contributors.
+## Clips on the About page
 
-## three.js
+The "Inspired by" clips are other creators' videos, credited on the page by the handle shown in
+each clip's own watermark. None of them are Oscar's work.
 
-This project depends on [three.js](https://github.com/mrdoob/three.js), distributed under the
-MIT License. Copyright © 2010-2026 three.js authors.
+## History
+
+Version 1 of this site adapted visual techniques from
+[EloyEMC/bilingual-astro-editorial-template](https://github.com/EloyEMC/bilingual-astro-editorial-template)
+(MIT) and depended on three.js. Version 2 replaced that code: the hero particle field, page
+transitions and textures are original, written in raw WebGL2 and CSS, and three.js is no longer
+used. The v1 code remains in the repository history (tag `v1-before-redesign`).

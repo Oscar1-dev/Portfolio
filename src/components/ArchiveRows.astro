@@ -1,0 +1,149 @@
+---
+// Project archive as rows (not cards). Data attributes feed the filter on
+// /projects/; the hover preview shows the project's own image in halftone.
+import ProjectLinks from './ProjectLinks.astro';
+import { assetPath } from '../data/asset-path';
+import { areaOf, type Project } from '../data/links';
+interface Props {
+  projects: Project[];
+  filterable?: boolean;
+}
+const { projects, filterable = false } = Astro.props;
+const base = import.meta.env.BASE_URL;
+---
+
+<ol class="archive" data-archive={filterable ? '' : undefined}>
+  {
+    projects.map((p, i) => {
+      const image = p.data.cover ?? p.data.logo;
+      const stack = Object.values(p.data.technologies).flat();
+      return (
+        <li
+          class="arow"
+          data-reveal
+          data-area={areaOf(p.data.projectType)}
+          data-status={p.data.status}
+          data-search={`${p.data.title} ${p.data.description} ${p.data.projectType} ${stack.join(' ')}`.toLowerCase()}
+        >
+          <span class="arow-n mono">{String(i + 1).padStart(2, '0')}</span>
+          <div class="arow-main">
+            <h3 class="arow-title">
+              <a href={`${base}projects/${p.slug}/`}>{p.data.title}</a>
+            </h3>
+            <p class="arow-desc">{p.data.description}</p>
+            <ProjectLinks project={p} compact />
+          </div>
+          <div class="arow-meta">
+            <span class="status" data-status={p.data.status}>{p.data.status}</span>
+            <span class="meta">{p.data.projectType}</span>
+            <span class="mono faint">{p.data.year}</span>
+          </div>
+          {image ? (
+            <span class="arow-preview" aria-hidden="true">
+              <img class="halftone" src={assetPath(image)} alt="" loading="lazy" decoding="async" />
+            </span>
+          ) : null}
+        </li>
+      );
+    })
+  }
+</ol>
+<p class="archive-empty faint" data-archive-empty hidden>No projects match that filter.</p>
+
+<style>
+  .archive {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .arow {
+    position: relative;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr) 220px;
+    gap: 12px 28px;
+    padding: 22px 0;
+    border-top: 1px solid var(--line);
+    transition: background var(--t) var(--ease);
+  }
+  .arow:hover {
+    background: linear-gradient(90deg, rgb(255 95 200 / 0.035), transparent 70%);
+  }
+  .arow-n {
+    padding-top: 6px;
+    font-size: 12px;
+    color: var(--text-3);
+  }
+  .arow-title {
+    margin: 0 0 6px;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 118;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: -0.02em;
+    font-size: clamp(1.35rem, 2.4vw, 2rem);
+  }
+  .arow-title a:hover {
+    background: var(--foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .arow-desc {
+    margin: 0 0 12px;
+    max-width: 70ch;
+    color: var(--text-2);
+    font-size: 15px;
+  }
+  .arow-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 6px;
+  }
+  .arow-preview {
+    position: absolute;
+    right: 240px;
+    top: 50%;
+    width: 220px;
+    aspect-ratio: 16 / 10;
+    translate: 0 -50%;
+    opacity: 0;
+    pointer-events: none;
+    transition:
+      opacity var(--t) var(--ease),
+      translate var(--t) var(--ease);
+  }
+  .arow-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+    filter: grayscale(0.3) contrast(1.15);
+  }
+  .arow:hover .arow-preview {
+    opacity: 1;
+    translate: 0 -54%;
+  }
+  .arow[hidden] {
+    display: none;
+  }
+  .archive-empty {
+    padding: 24px 0;
+  }
+  @media (max-width: 860px) {
+    .arow {
+      grid-template-columns: 36px minmax(0, 1fr);
+    }
+    .arow-meta {
+      grid-column: 2;
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 8px 14px;
+      padding-top: 0;
+    }
+    .arow-preview {
+      display: none;
+    }
+  }
+</style>

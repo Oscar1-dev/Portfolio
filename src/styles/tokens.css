@@ -1,57 +1,61 @@
-/* Design Tokens — All pages/components reference these */
+/* ==========================================================================
+   SIGNAL — design tokens for Oscar Senior's portfolio.
+   Shares a family resemblance with KUSH (carbon inks, expanded uppercase
+   Archivo, hairline editorial rules, foil used sparingly) but has its own
+   identity: an infrared → magenta → violet → ice "signal" foil instead of
+   KUSH's pastels, Inter + IBM Plex Mono instead of Geist, and technical
+   textures (blueprint grid, scanlines, halftone) used with purpose.
+   ========================================================================== */
 
 :root {
-  /* Foundation — near-black / charcoal, warm off-white ink */
-  --color-bg: #08090b;
-  --color-bg-raised: #111216;
-  --color-text-primary: #f1efe8;
-  --color-text-secondary: #93939c;
-  --color-text-tertiary: #86858f; /* WCAG AA on dark-mode surfaces */
-  --color-border: #1d1e23;
-  --color-border-strong: #2c2d34;
-  --color-surface: #111216;
-  --color-cream: #f1efe8;
-  --color-cream-text: #08090b;
+  /* Inks: each step slightly lighter, never a coloured panel. */
+  --ink-0: #060608;
+  --ink-1: #0b0b0f;
+  --ink-2: #111116;
+  --ink-3: #18181f;
+  --ink-4: #23232c;
 
-  /* Primary accent — red. Established identity colour for links/CTAs/active states. */
-  --color-accent-danger: #7a0e24;
-  --color-accent-interactive: #ff2b3c;
-  --color-accent-tag: #ff4a55; /* WCAG AA-compliant on translucent tag backgrounds */
+  --line: rgb(255 255 255 / 0.07);
+  --line-2: rgb(255 255 255 / 0.13);
+  --line-3: rgb(255 255 255 / 0.24);
 
-  /* Secondary accent — cool cyan/blue. Technical, used for NOPS/data/networking contexts. */
-  --color-accent-secondary: #2fd8c9;
-  --color-accent-blue: #4f8dff;
+  --text: #f2f0ee;
+  --text-2: #b6b3bd;
+  --text-3: #7c7986;
 
-  /* Tertiary accents — used sparingly for hierarchy, never all at once. */
-  --color-accent-magenta: #ff4d94;
-  --color-accent-gold: #f0b429;
-  --color-accent-green: #34d399;
+  /* The signal foil. */
+  --sig-red: #ff4d6d;
+  --sig-magenta: #ff5fc8;
+  --sig-violet: #b98cff;
+  --sig-ice: #8fd3ff;
+  --sig-pearl: #ffd9ec;
+  --foil: linear-gradient(100deg, #ff4d6d 0%, #ff5fc8 26%, #b98cff 52%, #8fd3ff 76%, #ffd9ec 90%, #ff4d6d 100%);
+  --foil-soft: linear-gradient(100deg, rgb(255 77 109 / 0.9), rgb(255 95 200 / 0.9) 30%, rgb(185 140 255 / 0.9) 62%, rgb(143 211 255 / 0.9));
+  --accent: #ff6fb5;
+  --accent-ink: #12060c;
 
-  --color-tier-core: #34d399;
-  --color-tier-learning: #2fd8c9;
-  --color-tier-foundation: #8f8f96;
+  --ok: #8fe3b9;
+  --warn: #f2d083;
+  --bad: #ff8f8f;
 
-  color-scheme: dark;
+  /* KUSH's own pastel foil, used only inside the KUSH case study. */
+  --kush-holo: linear-gradient(100deg, #f6c3ea 0%, #cbbcff 22%, #b4e3ff 44%, #c4f6de 64%, #f4eec0 82%, #f6c3ea 100%);
 
-  /* Layout */
-  --sidebar-width: 240px;
+  /* Type */
+  --font-display: 'Archivo Variable', 'Archivo', 'Arial Black', system-ui, sans-serif;
+  --font-body: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', monospace;
 
-  /* Typography */
-  --font-display: 'Archivo', sans-serif;
-  --font-body: 'Inter Variable', 'Inter', sans-serif;
-  --font-mono: 'IBM Plex Mono', monospace;
-
-  --text-xs: 0.75rem;
-  --text-sm: 0.875rem;
+  --text-xs: 0.72rem;
+  --text-sm: 0.85rem;
   --text-base: 1rem;
-  --text-lg: 1.125rem;
-  --text-xl: 1.25rem;
-  --text-2xl: 1.5rem;
-  --text-3xl: 1.875rem;
-  --text-4xl: clamp(2.25rem, 3vw + 1.5rem, 3.25rem);
-  --text-5xl: clamp(3rem, 5vw + 1.5rem, 5.5rem);
+  --text-lg: 1.15rem;
+  --text-xl: 1.4rem;
+  --text-2xl: 1.85rem;
+  --text-3xl: clamp(2.2rem, 4vw, 3.2rem);
+  --text-4xl: clamp(2.8rem, 6vw, 5rem);
+  --text-5xl: clamp(3.4rem, 9vw, 8.5rem);
 
-  /* Spacing */
   --space-1: 0.25rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
@@ -62,89 +66,53 @@
   --space-16: 4rem;
   --space-24: 6rem;
 
-  /* Motion */
-  --transition-fast: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-safe: 0.22s cubic-bezier(0.4, 0, 0.2, 1);
-  --transition-slow: 0.38s cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --gutter: clamp(20px, 4.5vw, 72px);
+  --content-max: 1360px;
+  --header-h: 68px;
+  --radius-s: 4px;
+  --radius: 10px;
 
-  /* Z-Index */
+  /* Motion: one curve everywhere. */
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-expo: var(--ease);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --t-fast: 180ms;
+  --t: 420ms;
+  --t-slow: 900ms;
+  --transition-fast: var(--t-fast) var(--ease);
+  --transition-safe: var(--t) var(--ease);
+  --transition-slow: var(--t-slow) var(--ease);
+
   --z-base: 1;
-  --z-dropdown: 100;
-  --z-modal: 1000;
-}
+  --z-dropdown: 40;
+  --z-modal: 80;
 
-/* Page accent system — each route carries its own accent (set as data-accent on
-   <html> by Layout from src/data/routes.ts). It drives the nav indicator,
-   page identity labels, section rules, background lighting and the page
-   transition. Links/CTAs keep the red interactive colour everywhere. */
-:root,
-[data-accent='red'] {
-  --page-accent: var(--color-accent-interactive);
-  --page-accent-2: var(--color-accent-secondary);
-  --page-accent-3: var(--color-accent-gold);
-}
-[data-accent='cyan'] {
-  --page-accent: var(--color-accent-secondary);
-  --page-accent-2: var(--color-accent-blue);
-  --page-accent-3: var(--color-accent-magenta);
-}
-[data-accent='blue'] {
-  --page-accent: var(--color-accent-blue);
-  --page-accent-2: var(--color-accent-secondary);
-  --page-accent-3: var(--color-accent-interactive);
-}
-[data-accent='gold'] {
-  --page-accent: var(--color-accent-gold);
-  --page-accent-2: var(--color-accent-interactive);
-  --page-accent-3: var(--color-accent-magenta);
-}
-[data-accent='green'] {
-  --page-accent: var(--color-accent-green);
-  --page-accent-2: var(--color-accent-secondary);
-  --page-accent-3: var(--color-accent-blue);
-}
-[data-accent='magenta'] {
-  --page-accent: var(--color-accent-magenta);
-  --page-accent-2: var(--color-accent-blue);
-  --page-accent-3: var(--color-accent-gold);
-}
+  color-scheme: dark;
 
-:root {
-  --content-max: 1240px;
-  --gutter: clamp(20px, 4vw, 56px);
-}
-
-/* Light mode — opt-in via data-theme="light" on <html> (see ThemeToggle) */
-:root[data-theme='light'] {
-  color-scheme: light;
-  --color-bg: #faf9f7;
-  --color-bg-raised: #ffffff;
-  --color-text-primary: #17171a;
-  --color-text-secondary: #55555c;
-  --color-text-tertiary: #63636a; /* WCAG AA on light-mode surfaces */
-  --color-accent-interactive: #cc1220;
-  --color-accent-tag: #b3101c;
-  --color-accent-secondary: #0a7d72;
-  --color-accent-blue: #2a5fd6;
-  --color-accent-magenta: #c22571;
-  --color-accent-gold: #93650a;
-  --color-accent-green: #157a56;
-  --color-border: #e4e4e2;
-  --color-border-strong: #cfcfcb;
-  --color-surface: #f1f1ee;
-  --color-cream: #17171a;
-  --color-cream-text: #faf9f7;
-  --color-tier-core: #157a56;
-  --color-tier-learning: #0a7d72;
-  --color-tier-foundation: #6b6b72;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  * {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
+  /* ---- Legacy names used by components carried over from v1 ---- */
+  --color-bg: var(--ink-0);
+  --color-bg-raised: var(--ink-2);
+  --color-surface: var(--ink-2);
+  --color-border: var(--line);
+  --color-border-strong: var(--line-2);
+  --color-text-primary: var(--text);
+  --color-text-secondary: var(--text-2);
+  --color-text-tertiary: var(--text-3);
+  --color-cream: var(--text);
+  --color-cream-text: var(--ink-0);
+  --color-accent-interactive: var(--sig-magenta);
+  --color-accent-secondary: var(--sig-violet);
+  --color-accent-magenta: var(--sig-magenta);
+  --color-accent-danger: var(--sig-red);
+  --color-accent-gold: #f2d083;
+  --color-accent-green: var(--ok);
+  --color-accent-blue: var(--sig-ice);
+  --color-accent-tag: var(--sig-violet);
+  --color-tier-core: var(--sig-magenta);
+  --color-tier-learning: var(--sig-violet);
+  --color-tier-foundation: var(--sig-ice);
+  --page-accent: var(--sig-magenta);
+  --page-accent-2: var(--sig-violet);
+  --page-accent-3: var(--sig-ice);
+  --sidebar-width: 0px;
 }

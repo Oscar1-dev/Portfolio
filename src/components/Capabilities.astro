@@ -82,13 +82,13 @@ const categories: { name: string; accent: string; items: Item[] }[] = [
 <div class="capabilities" data-reveal-group="capabilities">
   {
     categories.map((cat, i) => (
-      <div class="cap-card" data-reveal data-reveal-group="capabilities" data-spotlight style={`--cat-accent: ${cat.accent}`}>
+      <div class="cap-card" data-reveal data-reveal-group="capabilities" style={`--cat-accent: ${cat.accent}`}>
         <span class="cap-index">{String(i + 1).padStart(2, '0')}</span>
         <h3>{cat.name}</h3>
         <ul>
           {cat.items.map((item) => (
             <li>
-              <a href={`${base}projects/${item.slug}`} data-page-link>
+              <a href={`${base}projects/${item.slug}/`}>
                 {item.label}
               </a>
             </li>
@@ -100,43 +100,34 @@ const categories: { name: string; accent: string; items: Item[] }[] = [
 </div>
 
 <style>
+  /* Ruled columns, not cards: each category is a column with a hairline rule. */
   .capabilities {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: var(--space-4);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0 clamp(20px, 3vw, 48px);
   }
 
   .cap-card {
-    padding: var(--space-6);
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-border);
-    border-top: 2px solid color-mix(in srgb, var(--cat-accent) 55%, var(--color-border));
-    border-radius: 0.75rem;
-    transition: border-color var(--transition-safe);
-  }
-
-  .cap-card:hover {
-    border-color: var(--color-border-strong);
-    border-top-color: var(--cat-accent);
-  }
-
-  .cap-card::before {
-    background: radial-gradient(220px circle at var(--spot-x, 50%) var(--spot-y, 50%), color-mix(in srgb, var(--cat-accent) 14%, transparent), transparent 70%);
+    padding: 22px 0 30px;
+    border-top: 1px solid var(--line);
   }
 
   .cap-index {
     display: block;
+    margin-bottom: 10px;
     font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    color: var(--color-text-tertiary);
-    margin-bottom: var(--space-4);
+    font-size: 11px;
+    color: var(--text-3);
   }
 
   .cap-card h3 {
-    margin: 0 0 var(--space-4);
-    font-size: var(--text-sm);
+    margin: 0 0 14px;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 120;
+    font-weight: 800;
+    font-size: 1.15rem;
+    letter-spacing: -0.01em;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
     color: var(--cat-accent);
   }
 
@@ -144,20 +135,44 @@ const categories: { name: string; accent: string; items: Item[] }[] = [
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
   }
 
   .cap-card li a {
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    line-height: 1.5;
-    text-decoration: none;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 8px 0;
+    border-bottom: 1px dashed var(--line);
+    color: var(--text-2);
+    font-size: 14.5px;
+    line-height: 1.45;
+    transition: color var(--t-fast);
+  }
+
+  .cap-card li a::after {
+    content: '→';
+    color: var(--text-3);
+    transition: transform var(--t) var(--ease), color var(--t-fast);
   }
 
   .cap-card li a:hover {
-    color: var(--color-text-primary);
-    text-decoration-color: currentColor;
+    color: var(--text);
+  }
+
+  .cap-card li a:hover::after {
+    color: var(--cat-accent);
+    transform: translateX(3px);
+  }
+
+  @media (max-width: 900px) {
+    .capabilities {
+      grid-template-columns: 1fr 1fr;
+    }
+  }
+
+  @media (max-width: 560px) {
+    .capabilities {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

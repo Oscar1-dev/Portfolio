@@ -4,38 +4,34 @@ import Layout from '../layouts/Layout.astro';
 const base = import.meta.env.BASE_URL;
 ---
 
-<Layout title="404 Not Found">
-  <section class="not-found">
-    <h1>404</h1>
-    <p>This page doesn't exist.</p>
-    <a href={base} class="cta-primary">Back home</a>
+<Layout title="Not found" description="This page doesn't exist.">
+  <section class="nf wrap">
+    <p class="meta">Error 404 · signal lost</p>
+    <h1 class="display nf-code"><span class="foil foil-live">404</span></h1>
+    <p class="lede">This page doesn't exist, or it moved when the portfolio was rebuilt.</p>
+    <div class="nf-actions">
+      <a class="btn btn-primary" href={base}>Home</a>
+      <a class="btn btn-outline" href={`${base}projects/`}>All projects</a>
+    </div>
   </section>
 </Layout>
 
 <style>
-  .not-found {
-    text-align: center;
-    padding: var(--space-16) var(--space-8);
+  .nf {
+    min-height: 80vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: var(--header-h);
   }
-
-  .not-found h1 {
-    font-size: 6rem;
-    color: var(--color-accent-interactive);
-    margin: 0;
+  .nf-code {
+    margin: 12px 0 18px;
+    font-size: clamp(7rem, 28vw, 22rem);
+    line-height: 0.8;
   }
-
-  .cta-primary {
-    display: inline-block;
-    margin-top: var(--space-8);
-    padding: var(--space-4) var(--space-8);
-    background: var(--color-accent-interactive);
-    color: var(--color-bg);
-    border-radius: 0.5rem;
-    font-weight: 600;
-  }
-
-  .cta-primary:hover {
-    background: var(--color-accent-danger);
-    text-decoration: none;
+  .nf-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 12px;
   }
 </style>

@@ -1,85 +1,86 @@
 ---
 // src/layouts/Layout.astro
 import '@fontsource-variable/inter';
-import '@fontsource/archivo/700.css';
-import '@fontsource/archivo/800.css';
+import '@fontsource-variable/archivo/wdth.css';
+import '@fontsource-variable/archivo/wdth-italic.css';
 import '@fontsource/ibm-plex-mono/400.css';
 import '@fontsource/ibm-plex-mono/600.css';
-import Header from '../components/Header.astro';
-import Footer from '../components/Footer.astro';
-import AtmosphericBackground from '../components/AtmosphericBackground.astro';
-import PageTransition from '../components/PageTransition.astro';
-import { routeMeta, type Accent } from '../data/routes';
+import { ClientRouter } from 'astro:transitions';
+import SiteHeader from '../components/SiteHeader.astro';
+import SiteFooter from '../components/SiteFooter.astro';
 
 interface Props {
   title: string;
   description?: string;
-  accent?: Accent;
+  /** Social preview image (site-relative), defaults to the site card. */
+  image?: string;
+  /** For case studies: marks the page as an article for social cards. */
+  article?: boolean;
 }
 
-const { title, description, accent } = Astro.props;
-const site = 'Oscar Portfolio';
-const pageAccent = accent ?? routeMeta(Astro.url.pathname, import.meta.env.BASE_URL).accent;
+const { title, description, image = 'og.png', article = false } = Astro.props;
+const name = 'Oscar Senior';
+const fullTitle = title === 'Home' ? `${name} — Security engineering & software` : `${title} — ${name}`;
+const summary =
+  description ??
+  'Oscar Senior (Nops): software engineer and cybersecurity practitioner. Founder of KUSH, Chief Security Officer at Velnqo.';
+const base = import.meta.env.BASE_URL;
+const canonical = new URL(Astro.url.pathname, Astro.site);
+const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
 ---
 
 <!doctype html>
-<html lang="en" data-accent={pageAccent}>
+<html lang="en-GB">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="description" content={description || `${site} — Cybersecurity apprenticeship portfolio`} />
-    <title>{title} — {site}</title>
-    <link rel="icon" type="image/svg+xml" href={`${import.meta.env.BASE_URL}favicon.svg`} />
-    <link rel="canonical" href={Astro.url} />
-    <meta name="theme-color" content="#08090B" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={summary} />
+    <meta name="author" content={name} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href={`${base}favicon.svg`} />
+    <link rel="icon" href={`${base}favicon.ico`} sizes="any" />
+    <meta name="theme-color" content="#060608" />
+    <meta name="color-scheme" content="dark" />
+
+    <meta property="og:type" content={article ? 'article' : 'website'} />
+    <meta property="og:site_name" content={name} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={summary} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={fullTitle} />
+    <meta name="twitter:description" content={summary} />
+    <meta name="twitter:image" content={imageUrl} />
+
     <script is:inline>
-      // Runs before paint: theme, then — if we arrived through the page
-      // transition — start the page already covered, with the destination's
-      // label painted by CSS (see PageTransition.astro).
-      (function () {
-        var h = document.documentElement;
-        if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) h.classList.add('motion-ok');
-        try {
-          var stored = localStorage.getItem('theme');
-          var theme = stored || (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
-          if (theme === 'light') h.setAttribute('data-theme', 'light');
-        } catch (e) {}
-        try {
-          var raw = sessionStorage.getItem('pt');
-          if (raw) {
-            sessionStorage.removeItem('pt');
-            var d = JSON.parse(raw);
-            if (Date.now() - d.t < 4000 && !window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-              h.classList.add('pt-incoming');
-              h.style.setProperty('--pt-title', JSON.stringify(d.label));
-              h.style.setProperty('--pt-index', JSON.stringify(d.index));
-              h.style.setProperty('--pt-path', JSON.stringify(d.path));
-            }
-          }
-        } catch (e) {}
-      })();
+      // Before paint: motion is opt-out by the OS; reveals only hide content
+      // once this flag is set, so the page reads fine without JavaScript.
+      if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) document.documentElement.classList.add('motion-ok');
     </script>
+    <ClientRouter fallback="swap" />
   </head>
   <body>
-    <AtmosphericBackground />
-    <div class="scroll-progress" data-scroll-progress aria-hidden="true"></div>
-    <div class="app-shell">
-      <Header />
-      <div class="app-content">
-        <main id="main">
-          <slot />
-        </main>
-        <Footer />
-      </div>
-    </div>
-    <PageTransition />
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SiteHeader />
+    <main id="main" tabindex="-1">
+      <slot />
+    </main>
+    <SiteFooter />
     <script>
       import { mountReveal } from '../scripts/reveal';
-      import { mountInteractions } from '../scripts/interactions';
-      import { mountTypewriter } from '../scripts/typewriter';
-      mountReveal();
-      mountInteractions();
-      mountTypewriter();
+      import { mountSplitFlaps } from '../scripts/split-flap';
+      import { mountHeader } from '../scripts/header';
+      // Runs on first load and after every client-side navigation.
+      document.addEventListener('astro:page-load', () => {
+        document.documentElement.classList.toggle('motion-ok', !window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        mountHeader();
+        mountReveal();
+        mountSplitFlaps();
+      });
     </script>
   </body>
 </html>
@@ -89,28 +90,9 @@ const pageAccent = accent ?? routeMeta(Astro.url.pathname, import.meta.env.BASE_
   @import '../styles/global.css';
   @import '../styles/animations.css';
 
-  .app-shell {
-    position: relative;
-    z-index: 1;
-    display: flex;
-    min-height: 100vh;
-  }
-
-  .app-content {
-    flex: 1;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-  }
-
-  .app-content main {
-    flex: 1;
-    min-width: 0;
-  }
-
-  @media (max-width: 860px) {
-    .app-shell {
-      flex-direction: column;
-    }
+  main {
+    display: block;
+    min-height: 70vh;
+    outline: none;
   }
 </style>

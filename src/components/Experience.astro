@@ -1,0 +1,148 @@
+---
+import { roles } from '../data/experience';
+const base = import.meta.env.BASE_URL;
+---
+
+<ol class="experience">
+  {
+    roles.map((role, i) => (
+      <li class="role" data-reveal style={`--reveal-delay:${i * 80}ms`}>
+        <div class="role-when">
+          <span class="mono">{role.period}</span>
+          {role.kind ? <span class="meta">{role.kind}</span> : null}
+          {role.current ? <span class="role-live">Current</span> : null}
+        </div>
+        <div class="role-main">
+          <h3 class="role-title">
+            <span class="display role-org">{role.organisation}</span>
+            <span class="role-position">{role.title}</span>
+          </h3>
+          <p class="role-summary">{role.summary}</p>
+          {role.note ? <p class="role-note mono">{role.note}</p> : null}
+          {role.link ? (
+            <a class="link-arrow" href={`${base}${role.link.href}`}>
+              {role.link.label} <span class="arr" aria-hidden="true">→</span>
+            </a>
+          ) : null}
+        </div>
+        <ul class="role-focus" aria-label={`${role.organisation} focus areas`}>
+          {role.focus.map((f) => (
+            <li>{f}</li>
+          ))}
+        </ul>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .experience {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .role:first-child {
+    border-top: 0;
+    padding-top: 0;
+  }
+  .role {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: 18px clamp(20px, 3.5vw, 56px);
+    padding-block: clamp(1.8rem, 3.6vw, 3rem);
+    border-top: 1px solid var(--line);
+  }
+  .role-when {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .role-when .mono {
+    font-size: 13px;
+    color: var(--text);
+  }
+  .role-live {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-top: 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--sig-magenta);
+  }
+  .role-live::before {
+    content: '';
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: currentColor;
+    box-shadow: 0 0 0 3px rgb(255 95 200 / 0.18);
+  }
+  .role-title {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin: 0 0 14px;
+  }
+  .role-org {
+    font-size: clamp(2rem, 4vw, 3.4rem);
+  }
+  .role-position {
+    font-size: 1.1rem;
+    font-weight: 600;
+    background: var(--foil);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    width: fit-content;
+  }
+  .role-summary {
+    margin: 0 0 14px;
+    max-width: 58ch;
+    color: var(--text-2);
+    line-height: 1.65;
+  }
+  .role-note {
+    margin: 0 0 14px;
+    padding-left: 12px;
+    border-left: 2px solid var(--warn);
+    font-size: 12.5px;
+    color: var(--text-2);
+  }
+  .role-focus {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-self: start;
+    display: flex;
+    flex-direction: column;
+  }
+  .role-focus li {
+    padding: 7px 0;
+    border-bottom: 1px dashed var(--line);
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .role-focus li::before {
+    content: '+ ';
+    font-family: var(--font-mono);
+    color: var(--sig-violet);
+  }
+  @media (max-width: 960px) {
+    .role {
+      grid-template-columns: 1fr;
+    }
+    .role-when {
+      flex-direction: row;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+    }
+    .role-live {
+      margin-top: 0;
+    }
+  }
+</style>

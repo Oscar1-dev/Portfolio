@@ -1,0 +1,238 @@
+---
+// KUSH, the lead project. Uses KUSH's own pastel foil (its brand), framed by
+// the portfolio's system; real screenshots of the KUSH website.
+import type { Project } from '../data/links';
+import { assetPath } from '../data/asset-path';
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const { data } = project;
+const base = import.meta.env.BASE_URL;
+const pillars = [
+  { k: 'Web platform', v: 'Discord sign-in, accounts, TOTP 2FA, sessions, staff dashboard' },
+  { k: 'Platform API', v: 'Fastify, Zod, OpenAPI, Drizzle, PostgreSQL, audit logging' },
+  { k: 'Discord', v: 'Provisioned server, permission evaluator, tickets, referrals, bot' },
+  { k: 'Commerce', v: 'Commissions, orders, store credit, Stripe (simulated locally)' },
+];
+---
+
+<section class="kush" aria-labelledby="kush-title">
+  <div class="wrap">
+    <div class="kush-head">
+      <p class="sec-index">01 · Featured</p>
+      <p class="meta">Founder & developer · 2026 – present</p>
+    </div>
+    <div class="kush-grid">
+      <div class="kush-copy">
+        <h2 id="kush-title" class="display kush-word">KUSH</h2>
+        <p class="kush-lede">{data.description}</p>
+        <p class="kush-status mono"><span aria-hidden="true">◐</span> {data.statusNote}</p>
+        <dl class="kush-pillars">
+          {
+            pillars.map((p) => (
+              <div data-reveal>
+                <dt>{p.k}</dt>
+                <dd>{p.v}</dd>
+              </div>
+            ))
+          }
+        </dl>
+        <div class="kush-actions">
+          <a class="btn btn-kush" href={`${base}projects/kush/`}>
+            Read the KUSH case study
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </a>
+          <a class="btn btn-outline" href="https://github.com/Oscar1-dev/KUSH" target="_blank" rel="noopener noreferrer">Source on GitHub ↗</a>
+        </div>
+      </div>
+      <a class="kush-stack" href={`${base}projects/kush/`} aria-label="KUSH case study" tabindex="-1">
+        <img class="shot shot-back" src={assetPath('/images/projects/kush-services.webp')} alt="" loading="lazy" width="1600" height="1000" />
+        <img class="shot shot-mid" src={assetPath('/images/projects/kush-commission.webp')} alt="" loading="lazy" width="1600" height="1000" />
+        <img class="shot shot-front" src={assetPath('/images/projects/kush-home.webp')} alt="The KUSH website home page: BUILT DIFFERENT in large type with the holographic leaf." loading="lazy" width="1600" height="1000" />
+      </a>
+    </div>
+    <dl class="kush-metrics">
+      {
+        Object.entries(data.metrics ?? {}).map(([k, v]) => (
+          <div data-reveal>
+            <dt>{k}</dt>
+            <dd>{v}</dd>
+          </div>
+        ))
+      }
+    </dl>
+  </div>
+</section>
+
+<style>
+  .kush {
+    position: relative;
+    padding-block: clamp(4rem, 9vw, 8rem);
+    border-top: 1px solid var(--line);
+  }
+  .kush-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: clamp(1.5rem, 3vw, 2.5rem);
+  }
+  .kush-head .sec-index {
+    margin: 0;
+  }
+  .kush-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+    gap: clamp(28px, 5vw, 80px);
+    align-items: center;
+  }
+  .kush-word {
+    margin: 0 0 22px;
+    font-size: clamp(4.5rem, 10vw, 9.5rem);
+    line-height: 0.8;
+    background: var(--kush-holo);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: foil-drift 18s linear infinite;
+  }
+  .kush-lede {
+    margin: 0 0 16px;
+    max-width: 52ch;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: var(--text-2);
+  }
+  .kush-status {
+    margin: 0 0 28px;
+    font-size: 12.5px;
+    color: #f4eec0;
+  }
+  .kush-pillars {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0 24px;
+    margin: 0 0 30px;
+  }
+  .kush-pillars div {
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .kush-pillars dt {
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #cbbcff;
+  }
+  .kush-pillars dd {
+    margin: 6px 0 0;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .kush-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .btn-kush {
+    background: var(--kush-holo);
+    background-size: 200% 100%;
+    color: #0b0a12;
+    transition: background-position 1s var(--ease);
+  }
+  .btn-kush:hover {
+    background-position: 100% 0;
+  }
+  /* Three real screenshots, fanned in depth. */
+  .kush-stack {
+    position: relative;
+    display: block;
+    aspect-ratio: 16 / 11;
+    perspective: 1400px;
+  }
+  .shot {
+    position: absolute;
+    width: 82%;
+    border-radius: 10px;
+    border: 1px solid var(--line-2);
+    box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9);
+    transition: transform 1.1s var(--ease);
+  }
+  .shot-back {
+    right: 0;
+    top: 0;
+    transform: rotateY(-14deg) translateZ(-80px);
+    opacity: 0.55;
+  }
+  .shot-mid {
+    right: 7%;
+    top: 12%;
+    transform: rotateY(-10deg) translateZ(-30px);
+    opacity: 0.8;
+  }
+  .shot-front {
+    left: 0;
+    bottom: 0;
+    transform: rotateY(-6deg);
+  }
+  .kush-stack:hover .shot-back {
+    transform: rotateY(-8deg) translate(4%, -4%) translateZ(-80px);
+  }
+  .kush-stack:hover .shot-mid {
+    transform: rotateY(-6deg) translate(2%, -2%) translateZ(-30px);
+  }
+  .kush-stack:hover .shot-front {
+    transform: rotateY(0deg) translateY(-4px);
+  }
+  .kush-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: clamp(2.5rem, 5vw, 4rem) 0 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .kush-metrics div {
+    padding: 18px 18px 18px 0;
+  }
+  .kush-metrics div + div {
+    padding-left: 18px;
+    border-left: 1px solid var(--line);
+  }
+  .kush-metrics dt {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .kush-metrics dd {
+    margin: 8px 0 0;
+    font-size: 15px;
+    color: var(--text);
+  }
+  @media (max-width: 640px) {
+    .kush-head {
+      flex-direction: column;
+      gap: 6px;
+    }
+  }
+  @media (max-width: 960px) {
+    .kush-grid {
+      grid-template-columns: 1fr;
+    }
+    .kush-metrics {
+      grid-template-columns: 1fr 1fr;
+    }
+    .kush-metrics div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+  }
+  @media (max-width: 560px) {
+    .kush-pillars {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

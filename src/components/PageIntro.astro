@@ -1,0 +1,48 @@
+---
+interface Props {
+  index: string;
+  label: string;
+  title: string;
+  accent?: string;
+}
+const { index, label, title, accent } = Astro.props;
+---
+
+<header class="intro wrap">
+  <p class="intro-meta"><span class="mono">{index}</span><span class="meta">{label}</span></p>
+  <h1 class="display intro-title" data-reveal="clip">
+    {title}
+    {accent ? <span class="foil foil-live">{accent}</span> : null}
+  </h1>
+  <div class="intro-body lede" data-reveal>
+    <slot />
+  </div>
+</header>
+
+<style>
+  .intro {
+    padding-top: calc(var(--header-h) + clamp(3rem, 8vw, 7rem));
+    padding-bottom: clamp(2.5rem, 5vw, 4rem);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+  .intro-meta {
+    display: flex;
+    gap: 14px;
+    margin: 0 0 20px;
+  }
+  .intro-meta .mono {
+    font-size: 11px;
+    color: var(--sig-magenta);
+  }
+  .intro-title {
+    margin: 0 0 28px;
+    font-size: clamp(3rem, 9vw, 8.5rem);
+  }
+  .intro-title span {
+    display: block;
+  }
+  .intro-body :global(p) {
+    margin: 0;
+  }
+</style>

@@ -2,397 +2,139 @@
 // src/pages/index.astro
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import ProjectCard from '../components/ProjectCard.astro';
+import SignalHero from '../components/SignalHero.astro';
+import KushSpotlight from '../components/KushSpotlight.astro';
+import FeatureProject from '../components/FeatureProject.astro';
+import Experience from '../components/Experience.astro';
+import CyberSummary from '../components/CyberSummary.astro';
 import Capabilities from '../components/Capabilities.astro';
-import ParticleName from '../components/ParticleName.astro';
+import ArchiveRows from '../components/ArchiveRows.astro';
 import tryhackme from '../data/tryhackme.json';
-import { assetPath } from '../data/asset-path';
+import { byOrder } from '../data/links';
 
-const allProjects = await getCollection('projects');
-const sorted = allProjects.sort((a, b) => a.data.order - b.data.order);
-const flagship = sorted.find((p) => p.slug === 'nops-cyber-intelligence')!;
-const otherFeatured = sorted.filter((p) => p.data.featured && p.slug !== flagship.slug).slice(0, 4);
-const publicRepoCount = allProjects.filter((p) => p.data.links?.github).length;
+const all = (await getCollection('projects')).sort(byOrder);
+const kush = all.find((p) => p.slug === 'kush')!;
+// Lead work after KUSH: the substantial projects with something to show.
+const leadSlugs = ['nops-cyber-intelligence', 'mindhouse', 'feedback'];
+const lead = leadSlugs.map((s) => all.find((p) => p.slug === s)!).filter(Boolean);
+const rest = all.filter((p) => p.slug !== 'kush' && !leadSlugs.includes(p.slug));
 const base = import.meta.env.BASE_URL;
 ---
 
 <Layout
   title="Home"
-  description="Oscar — security-minded full-stack engineer. Builder of NOPS / Cyber Intelligence, a production threat-intelligence platform, plus real Rust, Tauri and Discord-platform projects."
+  description="Oscar Senior (Nops): software engineer and cybersecurity practitioner. Founder and developer of KUSH, Chief Security Officer at Velnqo, builder of NOPS / Cyber Intelligence."
 >
-  <section class="hero wrap">
-    <span class="eyebrow" data-reveal>Security engineering / full-stack development</span>
-    <ParticleName title="Oscar Senior" />
-    <p class="tagline" data-reveal data-typewriter>Builder of production-shaped systems, security-first.</p>
-    <p class="bio" data-reveal>
-      I'm Oscar — a final-year DISC student practising offensive and defensive security fundamentals on TryHackMe,
-      and shipping real systems: a full threat-intelligence investigation platform, Rust/Tauri desktop apps, and
-      Discord-native platforms with real auth, rate limiting, and audit logging. {allProjects.length} projects total,
-      every one audited against its own source — what's public is linked, what's private is labelled.
-    </p>
+  <SignalHero projectCount={all.length} rooms={tryhackme.stats.totalRoomsCompleted} badges={tryhackme.stats.totalBadges} />
 
-    <div class="hero-actions" data-reveal>
-      <a href={`${base}projects`} data-page-link class="btn btn-primary">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-        View all work
-      </a>
-      <a href={`${base}credentials`} data-page-link class="btn btn-outline">
-        <svg class="icon" viewBox="0 0 24 24"><path d="M12 3.5 4.5 6.5v5c0 5 3.2 8.6 7.5 10 4.3-1.4 7.5-5 7.5-10v-5L12 3.5Z" /></svg>
-        Credentials
-      </a>
-    </div>
+  <div id="featured">
+    <KushSpotlight project={kush} />
+  </div>
 
-    <dl class="stat-row" data-reveal>
-      <div class="stat"><dt>Projects</dt><dd>{allProjects.length}</dd></div>
-      <div class="stat"><dt>Public repos</dt><dd>{publicRepoCount}</dd></div>
-      <div class="stat"><dt>TryHackMe badges</dt><dd>{tryhackme.stats.totalBadges}</dd></div>
-      <div class="stat"><dt>Rooms completed</dt><dd>{tryhackme.stats.totalRoomsCompleted}</dd></div>
-    </dl>
-  </section>
-
-  <section class="sec flagship wrap" data-accent="blue">
-    <div class="sec-head" data-reveal>
+  <section class="sec wrap" aria-labelledby="lead-title">
+    <div class="sec-head">
       <div>
-        <p class="sec-index">Featured work</p>
-        <h2 class="sec-title">NOPS / Cyber Intelligence</h2>
+        <p class="sec-index">02 · Selected work</p>
+        <h2 id="lead-title" class="sec-title">Built, shipped,<br /><span class="foil">documented.</span></h2>
       </div>
-    </div>
-
-    <a href={`${base}projects/${flagship.slug}`} data-page-link data-tilt data-spotlight class="flagship-card" data-reveal>
-      <span class="flagship-cover">
-        <img src={assetPath(flagship.data.cover!)} alt="NOPS investigation workspace — a live investigations table with observable type, mode, status, findings and source coverage" loading="eager" />
-      </span>
-      <span class="flagship-body">
-        <span class="flagship-tagline" data-typewriter>{flagship.data.tagline}</span>
-        <span class="flagship-description">{flagship.data.description}</span>
-        <span class="flagship-metrics">
-          {Object.entries(flagship.data.metrics ?? {}).map(([k, v]) => (
-            <span class="flagship-metric"><b class="neon">{v}</b>{k}</span>
-          ))}
-        </span>
-        <span class="flagship-actions">
-          <span class="btn btn-primary">Read the case study <span class="arr">→</span></span>
-          {flagship.data.links?.live && <span class="btn btn-outline" data-external data-href={flagship.data.links.live}>Live app ↗</span>}
-          {flagship.data.links?.github && <span class="btn btn-outline" data-external data-href={flagship.data.links.github}>Source ↗</span>}
-        </span>
-      </span>
-      <span class="sec-rule" aria-hidden="true"></span>
-    </a>
-  </section>
-
-  <section class="sec other-work wrap">
-    <div class="sec-head" data-reveal>
-      <div>
-        <p class="sec-index">02</p>
-        <h2 class="sec-title">Other projects</h2>
-      </div>
-      <a href={`${base}projects`} data-page-link class="link-arrow">View all {allProjects.length}<span class="arr">→</span></a>
+      <a class="link-arrow" href={`${base}projects/`}>Every project ({all.length}) <span class="arr" aria-hidden="true">→</span></a>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
-    <div class="project-grid">
-      {otherFeatured.map((project) => <ProjectCard slug={project.slug} {...project.data} />)}
-    </div>
+    {lead.map((project, i) => <FeatureProject project={project} index={String(i + 1).padStart(2, '0')} flip={i % 2 === 1} />)}
   </section>
 
-  <section class="sec capabilities-section wrap">
-    <div class="sec-head" data-reveal>
+  <section id="experience" class="sec wrap" aria-labelledby="experience-title">
+    <div class="sec-head">
       <div>
-        <p class="sec-index">03</p>
-        <h2 class="sec-title">Technical capabilities</h2>
+        <p class="sec-index">03 · Experience</p>
+        <h2 id="experience-title" class="sec-title">Where I<br /><span class="foil">work now.</span></h2>
       </div>
-      <a href={`${base}about`} data-page-link class="link-arrow">Full breakdown<span class="arr">→</span></a>
+      <span class="meta">Current roles</span>
+      <span class="sec-rule" aria-hidden="true"></span>
+    </div>
+    <Experience />
+  </section>
+
+  <section id="security" class="sec wrap" aria-labelledby="security-title">
+    <div class="sec-head">
+      <div>
+        <p class="sec-index">04 · Cybersecurity</p>
+        <h2 id="security-title" class="sec-title">Break it,<br /><span class="foil">then build it right.</span></h2>
+      </div>
+      <a class="link-arrow" href={`${base}credentials/`}>Security record <span class="arr" aria-hidden="true">→</span></a>
+      <span class="sec-rule" aria-hidden="true"></span>
+    </div>
+    <CyberSummary />
+  </section>
+
+  <section class="sec wrap" aria-labelledby="archive-title">
+    <div class="sec-head">
+      <div>
+        <p class="sec-index">05 · Archive</p>
+        <h2 id="archive-title" class="sec-title">Everything<br /><span class="foil">else I've made.</span></h2>
+      </div>
+      <a class="link-arrow" href={`${base}projects/`}>Search the archive <span class="arr" aria-hidden="true">→</span></a>
+      <span class="sec-rule" aria-hidden="true"></span>
+    </div>
+    <ArchiveRows projects={rest} />
+  </section>
+
+  <section class="sec wrap" aria-labelledby="stack-title">
+    <div class="sec-head">
+      <div>
+        <p class="sec-index">06 · Stack</p>
+        <h2 id="stack-title" class="sec-title">What I<br /><span class="foil">reach for.</span></h2>
+      </div>
+      <span class="meta">Every line links to the project it comes from</span>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
     <Capabilities />
   </section>
 
-  <section class="sec journey wrap">
-    <div class="journey-inner" data-reveal>
-      <div>
-        <h2>Still learning, in the open</h2>
-        <p>
-          {tryhackme.stats.totalBadges} TryHackMe badges and {tryhackme.stats.totalRoomsCompleted} completed rooms,
-          tracked honestly — mostly foundational, clearly labelled as exposure rather than mastery. The
-          <a href={`${base}learning-log`} data-page-link>learning log</a> lines up every project milestone in order.
-        </p>
-      </div>
-      <div class="journey-links">
-        <a href={`${base}credentials`} data-page-link class="btn btn-outline">Credentials</a>
-        <a href={`${base}learning-log`} data-page-link class="btn btn-outline">Learning log</a>
+  <section id="contact" class="sec wrap contact" aria-labelledby="contact-title">
+    <p class="sec-index">07 · Contact</p>
+    <h2 id="contact-title" class="display contact-title">
+      <a href="mailto:nopsrust@gmail.com">nopsrust<wbr /><span class="foil">@gmail.com</span></a>
+    </h2>
+    <div class="contact-row">
+      <p class="lede">Security work, a project, or something KUSH could build: email is quickest. Code and history are on GitHub; security practice is on TryHackMe.</p>
+      <div class="contact-links">
+        <a class="btn btn-primary" href="mailto:nopsrust@gmail.com">Email me</a>
+        <a class="btn btn-outline" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
+        <a class="btn btn-outline" href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe ↗</a>
       </div>
     </div>
-  </section>
-
-  <section class="sec cta-section wrap" data-reveal>
-    <div>
-      <h2>Ready to discuss an apprenticeship?</h2>
-      <p>Every claim on this site links back to real, inspectable source. Start with <a href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">github.com/Oscar1-dev</a>.</p>
-    </div>
-    <a href={`${base}about`} data-page-link class="btn btn-primary">Get in touch</a>
   </section>
 </Layout>
 
-<script>
-  // The flagship card is a single anchor (for a large, clickable hit-area);
-  // its inner "Live app" / "Source" pills are rendered as spans so they don't
-  // create nested <a> tags, and instead open their real target on click.
-  document.querySelectorAll<HTMLElement>('.flagship-card [data-external]').forEach((el) => {
-    el.addEventListener('click', (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      const url = el.dataset.href;
-      if (url) window.open(url, '_blank', 'noopener,noreferrer');
-    });
-  });
-</script>
-
 <style>
-  .hero {
-    padding-top: clamp(2.5rem, 6vw, 4.5rem);
-    padding-bottom: var(--space-12);
+  .contact-title {
+    margin: 0 0 32px;
+    font-size: clamp(2rem, 6.6vw, 6.4rem);
+    text-transform: none;
+    letter-spacing: -0.04em;
   }
-
-  .eyebrow {
-    display: inline-block;
-    font-size: var(--text-xs);
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--color-accent-interactive);
-    text-shadow: 0 0 1px var(--color-bg), 0 1px 4px var(--color-bg), 0 0 14px var(--color-bg);
-    margin-bottom: var(--space-4);
+  .contact-title a {
+    transition: opacity var(--t);
   }
-
-  .tagline {
-    font-size: var(--text-xl);
-    color: var(--color-text-primary);
-    margin: var(--space-4) 0 var(--space-4);
+  .contact-title a:hover {
+    opacity: 0.85;
   }
-
-  .bio {
-    max-width: 680px;
-    margin: 0 0 var(--space-8);
-    color: var(--color-text-secondary);
-    font-size: var(--text-lg);
-    line-height: 1.75;
-  }
-
-  .hero-actions {
+  .contact-row {
     display: flex;
-    gap: var(--space-4);
     flex-wrap: wrap;
-    margin-bottom: var(--space-8);
-  }
-
-  .stat-row {
-    display: grid;
-    grid-template-columns: repeat(4, auto);
-    gap: var(--space-8);
-    margin: 0;
-    padding: var(--space-4) 0 0;
-    border-top: 1px solid var(--color-border);
-  }
-
-  .stat dt {
-    font-size: var(--text-xs);
-    color: var(--color-text-secondary);
-    margin: 0 0 var(--space-1);
-  }
-
-  .stat dd {
-    margin: 0;
-    font-family: var(--font-mono);
-    font-size: var(--text-xl);
-    color: var(--color-text-primary);
-  }
-
-  .sec {
-    position: relative;
-  }
-
-  .sec + .sec {
-    border-top: 1px solid var(--color-border);
-  }
-
-  .sec-head {
-    position: relative;
-    display: flex;
+    justify-content: space-between;
     align-items: flex-end;
-    justify-content: space-between;
-    gap: var(--space-4) var(--space-8);
-    flex-wrap: wrap;
-    padding-bottom: var(--space-6);
-    margin-bottom: clamp(1.75rem, 3vw, 2.5rem);
+    gap: 24px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
   }
-
-  /* Flagship (NOPS) — gets its own accent scope via [data-accent] on the section */
-  .flagship-card {
-    position: relative;
-    display: grid;
-    grid-template-columns: minmax(0, 1.3fr) minmax(300px, 1fr);
-    gap: 0;
-    background: var(--color-bg-raised);
-    border: 1px solid var(--color-border-strong);
-    border-radius: 1rem;
-    overflow: hidden;
-    color: inherit;
-    text-decoration: none;
-    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.7);
-    transform: perspective(1400px) rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
-    transition:
-      transform 0.4s var(--ease-out-expo),
-      border-color var(--transition-safe),
-      box-shadow var(--transition-safe);
-  }
-
-  .flagship-card .sec-rule {
-    display: none;
-  }
-
-  .flagship-card:hover {
-    text-decoration: none;
-    border-color: var(--page-accent);
-    box-shadow: 0 30px 80px -40px rgba(0, 0, 0, 0.7), 0 0 0 1px color-mix(in srgb, var(--page-accent) 30%, transparent);
-  }
-
-  .flagship-cover {
-    display: block;
-    min-width: 0;
-    overflow: hidden;
-    background: #000;
-    border-right: 1px solid var(--color-border);
-  }
-
-  .flagship-cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: 32% top;
-    transform: scale(1.01);
-    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .flagship-card:hover .flagship-cover img {
-    transform: scale(1.05);
-  }
-
-  .flagship-body {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    padding: var(--space-8);
-    min-width: 0;
-    overflow-wrap: break-word;
-  }
-
-  .flagship-tagline {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: var(--text-xl);
-    color: var(--color-text-primary);
-    line-height: 1.3;
-  }
-
-  .flagship-description {
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    line-height: 1.7;
-  }
-
-  .flagship-metrics {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-6);
-    padding: var(--space-4) 0;
-    border-top: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .flagship-metric {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    font-size: var(--text-xs);
-    color: var(--color-text-tertiary);
-  }
-
-  .flagship-metric b {
-    font-family: var(--font-mono);
-    font-size: var(--text-lg);
-    color: var(--color-accent-secondary);
-    font-weight: 600;
-  }
-
-  .flagship-actions {
-    display: flex;
-    gap: var(--space-3, 0.75rem);
-    flex-wrap: wrap;
-    margin-top: auto;
-  }
-
-  @media (max-width: 900px) {
-    .flagship-card {
-      grid-template-columns: 1fr;
-    }
-
-    .flagship-cover {
-      aspect-ratio: 16 / 10;
-      border-right: none;
-      border-bottom: 1px solid var(--color-border);
-    }
-  }
-
-  .project-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: var(--space-4);
-  }
-
-  /* Learning journey */
-  .journey-inner {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-8);
-    flex-wrap: wrap;
-  }
-
-  .journey-inner h2 {
-    font-size: var(--text-xl);
-    margin: 0 0 var(--space-2);
-  }
-
-  .journey-inner p {
-    max-width: 560px;
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    line-height: 1.7;
+  .contact-row .lede {
     margin: 0;
   }
-
-  .journey-links {
+  .contact-links {
     display: flex;
-    gap: var(--space-3, 0.75rem);
     flex-wrap: wrap;
-  }
-
-  .cta-section {
-    border-top: 1px solid var(--color-border);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-6);
-  }
-
-  .cta-section h2 {
-    font-size: var(--text-xl);
-    margin: 0 0 var(--space-2);
-  }
-
-  .cta-section p {
-    color: var(--color-text-secondary);
-    font-size: var(--text-sm);
-    margin: 0;
+    gap: 10px;
   }
 </style>

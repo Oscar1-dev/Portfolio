@@ -1,0 +1,75 @@
+---
+import { linksOf, sourceNote, type Project } from '../data/links';
+interface Props {
+  project: Project;
+  compact?: boolean;
+}
+const { project, compact = false } = Astro.props;
+const links = linksOf(project);
+const note = sourceNote(project);
+---
+
+<div class:list={['project-links', { compact }]}>
+  {
+    links.map((link) =>
+      link.offline ? (
+        <span class="plink plink-offline" title={link.url}>
+          {link.label}
+          <span class="mono">offline</span>
+        </span>
+      ) : (
+        <a class="plink" href={link.url} target="_blank" rel="noopener noreferrer">
+          {link.label}
+          <span aria-hidden="true">↗</span>
+          <span class="sr-only">(opens in a new tab)</span>
+        </a>
+      ),
+    )
+  }
+  {!compact && note ? <p class="plink-note faint">{note}</p> : null}
+</div>
+
+<style>
+  .project-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+  }
+  .plink {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 999px;
+    border: 1px solid var(--line-2);
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    transition: border-color var(--t-fast), background var(--t-fast);
+  }
+  a.plink:hover {
+    border-color: var(--sig-magenta);
+    background: rgb(255 95 200 / 0.06);
+  }
+  .plink-offline {
+    border-style: dashed;
+    color: var(--text-3);
+  }
+  .plink-offline .mono {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .plink-note {
+    flex-basis: 100%;
+    margin: 4px 0 0;
+    font-size: 12.5px;
+  }
+  .compact .plink {
+    height: 28px;
+    padding: 0 11px;
+    font-size: 12px;
+  }
+</style>

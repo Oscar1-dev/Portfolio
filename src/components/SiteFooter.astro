@@ -1,0 +1,82 @@
+---
+const base = import.meta.env.BASE_URL;
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p class="footer-big display" aria-hidden="true">Oscar <span class="foil">Senior</span></p>
+    <div class="footer-cols">
+      <div>
+        <p class="meta">Contact</p>
+        <a href="mailto:nopsrust@gmail.com">nopsrust@gmail.com</a>
+      </div>
+      <div>
+        <p class="meta">Elsewhere</p>
+        <a href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub</a>
+        <a href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe</a>
+      </div>
+      <div>
+        <p class="meta">Site</p>
+        <a href={`${base}projects/`}>Work</a>
+        <a href={`${base}credentials/`}>Security</a>
+        <a href={`${base}learning-log/`}>Learning log</a>
+        <a href={`${base}about/`}>About</a>
+      </div>
+      <div class="footer-note">
+        <p class="meta">© {year} Oscar Senior</p>
+        <p class="faint">Built with Astro and three.js. Every project claim links back to its source, or says why it can't.</p>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: clamp(4rem, 10vw, 8rem);
+    border-top: 1px solid var(--line);
+    padding: clamp(3rem, 7vw, 6rem) 0 40px;
+    overflow: hidden;
+  }
+  .footer-big {
+    margin: 0 0 clamp(2.5rem, 6vw, 4.5rem);
+    font-size: clamp(3.2rem, 14.5vw, 15rem);
+    line-height: 0.82;
+    white-space: nowrap;
+  }
+  .footer-cols {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.4fr);
+    gap: 28px;
+  }
+  .footer-cols div {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .footer-cols .meta {
+    margin: 0 0 6px;
+  }
+  .footer-cols a {
+    color: var(--text-2);
+    transition: color var(--t-fast);
+  }
+  .footer-cols a:hover {
+    color: var(--text);
+  }
+  .footer-note p {
+    margin: 0;
+  }
+  .footer-note .faint {
+    max-width: 38ch;
+    font-size: var(--text-sm);
+  }
+  @media (max-width: 760px) {
+    .footer-cols {
+      grid-template-columns: 1fr 1fr;
+    }
+    .footer-note {
+      grid-column: 1 / -1;
+    }
+  }
+</style>

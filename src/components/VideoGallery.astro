@@ -61,7 +61,7 @@ const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
                 </div>
                 <div class="clip-meta">
                   <p class="clip-title"><span class="clip-n">{clip.n}</span>{clip.title}</p>
-                  <p class="clip-credit">@{clip.creator} <span aria-hidden="true">·</span> TikTok</p>
+                  <p class="clip-credit">@{clip.creator} <span aria-hidden="true">·</span> {clip.platform ?? 'TikTok'}</p>
                 </div>
                 <p class="clip-status" data-status aria-hidden="true">Paused</p>
               </figcaption>
@@ -75,7 +75,8 @@ const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
 
 <script>
   import { mountVideoGallery } from '../scripts/video-gallery';
-  mountVideoGallery();
+  // Re-mount after client-side navigation (Astro ClientRouter).
+  document.addEventListener('astro:page-load', mountVideoGallery);
 </script>
 
 <style>

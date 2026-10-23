@@ -1,0 +1,198 @@
+---
+// Security, presented as a terminal readout of real records: TryHackMe stats
+// from data/tryhackme.json and security work verifiable in project source.
+import tryhackme from '../data/tryhackme.json';
+const base = import.meta.env.BASE_URL;
+const { stats, profile, badges } = tryhackme;
+const epic = badges.epic.map((b) => b.title);
+const focus = ['Offensive security', 'Reverse engineering', 'Application security', 'Backend systems', 'Security engineering', 'Cybersecurity research'];
+const engineered = [
+  { what: 'SSRF-hardened outbound fetch layer, DNS-rebinding-safe resolution', where: 'NOPS / Cyber Intelligence', slug: 'nops-cyber-intelligence' },
+  { what: 'Discord OAuth2 + PKCE, TOTP 2FA, session revocation, audit logging', where: 'KUSH', slug: 'kush' },
+  { what: 'Fail-closed permission checks from live Discord roles', where: 'KUSH', slug: 'kush' },
+  { what: 'Sandboxed tool execution with a verified dev/prod security boundary', where: 'MINDHOUSE', slug: 'mindhouse' },
+  { what: 'Rate limiting and security headers on a Fastify API', where: 'NEXUS Cyber Lab', slug: 'nexus' },
+  { what: 'IP and security audit logging models', where: 'Nops.Bio', slug: 'nops-bio' },
+];
+---
+
+<div class="cyber">
+  <div class="term" data-reveal>
+    <div class="term-bar" aria-hidden="true">
+      <i></i><i></i><i></i>
+      <span class="mono">oscar@signal: ~/security</span>
+    </div>
+    <div class="term-body mono">
+      <p><span class="prompt">$</span> thm --profile {profile.username}</p>
+      <dl class="term-stats">
+        <div><dt>rooms completed</dt><dd>{stats.totalRoomsCompleted}</dd></div>
+        <div><dt>badges</dt><dd>{stats.totalBadges}</dd></div>
+        <div><dt>epic / rare / common</dt><dd>{stats.epicBadges} / {stats.rareBadges} / {stats.commonBadges}</dd></div>
+      </dl>
+      <p><span class="prompt">$</span> thm --badges epic</p>
+      <ul class="term-list">
+        {epic.map((b) => <li><span class="term-ok">●</span> {b}</li>)}
+      </ul>
+      <p><span class="prompt">$</span> cat focus.txt</p>
+      <ul class="term-list term-focus">
+        {focus.map((f) => <li>{f}</li>)}
+      </ul>
+      <p class="term-cursor"><span class="prompt">$</span> <span class="caret" aria-hidden="true"></span></p>
+    </div>
+  </div>
+
+  <div class="cyber-side">
+    <p class="meta">Security engineering in shipped code</p>
+    <ul class="engineered">
+      {
+        engineered.map((e, i) => (
+          <li data-reveal style={`--reveal-delay:${i * 60}ms`}>
+            <span class="eng-what">{e.what}</span>
+            <a class="eng-where mono" href={`${base}projects/${e.slug}/`}>{e.where} →</a>
+          </li>
+        ))
+      }
+    </ul>
+    <div class="cyber-links">
+      <a class="btn btn-outline" href={`${base}credentials/`}>Full security record</a>
+      <a class="btn btn-outline" href={profile.profileUrl} target="_blank" rel="noopener noreferrer">TryHackMe profile ↗</a>
+    </div>
+    <p class="faint cyber-honest">TryHackMe progress, not formal certification. Most rooms are foundational; the record page says which.</p>
+  </div>
+</div>
+
+<style>
+  .cyber {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(24px, 4vw, 64px);
+    align-items: start;
+  }
+  .term {
+    border: 1px solid var(--line-2);
+    border-radius: var(--radius);
+    background:
+      repeating-linear-gradient(180deg, rgb(255 255 255 / 0.018) 0 1px, transparent 1px 3px),
+      var(--ink-1);
+    overflow: hidden;
+  }
+  .term-bar {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .term-bar i {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--ink-4);
+  }
+  .term-bar i:first-child {
+    background: var(--sig-red);
+  }
+  .term-bar .mono {
+    margin-left: 10px;
+    font-size: 11.5px;
+    color: var(--text-3);
+  }
+  .term-body {
+    padding: 18px 20px 22px;
+    font-size: 13.5px;
+    line-height: 1.7;
+    color: var(--text-2);
+  }
+  .term-body p {
+    margin: 14px 0 6px;
+    color: var(--text);
+  }
+  .term-body p:first-child {
+    margin-top: 0;
+  }
+  .prompt {
+    color: var(--sig-magenta);
+  }
+  .term-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 8px 0 4px;
+  }
+  .term-stats dt {
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .term-stats dd {
+    margin: 2px 0 0;
+    font-size: 26px;
+    color: var(--text);
+  }
+  .term-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .term-ok {
+    color: var(--sig-violet);
+  }
+  .term-focus li::before {
+    content: '> ';
+    color: var(--text-3);
+  }
+  .caret {
+    display: inline-block;
+    width: 8px;
+    height: 15px;
+    vertical-align: -2px;
+    background: var(--sig-magenta);
+    animation: blink 1.1s steps(1) infinite;
+  }
+  @keyframes blink {
+    50% {
+      opacity: 0;
+    }
+  }
+  .cyber-side .meta {
+    margin: 0 0 12px;
+  }
+  .engineered {
+    list-style: none;
+    margin: 0 0 24px;
+    padding: 0;
+  }
+  .engineered li {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 14px 0;
+    border-top: 1px solid var(--line);
+  }
+  .eng-what {
+    color: var(--text);
+    font-weight: 500;
+  }
+  .eng-where {
+    font-size: 12px;
+    color: var(--text-3);
+    width: fit-content;
+    transition: color var(--t-fast);
+  }
+  .eng-where:hover {
+    color: var(--sig-magenta);
+  }
+  .cyber-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .cyber-honest {
+    margin: 16px 0 0;
+    font-size: 13px;
+  }
+  @media (max-width: 960px) {
+    .cyber {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

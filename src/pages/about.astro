@@ -2,7 +2,7 @@
 // src/pages/about.astro
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import PageHeader from '../components/PageHeader.astro';
+import PageIntro from '../components/PageIntro.astro';
 import Skills from '../components/Skills.astro';
 import Capabilities from '../components/Capabilities.astro';
 import VideoGallery from '../components/VideoGallery.astro';
@@ -16,7 +16,7 @@ const notes = [
     n: '01',
     h: 'What I build',
     body: `I learn by building. Every project on this site started from a real problem or a specific thing I wanted to understand — Discord platforms with real auth and payment flows, a Rust/Tauri desktop app, SaaS backends with Prisma and Stripe, and a Fastify-backed security-training simulator. ${projects.length} projects total, all audited against their own source code rather than described from memory.`,
-    link: { href: `${base}projects`, label: 'Projects' },
+    link: { href: `${base}projects/`, label: 'Projects' },
   },
   {
     n: '02',
@@ -27,15 +27,21 @@ const notes = [
     n: '03',
     h: "What I'm looking for",
     body: `A cybersecurity or IT apprenticeship where I can apply these skills in a professional setting, learn from people who've been doing this longer than I have, and keep building. I'm practising offensive and defensive security fundamentals on TryHackMe alongside the project work.`,
-    link: { href: `${base}credentials`, label: 'Credentials' },
+    link: { href: `${base}credentials/`, label: 'Credentials' },
+  },
+  {
+    n: '04',
+    h: 'Right now',
+    body: `I'm building KUSH, my own software and digital-services business (it replaces my earlier Veyrix branding): the website, the backend, the Discord server and its bot are all mine, and it's still being prepared for launch. I'm also Chief Security Officer at Velnqo, a hosting and infrastructure business that's still being set up.`,
+    link: { href: `${base}projects/kush/`, label: 'KUSH case study' },
   },
 ];
 ---
 
-<Layout title="About" description="About Oscar — final-year cybersecurity/IT student, DISC, building a hands-on technical portfolio while applying for apprenticeships.">
-  <PageHeader index="05" label="Personal" title="About">
+<Layout title="About" description="About Oscar Senior (Nops): final-year cybersecurity and IT student at DISC, founder of KUSH and Chief Security Officer at Velnqo. In his own words.">
+  <PageIntro index="06" label="Personal" title="About" accent="me.">
     <p>I'm a final-year student at DISC, specialising in cybersecurity and IT, and I'm looking for a paid cybersecurity apprenticeship, IT apprenticeship, or junior technical role.</p>
-  </PageHeader>
+  </PageIntro>
 
   <section class="sec notes wrap">
     {
@@ -46,7 +52,7 @@ const notes = [
             <h2>{note.h}</h2>
             <p>{note.body}</p>
             {note.link && (
-              <a href={note.link.href} data-page-link class="link-arrow">
+              <a href={note.link.href} class="link-arrow">
                 {note.link.label}
                 <span class="arr">→</span>
               </a>
@@ -60,7 +66,7 @@ const notes = [
   <section class="sec wrap personal-sec">
     <div class="sec-head" data-reveal>
       <div>
-        <p class="sec-index">04</p>
+        <p class="sec-index">05</p>
         <h2 class="sec-title">Off the clock</h2>
       </div>
       <span class="meta">Not the CV version</span>

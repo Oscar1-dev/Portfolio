@@ -1,28 +1,32 @@
-# Oscar Portfolio
+# Oscar Senior — portfolio (v2, "Signal")
 
-Existing Astro portfolio with project case studies, credentials, learning log, animations, and media assets.
+Personal portfolio: software engineering and cybersecurity. Astro 5, static output, no UI framework.
+
+## Content
+
+- `src/content/projects/*.md` — every project (frontmatter + write-up). KUSH has its own case study page at `src/pages/projects/kush.astro`; every other project uses `src/pages/projects/[slug].astro`.
+- `src/data/experience.ts` — professional experience (Velnqo, KUSH, DISC).
+- `src/data/tryhackme.json` — TryHackMe record.
+- `src/data/inspiration.ts` — the About page clip gallery; each clip credited by its watermark handle.
+- Repository links under the old `github.com/NopsFR/` account are kept in the content but shown as **offline** (that account no longer exists): see `src/data/links.ts` and the rehype step in `astro.config.mjs`.
+
+## Design
+
+Tokens in `src/styles/tokens.css`. Shares DNA with KUSH (carbon inks, expanded uppercase Archivo, hairline editorial rules) with its own infrared → violet "signal" foil. The hero particle field (`src/scripts/signal-field.ts`, raw WebGL2, ~3 KB) loads only when motion is allowed and the device can handle it; the `<h1>` is always real text. Reveals never hide content without JavaScript, and `prefers-reduced-motion` turns motion off.
 
 ## Local development
 
-Requires Node.js 22.12 or newer and npm. Install the locked dependencies with `npm ci`.
+Requires Node.js 22.12+ and npm. `npm ci`, then:
 
 - Validate: `npm run astro -- check`
 - Build: `npm run build` (output: `dist/`)
-- Start development in background mode: `npm run dev -- --background`
-- Manage development: `npm run astro -- dev status`, `npm run astro -- dev logs`, `npm run astro -- dev stop`
+- Develop: `npm run dev -- --background` (manage with `npm run astro -- dev status|logs|stop`)
 
-## GitHub and deployment
+## Hosting
 
-Source repository: https://github.com/Oscar1-dev/Portfolio
+- **Vercel (primary):** the Astro preset with defaults works; `astro.config.mjs` serves from `/` when the `VERCEL` environment variable is present.
+- **GitHub Pages (legacy):** builds under `/Portfolio/`. Pushes to `main` only validate and build; publishing needs a manual workflow run. Keep it until the Vercel site is verified and its retirement is approved.
 
-Astro is configured for https://Oscar1-dev.github.io/Portfolio/ using the `/Portfolio/` base path. Local navigation and image paths include this base.
+## Backups
 
-The existing GitHub Pages workflow uses Node.js 22 and `npm ci`. Pushes to `main` run validation and build only. Deployment requires a manual workflow run after owner approval and GitHub Pages configuration (Settings > Pages > Source: GitHub Actions).
-
-The old Git remote is retained locally as `old-origin` for reference. Project repository links under the former account remain historical references until those individual projects are migrated.
-
-No sitemap is generated, so robots.txt does not advertise one.
-
-## Known dependency findings
-
-At migration, `npm audit` reported five affected packages (one low, three high, one critical). Resolving all findings proposes a major Astro upgrade. Dependencies were preserved during migration; address these findings in a separate tested maintenance change.
+The v1 site is tagged `v1-before-redesign`.

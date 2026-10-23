@@ -1,0 +1,574 @@
+---
+// src/pages/projects/kush.astro — the KUSH case study.
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import FlowDiagram from '../../components/FlowDiagram.astro';
+import { assetPath } from '../../data/asset-path';
+
+const kush = (await getCollection('projects')).find((p) => p.slug === 'kush')!;
+const { data } = kush;
+const { Content } = await render(kush);
+const base = import.meta.env.BASE_URL;
+
+const screens = [
+  { src: '/images/projects/kush-home.webp', caption: 'Home: the KUSH identity, holographic leaf and service index' },
+  { src: '/images/projects/kush-services.webp', caption: 'Services: eight service lines, one team' },
+  { src: '/images/projects/kush-commission.webp', caption: 'Start a project: commission intake behind Discord sign-in' },
+  { src: '/images/projects/kush-pricing.webp', caption: 'Pricing: starting prices; every commission gets a written quote' },
+];
+
+const responsibilities = [
+  'Brand, art direction and the website design system',
+  'Website (Next.js) and the customer account area',
+  'Platform API, database schema and migrations',
+  'Authentication: Discord OAuth2 + PKCE, TOTP 2FA, sessions',
+  'Discord server architecture, provisioning and the bot',
+  'Commission, order, credit and referral models',
+  'Testing against real PostgreSQL, accessibility checks',
+  'Internal owner tooling and security design',
+];
+
+const status = [
+  { state: 'Running', items: ['KUSH Discord server and bot', 'Automated changelog announcements from GitHub pushes'] },
+  { state: 'Built, running locally', items: ['Website with Discord sign-in, accounts and 2FA', 'Platform API and PostgreSQL', 'Staff dashboard and workflows', 'Commissions, orders, store credit, referrals'] },
+  { state: 'Not live yet', items: ['Public hosting and launch', 'Real card payments (Stripe runs simulated)', 'Digital products marketplace', 'Owner operations app (in progress)'] },
+];
+---
+
+<Layout title="KUSH" description={`KUSH case study: ${data.description}`} article>
+  <article class="kcase">
+    <header class="khero wrap">
+      <a class="meta kback" href={`${base}projects/`}>← All projects</a>
+      <div class="khero-top">
+        <p class="meta">Case study · Founder & developer</p>
+        <p class="meta">2026 – present</p>
+      </div>
+      <h1 class="display kword" data-reveal="clip">KUSH</h1>
+      <div class="khero-grid">
+        <p class="kdesc">{data.description}</p>
+        <div>
+          <p class="kstatus mono">◐ {data.statusNote}</p>
+          <div class="kactions">
+            <a class="btn btn-kush" href="https://github.com/Oscar1-dev/KUSH" target="_blank" rel="noopener noreferrer">Source on GitHub ↗</a>
+            <a class="btn btn-outline" href="#architecture">Architecture</a>
+          </div>
+        </div>
+      </div>
+      <dl class="kfacts">
+        {
+          Object.entries(data.metrics ?? {}).map(([k, v]) => (
+            <div>
+              <dt class="meta">{k}</dt>
+              <dd>{v}</dd>
+            </div>
+          ))
+        }
+      </dl>
+    </header>
+
+    <section class="kscreens" aria-label="KUSH website screenshots">
+      <div class="kscreens-track">
+        {
+          screens.map((s, i) => (
+            <figure class="kscreen" data-reveal>
+              <img src={assetPath(s.src)} alt={s.caption} width="1600" height="1000" loading={i ? 'lazy' : 'eager'} decoding="async" />
+              <figcaption>
+                <span class="mono">{String(i + 1).padStart(2, '0')}</span> {s.caption}
+              </figcaption>
+            </figure>
+          ))
+        }
+      </div>
+      <p class="wrap faint kscreens-note">Screenshots of the KUSH website running locally. Account and staff areas aren't shown: they hold real account data.</p>
+    </section>
+
+    <section id="architecture" class="wrap ksec">
+      <div class="sec-head">
+        <div>
+          <p class="sec-index">01 · Architecture</p>
+          <h2 class="sec-title">One record,<br /><span class="kfoil">every surface.</span></h2>
+        </div>
+        <span class="meta">High level · no internal details</span>
+        <span class="sec-rule" aria-hidden="true"></span>
+      </div>
+      <div class="arch blueprint" data-reveal>
+        <div class="arch-col">
+          <p class="arch-label meta">People</p>
+          <div class="node">Customers<span>browser</span></div>
+          <div class="node">Staff<span>browser + 2FA</span></div>
+          <div class="node">Members<span>Discord app</span></div>
+        </div>
+        <div class="arch-link" aria-hidden="true"><i></i></div>
+        <div class="arch-col">
+          <p class="arch-label meta">Surfaces</p>
+          <div class="node node-k">Website<span>Next.js · Discord sign-in</span></div>
+          <div class="node node-k">Discord server<span>roles, tickets, panels</span></div>
+          <div class="node">Internal tools<span>Tauri desktop</span></div>
+        </div>
+        <div class="arch-link" aria-hidden="true"><i></i></div>
+        <div class="arch-col">
+          <p class="arch-label meta">Platform</p>
+          <div class="node node-core">KUSH API<span>Fastify · Zod · OpenAPI · permissions · audit</span></div>
+          <div class="node">KUSH bot<span>discord.js · outbox delivery · role sync</span></div>
+        </div>
+        <div class="arch-link" aria-hidden="true"><i></i></div>
+        <div class="arch-col">
+          <p class="arch-label meta">Data</p>
+          <div class="node node-core">PostgreSQL<span>Drizzle · additive migrations · encrypted snapshots</span></div>
+          <div class="node node-dim">Stripe<span>written, simulated locally</span></div>
+        </div>
+      </div>
+      <div class="kflow">
+        <p class="meta">A request, end to end</p>
+        <FlowDiagram steps={data.flow ?? []} />
+      </div>
+    </section>
+
+    <section class="wrap ksec kstory">
+      <div class="sec-head">
+        <div>
+          <p class="sec-index">02 · The build</p>
+          <h2 class="sec-title">What's real,<br /><span class="kfoil">and how.</span></h2>
+        </div>
+        <span class="sec-rule" aria-hidden="true"></span>
+      </div>
+      <div class="kstory-grid">
+        <div class="prose">
+          <Content />
+        </div>
+        <aside class="kside">
+          <p class="meta">My responsibilities</p>
+          <ul class="klist">
+            {responsibilities.map((r) => <li>{r}</li>)}
+          </ul>
+          <p class="meta">Technology</p>
+          <dl class="kstack">
+            {
+              Object.entries(data.technologies).map(([g, items]) => (
+                <div>
+                  <dt class="meta cap">{g}</dt>
+                  <dd>{items.join(' · ')}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </aside>
+      </div>
+    </section>
+
+    <section class="wrap ksec">
+      <div class="sec-head">
+        <div>
+          <p class="sec-index">03 · Status</p>
+          <h2 class="sec-title">Honest<br /><span class="kfoil">progress.</span></h2>
+        </div>
+        <span class="meta">October 2026</span>
+        <span class="sec-rule" aria-hidden="true"></span>
+      </div>
+      <div class="kstatus-grid">
+        {
+          status.map((col, i) => (
+            <div class="kstate" data-state={i} data-reveal>
+              <p class="kstate-title">
+                <i aria-hidden="true" />
+                {col.state}
+              </p>
+              <ul>
+                {col.items.map((it) => (
+                  <li>{it}</li>
+                ))}
+              </ul>
+            </div>
+          ))
+        }
+      </div>
+    </section>
+
+    <section class="wrap ksec">
+      <div class="sec-head">
+        <div>
+          <p class="sec-index">04 · Engineering</p>
+          <h2 class="sec-title">What it<br /><span class="kfoil">demonstrates.</span></h2>
+        </div>
+        <span class="sec-rule" aria-hidden="true"></span>
+      </div>
+      <ul class="kcomp">
+        {data.competencies.map((c) => <li data-reveal>{c}</li>)}
+      </ul>
+      {
+        data.timeline ? (
+          <ol class="ktimeline">
+            {data.timeline.map((t) => (
+              <li>
+                <span class="mono">{t.date}</span>
+                {t.event}
+              </li>
+            ))}
+          </ol>
+        ) : null
+      }
+    </section>
+  </article>
+</Layout>
+
+<style>
+  /* KUSH's own palette inside the portfolio's frame. */
+  .kfoil {
+    background: var(--kush-holo);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .khero {
+    padding-top: calc(var(--header-h) + clamp(2rem, 5vw, 4rem));
+  }
+  .kback {
+    display: inline-block;
+    margin-bottom: 24px;
+  }
+  .khero-top {
+    display: flex;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  .khero-top .meta {
+    margin: 0;
+  }
+  .kword {
+    margin: clamp(1rem, 3vw, 2rem) 0;
+    font-size: clamp(6rem, 26vw, 24rem);
+    line-height: 0.78;
+    letter-spacing: -0.05em;
+    background: var(--kush-holo);
+    background-size: 220% 100%;
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    animation: foil-drift 18s linear infinite;
+  }
+  .khero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr);
+    gap: 24px 56px;
+    align-items: end;
+    padding-bottom: 28px;
+  }
+  .kdesc {
+    margin: 0;
+    font-size: clamp(1.1rem, 1.6vw, 1.35rem);
+    line-height: 1.55;
+    color: var(--text);
+    max-width: 56ch;
+  }
+  .kstatus {
+    margin: 0 0 16px;
+    font-size: 12.5px;
+    color: #f4eec0;
+  }
+  .kactions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .btn-kush {
+    background: var(--kush-holo);
+    background-size: 200% 100%;
+    color: #0b0a12;
+    transition: background-position 1s var(--ease);
+  }
+  .btn-kush:hover {
+    background-position: 100% 0;
+  }
+  .kfacts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+  }
+  .kfacts div {
+    padding: 16px 16px 16px 0;
+  }
+  .kfacts div + div {
+    padding-left: 16px;
+    border-left: 1px solid var(--line);
+  }
+  .kfacts dd {
+    margin: 8px 0 0;
+  }
+  .kscreens {
+    padding-block: clamp(2.5rem, 6vw, 5rem);
+  }
+  .kscreens-track {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: min(78vw, 980px);
+    gap: 22px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding: 0 var(--gutter) 14px;
+    scrollbar-width: thin;
+  }
+  .kscreen {
+    margin: 0;
+    scroll-snap-align: center;
+  }
+  .kscreen img {
+    width: 100%;
+    border-radius: 12px;
+    border: 1px solid var(--line-2);
+  }
+  .kscreen figcaption {
+    margin-top: 12px;
+    color: var(--text-2);
+    font-size: 14px;
+  }
+  .kscreen figcaption .mono {
+    color: #cbbcff;
+    margin-right: 8px;
+  }
+  .kscreens-note {
+    margin-top: 10px;
+    font-size: 13px;
+  }
+  .ksec {
+    padding-block: clamp(3rem, 7vw, 6rem);
+  }
+  /* Architecture on blueprint paper. */
+  .arch {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) 36px minmax(0, 1fr) 36px minmax(0, 1.15fr) 36px minmax(0, 1.1fr);
+    align-items: center;
+    padding: clamp(20px, 3vw, 36px);
+    border: 1px solid rgb(143 211 255 / 0.18);
+    border-radius: var(--radius);
+  }
+  .arch-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .arch-label {
+    margin: 0 0 4px;
+    color: var(--sig-ice);
+  }
+  .node {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 12px 14px;
+    border: 1px solid rgb(143 211 255 / 0.28);
+    border-radius: 6px;
+    background: rgb(6 6 8 / 0.75);
+    font-weight: 600;
+    font-size: 14.5px;
+  }
+  .node span {
+    font-family: var(--font-mono);
+    font-weight: 400;
+    font-size: 11px;
+    color: var(--text-3);
+  }
+  .node-k {
+    border-color: rgb(203 188 255 / 0.55);
+  }
+  .node-core {
+    border-color: transparent;
+    background:
+      linear-gradient(var(--ink-1), var(--ink-1)) padding-box,
+      var(--kush-holo) border-box;
+    border: 1px solid transparent;
+  }
+  .node-dim {
+    border-style: dashed;
+    color: var(--text-2);
+  }
+  .arch-link {
+    height: 100%;
+    display: grid;
+    place-items: center;
+  }
+  .arch-link i {
+    width: 100%;
+    height: 1px;
+    background: repeating-linear-gradient(90deg, rgb(143 211 255 / 0.6) 0 6px, transparent 6px 10px);
+    position: relative;
+  }
+  .arch-link i::after {
+    content: '';
+    position: absolute;
+    right: -1px;
+    top: -3px;
+    border: 3.5px solid transparent;
+    border-left: 5px solid rgb(143 211 255 / 0.8);
+  }
+  .kflow {
+    margin-top: clamp(2rem, 4vw, 3rem);
+  }
+  .kflow .meta {
+    margin: 0 0 14px;
+  }
+  .kstory-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+    gap: clamp(28px, 5vw, 72px);
+  }
+  .kstory-grid .prose {
+    max-width: none;
+  }
+  .kstory-grid .prose :global(h2:first-child) {
+    margin-top: 0;
+  }
+  .kside {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+    align-self: start;
+  }
+  .kside > .meta {
+    margin: 0 0 10px;
+  }
+  .klist {
+    list-style: none;
+    margin: 0 0 30px;
+    padding: 0;
+  }
+  .klist li {
+    padding: 9px 0;
+    border-top: 1px solid var(--line);
+    color: var(--text-2);
+    font-size: 14.5px;
+  }
+  .klist li::before {
+    content: '+ ';
+    font-family: var(--font-mono);
+    color: #cbbcff;
+  }
+  .kstack {
+    margin: 0;
+  }
+  .kstack div {
+    padding: 10px 0;
+    border-top: 1px solid var(--line);
+  }
+  .kstack dd {
+    margin: 4px 0 0;
+    font-size: 14px;
+    color: var(--text-2);
+  }
+  .kstatus-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-top: 1px solid var(--line);
+  }
+  .kstate {
+    padding: 22px 22px 22px 0;
+  }
+  .kstate + .kstate {
+    padding-left: 22px;
+    border-left: 1px solid var(--line);
+  }
+  .kstate-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 0 0 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .kstate-title i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+  .kstate[data-state='0'] i {
+    background: var(--ok);
+  }
+  .kstate[data-state='1'] i {
+    background: #cbbcff;
+  }
+  .kstate[data-state='2'] i {
+    border: 1px solid var(--text-3);
+  }
+  .kstate ul {
+    margin: 0;
+    padding-left: 18px;
+    color: var(--text-2);
+  }
+  .kstate li {
+    margin: 6px 0;
+  }
+  .kcomp {
+    list-style: none;
+    margin: 0 0 40px;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 40px;
+  }
+  .kcomp li {
+    padding: 12px 0;
+    border-top: 1px solid var(--line);
+    color: var(--text-2);
+  }
+  .ktimeline {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .ktimeline li {
+    display: grid;
+    grid-template-columns: 110px minmax(0, 1fr);
+    gap: 14px;
+    padding: 10px 0;
+    border-top: 1px dashed var(--line);
+    color: var(--text-2);
+  }
+  .ktimeline .mono {
+    color: #cbbcff;
+  }
+  @media (max-width: 1100px) {
+    .arch {
+      grid-template-columns: 1fr;
+      gap: 0;
+    }
+    .arch-link {
+      height: 34px;
+    }
+    .arch-link i {
+      width: 1px;
+      height: 100%;
+      background: repeating-linear-gradient(180deg, rgb(143 211 255 / 0.6) 0 6px, transparent 6px 10px);
+    }
+    .arch-link i::after {
+      display: none;
+    }
+  }
+  @media (max-width: 860px) {
+    .khero-grid,
+    .kstory-grid,
+    .kstatus-grid,
+    .kcomp {
+      grid-template-columns: 1fr;
+    }
+    .kfacts {
+      grid-template-columns: 1fr 1fr;
+    }
+    .kfacts div:nth-child(3) {
+      padding-left: 0;
+      border-left: 0;
+    }
+    .kstate + .kstate {
+      padding-left: 0;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+    }
+    .kside {
+      position: static;
+    }
+  }
+</style>

@@ -25,3 +25,6 @@ pnpm-debug.log*
 # jetbrains setting folder
 .idea/
 .redesign-screenshots/
+
+# Separate repositories that live alongside the portfolio on this PC
+ALL PROJECTS/
