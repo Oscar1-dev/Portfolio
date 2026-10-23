@@ -8,7 +8,7 @@ const words = text.split(' ');
 
 <section class="statement" data-progress="pin" data-scene="statement" aria-label="How I work">
   <div class="statement-frame wrap">
-    <p class="sec-index">From the About page</p>
+    <p class="sec-index">How I work</p>
     <p class="statement-text display" aria-label={text}>
       {
         words.map((w, i) => (
@@ -18,7 +18,13 @@ const words = text.split(' ');
         ))
       }
     </p>
-    <a class="link-arrow statement-link" href={`${base}about/`}>More about me <span class="arr" aria-hidden="true">→</span></a>
+    <div class="statement-foot">
+      <p class="statement-bio">
+        I'm Oscar, also Nops. I build real systems (a threat-intelligence platform, Rust and Tauri desktop apps, Discord-native platforms
+        with real auth, rate limiting and audit logging) and practise offensive and defensive security on TryHackMe.
+      </p>
+      <a class="link-arrow statement-link" href={`${base}about/`}>More about me <span class="arr" aria-hidden="true">→</span></a>
+    </div>
   </div>
 </section>
 
@@ -59,14 +65,25 @@ const words = text.split(' ');
     transition: opacity 120ms linear;
   }
   .sw.hl {
-    background: var(--foil);
-    background-size: 220% 100%;
+    background: linear-gradient(100deg, rgb(var(--scene-a)), rgb(var(--scene-c)));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .statement-link {
-    opacity: clamp(0, calc((var(--p) - 0.85) * 8), 1);
+  .statement-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 18px 40px;
+    opacity: clamp(0, calc((var(--p) - 0.78) * 7), 1);
+    translate: 0 calc((1 - clamp(0, calc((var(--p) - 0.78) * 7), 1)) * 24px);
+  }
+  .statement-bio {
+    margin: 0;
+    max-width: 56ch;
+    color: rgb(255 255 255 / 0.74);
+    line-height: 1.65;
   }
   @media (max-width: 640px) {
     .statement-text {

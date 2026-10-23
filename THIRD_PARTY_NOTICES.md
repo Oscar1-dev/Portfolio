@@ -8,7 +8,6 @@
 
 ## Libraries
 
-- [three.js](https://github.com/mrdoob/three.js) — MIT. Renders the background 3D scene (`src/scripts/scene.ts`).
 - [Lenis](https://github.com/darkroomengineering/lenis) — MIT. Smooth scrolling that drives the scroll sequences (`src/scripts/scroll-fx.ts`).
 - [Astro](https://github.com/withastro/astro) — MIT.
 
@@ -22,5 +21,5 @@ each clip's own watermark. None of them are Oscar's work.
 Version 1 of this site adapted visual techniques from
 [EloyEMC/bilingual-astro-editorial-template](https://github.com/EloyEMC/bilingual-astro-editorial-template)
 (MIT) and depended on three.js. Version 2 replaced that code: the hero particle field, page
-transitions and textures are original, written in raw WebGL2 and CSS. Version 3 brought three.js
-back as a dependency for a new, original background scene. The v1 code remains in the repository history (tag `v1-before-redesign`).
+transitions and textures are original, written in raw WebGL2 and CSS. Version 3 briefly used three.js for a
+background scene; version 4 replaced it with an original WebGL2 shader, so three.js is not a dependency. The v1 code remains in the repository history (tag `v1-before-redesign`).

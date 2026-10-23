@@ -14,7 +14,12 @@ html {
 body {
   margin: 0;
   min-height: 100svh;
-  background: var(--ink-0);
+  /* Shown only if the WebGL backdrop can't run. */
+  background:
+    radial-gradient(120% 70% at 80% 0%, rgb(138 60 255 / 0.28), transparent 60%),
+    radial-gradient(90% 60% at 10% 30%, rgb(255 45 85 / 0.18), transparent 60%),
+    var(--ink-0);
+  background-attachment: fixed;
   color: var(--text);
   font-family: var(--font-body);
   font-size: 16px;
@@ -158,15 +163,16 @@ h4 {
   width: min(100% - 2 * var(--gutter), var(--content-max));
   margin-inline: auto;
 }
+/* Sections breathe: generous space between them, and no rules. */
 .sec {
-  padding-block: clamp(4rem, 9vw, 8rem);
+  padding-block: clamp(6rem, 13vw, 12rem);
 }
 .sec-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: end;
   gap: 18px 24px;
-  margin-bottom: clamp(2rem, 4vw, 3.5rem);
+  margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
 }
 .sec-index {
   margin: 0 0 12px;
@@ -187,9 +193,7 @@ h4 {
   margin: 0;
 }
 .sec-rule {
-  grid-column: 1 / -1;
-  height: 1px;
-  background: var(--line);
+  display: none;
 }
 .sec-head > :nth-child(2):not(.sec-rule) {
   justify-self: end;
@@ -202,6 +206,7 @@ h4 {
 /* ------------------------------------------------------------ controls */
 
 .btn {
+  translate: var(--tx, 0) var(--ty, 0);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -217,7 +222,8 @@ h4 {
     background var(--t) var(--ease),
     color var(--t) var(--ease),
     border-color var(--t) var(--ease),
-    transform var(--t) var(--ease);
+    transform var(--t) var(--ease),
+    translate 0.45s var(--ease);
 }
 .btn:active {
   transform: scale(0.97);
@@ -444,8 +450,8 @@ h4 {
   position: relative;
   isolation: isolate;
   background: var(--glass-bg);
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
-  backdrop-filter: blur(var(--glass-blur)) saturate(1.6);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(0.92);
+  backdrop-filter: blur(var(--glass-blur)) saturate(1.8) brightness(0.92);
   border-radius: var(--glass-radius);
   box-shadow:
     inset 0 1px 0 rgb(255 255 255 / 0.07),
@@ -596,9 +602,8 @@ main,
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    linear-gradient(180deg, rgb(6 6 8 / 0.15), transparent 30%, transparent 70%, rgb(6 6 8 / 0.5)),
-    linear-gradient(90deg, rgb(6 6 8 / 0.45), transparent 35%, transparent 65%, rgb(6 6 8 / 0.25));
+  /* A light scrim for legibility: darker under the nav and at the foot. */
+  background: linear-gradient(180deg, rgb(5 5 8 / 0.45), transparent 18%, transparent 75%, rgb(5 5 8 / 0.4));
 }
 
 /* Lenis */
@@ -628,6 +633,6 @@ html.lenis body {
     white-space: normal;
   }
   .scene {
-    opacity: 0.7;
+    opacity: 0.85;
   }
 }

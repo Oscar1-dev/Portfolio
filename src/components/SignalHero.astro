@@ -1,108 +1,97 @@
 ---
-// Home hero: a pinned scroll sequence. The <h1> is the real name (SEO,
-// screen readers, no JS); the particle field draws over it once ready. As you
-// scroll, the name disperses into the scene and the copy lifts away.
+// Home hero, kept deliberately quiet: the name, one line, two actions and a
+// slim glass status bar. The name is real text; each letter catches a foil
+// highlight as the cursor passes (hero script), and on scroll the hero
+// pins while the name tracks out and the rest lifts away.
 interface Props {
   projectCount: number;
   rooms: number;
   badges: number;
 }
-const { projectCount, rooms, badges } = Astro.props;
+const { projectCount, rooms } = Astro.props;
 const base = import.meta.env.BASE_URL;
-const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Software engineering'];
+const lines = ['Oscar', 'Senior'];
 ---
 
 <section class="hero" aria-labelledby="hero-name" data-progress="pin" data-scene="hero" data-hero>
   <div class="hero-frame">
     <div class="wrap hero-inner">
-      <div class="hero-top">
-        <p class="eyebrow"><span class="live-dot" aria-hidden="true"></span>Software engineering / Cybersecurity</p>
-        <p class="hero-flap" data-flap={roles.join('|')}>{roles[0]}</p>
-      </div>
+      <p class="hero-kicker mono">Software engineering <span aria-hidden="true">/</span> Cybersecurity</p>
 
-      <div class="hero-stage" data-hero-stage>
-        <h1 id="hero-name" class="hero-name display">
-          <span>Oscar</span>
-          <span class="foil">Senior</span>
-        </h1>
-        <div class="hero-field" data-signal-field aria-hidden="true"></div>
-      </div>
+      <h1 id="hero-name" class="hero-name display" aria-label="Oscar Senior">
+        {
+          lines.map((line, li) => (
+            <span class="hero-line" aria-hidden="true">
+              {[...line].map((ch, ci) => (
+                <span class="ch" data-ch={ch} style={`--ci:${li * 6 + ci}`}>
+                  {ch}
+                </span>
+              ))}
+            </span>
+          ))
+        }
+      </h1>
 
-      <div class="hero-bottom">
-        <div class="hero-copy">
-          <p class="hero-bio">
-            I'm Oscar, also Nops: a final-year DISC student in cybersecurity and IT, founder and developer of
-            <a href={`${base}projects/kush/`}>KUSH</a>, and Chief Security Officer at Velnqo. I build real systems (a
-            threat-intelligence platform, Rust and Tauri desktop apps, Discord-native platforms with real auth, rate limiting
-            and audit logging) and practise offensive and defensive security on TryHackMe.
-          </p>
-          <div class="hero-actions">
-            <a class="btn btn-primary" href={`${base}projects/kush/`}>
-              KUSH case study
-              <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-            </a>
-            <a class="btn btn-glass" href={`${base}projects/`}>All {projectCount} projects</a>
-            <a class="btn btn-glass" href={`${base}#experience`}>Experience</a>
-          </div>
+      <div class="hero-foot">
+        <p class="hero-lede">
+          Final-year DISC student in cybersecurity and IT. Founder and developer of <a href={`${base}projects/kush/`}>KUSH</a>, Chief Security
+          Officer at Velnqo.
+        </p>
+        <div class="hero-actions">
+          <a class="btn btn-primary" href={`${base}projects/kush/`}>
+            KUSH case study
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </a>
+          <a class="btn btn-glass" href={`${base}projects/`}>All {projectCount} projects</a>
         </div>
-        <aside class="hero-plate glass" data-glass aria-label="At a glance">
-          <p class="plate-head mono"><span>STATUS</span><span>2026</span></p>
-          <ul class="plate-roles">
-            <li><span class="plate-k">CSO</span><span>Velnqo</span></li>
-            <li><span class="plate-k">Founder</span><span>KUSH</span></li>
-            <li><span class="plate-k">Student</span><span>DISC · Cybersecurity & IT</span></li>
-          </ul>
-          <dl class="plate-facts">
-            <div><dt>Projects</dt><dd>{projectCount}</dd></div>
-            <div><dt>THM rooms</dt><dd>{rooms}</dd></div>
-            <div><dt>Badges</dt><dd>{badges}</dd></div>
-          </dl>
-        </aside>
       </div>
+
+      <ul class="hero-status glass" aria-label="At a glance">
+        <li><span class="dot" aria-hidden="true"></span><b>CSO</b> Velnqo</li>
+        <li><b>Founder</b> KUSH</li>
+        <li><b>Student</b> DISC</li>
+        <li><b>{rooms}</b> TryHackMe rooms</li>
+      </ul>
     </div>
-    <a class="hero-scroll" href="#featured" aria-label="Scroll to featured work">
-      <span class="meta">Scroll</span>
-      <i aria-hidden="true"></i>
-    </a>
   </div>
 </section>
 
 <script>
-  import { onScrollTick } from '../scripts/scroll-fx';
-  type Field = { dispose: () => void; setScatter: (n: number) => void };
-  let field: Field | null = null;
+  // Letters warm up near the cursor: a foil copy of each letter fades in by
+  // distance. Rects are read once per frame, only while the pointer moves.
   let off: (() => void) | null = null;
-
-  const lowPower = () => {
-    const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
-    return (nav.hardwareConcurrency ?? 8) <= 2 || (nav.deviceMemory ?? 8) <= 2 || nav.connection?.saveData === true;
-  };
-  const webgl = () => {
-    try {
-      return Boolean(document.createElement('canvas').getContext('webgl2'));
-    } catch {
-      return false;
-    }
-  };
-
   document.addEventListener('astro:page-load', () => {
-    const host = document.querySelector<HTMLElement>('[data-signal-field]');
-    const hero = document.querySelector<HTMLElement>('[data-hero]');
-    if (!host || !hero || !document.documentElement.classList.contains('motion-ok') || lowPower() || !webgl()) return;
-    const narrow = window.innerWidth < 720;
-    void import('../scripts/signal-field').then(async ({ mountSignalField }) => {
-      field = await mountSignalField(host, narrow ? ['OSCAR', 'SENIOR'] : ['OSCAR SENIOR']);
-      if (!field) return;
-      host.closest('[data-hero-stage]')?.setAttribute('data-live', 'true');
-      // The name disperses as the pinned hero scrolls away.
-      off = onScrollTick(() => field?.setScatter(Number(hero.style.getPropertyValue('--p')) * 1.6));
-    });
+    off?.();
+    off = null;
+    const name = document.querySelector<HTMLElement>('.hero-name');
+    if (!name || !matchMedia('(hover: hover)').matches || !document.documentElement.classList.contains('motion-ok')) return;
+    const letters = [...name.querySelectorAll<HTMLElement>('.ch')];
+    let raf = 0;
+    let px = -1e4;
+    let py = -1e4;
+    const update = () => {
+      raf = 0;
+      for (const el of letters) {
+        const r = el.getBoundingClientRect();
+        const d = Math.hypot(px - (r.left + r.width / 2), py - (r.top + r.height / 2));
+        const heat = Math.max(0, 1 - d / Math.max(220, r.height * 1.6));
+        el.style.setProperty('--heat', (heat * heat).toFixed(3));
+      }
+    };
+    const onMove = (e: PointerEvent) => {
+      px = e.clientX;
+      py = e.clientY;
+      if (!raf) raf = requestAnimationFrame(update);
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    off = () => {
+      window.removeEventListener('pointermove', onMove);
+      cancelAnimationFrame(raf);
+    };
   });
   document.addEventListener('astro:before-swap', () => {
     off?.();
     off = null;
-    field?.dispose();
-    field = null;
   });
 </script>
 
@@ -113,15 +102,14 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
     overflow-x: clip;
   }
   :global(.motion-ok) .hero {
-    height: 175vh;
+    height: 165vh;
   }
   .hero-frame {
     position: relative;
     height: 100svh;
-    min-height: 640px;
+    min-height: 620px;
     display: flex;
     flex-direction: column;
-    padding-top: calc(var(--header-h) + 34px);
   }
   :global(.motion-ok) .hero-frame {
     position: sticky;
@@ -131,199 +119,143 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
     flex: 1;
     display: flex;
     flex-direction: column;
+    justify-content: flex-end;
+    padding-top: calc(var(--header-h) + 40px);
+    padding-bottom: clamp(28px, 5vh, 56px);
   }
-  .hero-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 20px;
-    padding-bottom: 18px;
-    border-bottom: 1px solid var(--line);
-    opacity: calc(1 - var(--p) * 2.2);
+  .hero-kicker {
+    margin: 0 0 clamp(14px, 2.4vh, 26px);
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgb(255 255 255 / 0.66);
+    opacity: calc(1 - var(--p) * 3);
   }
-  .hero-top .eyebrow {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin: 0;
+  .hero-kicker span {
+    color: rgb(var(--scene-b));
+    margin: 0 0.5em;
   }
-  .live-dot {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: var(--sig-magenta);
-    box-shadow: 0 0 0 4px rgb(255 95 200 / 0.18);
-    animation: pulse 2.4s var(--ease-in-out) infinite;
-  }
-  @keyframes pulse {
-    50% {
-      box-shadow: 0 0 0 7px rgb(255 95 200 / 0.04);
-    }
-  }
-  .hero-flap {
-    margin: 0;
-    font-size: 13px;
-    color: var(--text);
-  }
-  .hero-stage {
-    position: relative;
-    flex: 1;
-    min-height: clamp(200px, 34vh, 420px);
-    display: grid;
-    align-items: center;
-    transform: scale(calc(1 + var(--p) * 0.06));
-    transform-origin: 50% 60%;
-  }
+
+  /* The name: as large as the viewport allows, two lines. */
   .hero-name {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0 0.22em;
     margin: 0;
-    font-size: clamp(3.6rem, 11.5vw, 11.5rem);
-    line-height: 0.86;
-    transition: opacity 700ms var(--ease);
+    font-size: clamp(4.2rem, 16.2vw, 17rem);
+    line-height: 0.8;
+    letter-spacing: -0.045em;
+    color: #fff;
   }
-  .hero-field {
+  .hero-line {
+    display: block;
+    white-space: nowrap;
+    letter-spacing: calc(-0.045em + var(--p) * 0.14em);
+  }
+  .hero-line + .hero-line {
+    padding-left: 0.42em;
+  }
+  .ch {
+    --heat: 0;
+    position: relative;
+    display: inline-block;
+    translate: 0 calc(var(--heat) * -0.05em);
+    transition: translate 0.5s var(--ease);
+  }
+  .ch::after {
+    content: attr(data-ch);
     position: absolute;
-    inset: -12% -4%;
+    inset: 0;
+    background: linear-gradient(170deg, rgb(var(--scene-c)), rgb(var(--scene-b)) 45%, rgb(var(--scene-a)));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    opacity: var(--heat);
+    transition: opacity 0.35s linear;
     pointer-events: none;
   }
-  .hero-field :global(canvas) {
-    display: block;
-    width: 100%;
-    height: 100%;
+  /* First paint: letters rise in, staggered. */
+  :global(.motion-ok) .ch {
+    animation: rise 1.3s var(--ease) both;
+    animation-delay: calc(120ms + var(--ci) * 45ms);
   }
-  .hero-stage[data-live='true'] .hero-name {
-    opacity: 0;
+  @keyframes rise {
+    from {
+      translate: 0 0.5em;
+      opacity: 0;
+      filter: blur(10px);
+    }
   }
-  .hero-bottom {
-    display: grid;
-    grid-template-columns: minmax(0, 1.2fr) minmax(300px, 0.8fr);
-    gap: 28px 56px;
-    align-items: end;
-    padding: 20px 0 44px;
+
+  .hero-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 22px 40px;
+    margin-top: clamp(26px, 5vh, 54px);
+    translate: 0 calc(var(--p) * -70px);
+    opacity: calc(1 - var(--p) * 2.2);
   }
-  .hero-copy {
-    translate: 0 calc(var(--p) * -90px);
-    opacity: calc(1 - var(--p) * 1.8);
+  .hero-lede {
+    margin: 0;
+    max-width: 40ch;
+    font-size: clamp(1.05rem, 1.35vw, 1.25rem);
+    line-height: 1.55;
+    color: rgb(255 255 255 / 0.82);
   }
-  .hero-bio {
-    margin: 0 0 22px;
-    max-width: 60ch;
-    font-size: clamp(1.02rem, 1.3vw, 1.15rem);
-    line-height: 1.65;
-    color: var(--text-2);
+  .hero-lede a {
+    color: #fff;
+    text-decoration: underline;
+    text-decoration-color: rgb(var(--scene-b));
+    text-underline-offset: 4px;
   }
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
   }
-  /* Glass status plate: floats in front of the scene, lifts faster on scroll. */
-  .hero-plate {
-    padding: 18px 20px 20px;
-    translate: 0 calc(var(--p) * -160px);
-    opacity: calc(1 - var(--p) * 1.6);
-  }
-  .plate-head {
+
+  .hero-status {
     display: flex;
-    justify-content: space-between;
-    margin: 0 0 12px;
-    font-size: 10.5px;
-    letter-spacing: 0.16em;
-    color: var(--text-3);
-  }
-  .plate-roles {
-    list-style: none;
-    margin: 0 0 16px;
-    padding: 0;
-  }
-  .plate-roles li {
-    display: flex;
-    align-items: baseline;
-    gap: 14px;
-    padding: 9px 0;
-    border-top: 1px solid rgb(255 255 255 / 0.07);
-    font-size: 15px;
-  }
-  .plate-k {
-    min-width: 66px;
-    font-family: var(--font-mono);
-    font-size: 11px;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    background: var(--foil);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
-  }
-  .plate-facts {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    margin: 0;
-    padding-top: 14px;
-    border-top: 1px solid rgb(255 255 255 / 0.07);
-  }
-  .plate-facts dt {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--text-3);
-  }
-  .plate-facts dd {
-    margin: 4px 0 0;
-    font-family: var(--font-display);
-    font-variation-settings: 'wdth' 118;
-    font-weight: 800;
-    font-size: 2rem;
-    line-height: 1;
-  }
-  .hero-scroll {
-    position: absolute;
-    right: var(--gutter);
-    bottom: 26px;
-    display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 10px;
-    opacity: calc(1 - var(--p) * 4);
+    gap: 6px 0;
+    width: fit-content;
+    margin: clamp(22px, 4vh, 40px) 0 0;
+    padding: 10px 8px;
+    list-style: none;
+    border-radius: 999px;
+    --glass-bg: rgb(14 13 20 / 0.42);
+    translate: 0 calc(var(--p) * -110px);
+    opacity: calc(1 - var(--p) * 2);
   }
-  .hero-scroll .meta {
-    writing-mode: vertical-rl;
+  .hero-status li {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 2px 16px;
+    font-size: 13.5px;
+    color: rgb(255 255 255 / 0.72);
   }
-  .hero-scroll i {
-    position: relative;
-    width: 1px;
-    height: 42px;
-    background: var(--line-2);
-    overflow: hidden;
+  .hero-status li + li {
+    border-left: 1px solid rgb(255 255 255 / 0.12);
   }
-  .hero-scroll i::after {
-    content: '';
-    position: absolute;
-    left: 0;
-    right: 0;
-    height: 40%;
-    background: var(--foil);
-    animation: drip 2.2s var(--ease-in-out) infinite;
+  .hero-status b {
+    font-weight: 600;
+    color: #fff;
   }
-  @keyframes drip {
-    from {
-      translate: 0 -100%;
+  .dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgb(var(--scene-b));
+    box-shadow: 0 0 0 3px rgb(var(--scene-b) / 0.25);
+    animation: pulse 2.4s var(--ease-in-out) infinite;
+  }
+  @keyframes pulse {
+    50% {
+      box-shadow: 0 0 0 6px rgb(var(--scene-b) / 0.04);
     }
-    to {
-      translate: 0 260%;
-    }
   }
-  @media (max-width: 960px) {
-    .hero-bottom {
-      grid-template-columns: 1fr;
-    }
-    .hero-scroll {
-      display: none;
-    }
-  }
+
   @media (max-width: 860px) {
     :global(.motion-ok) .hero {
       height: auto;
@@ -331,13 +263,18 @@ const roles = ['Security engineering', 'CSO @ Velnqo', 'Founder of KUSH', 'Softw
     :global(.motion-ok) .hero-frame {
       position: relative;
     }
-    .hero-top {
-      flex-direction: column;
-      align-items: flex-start;
-    }
     .hero-frame {
       min-height: 100svh;
       height: auto;
+    }
+    .hero-line + .hero-line {
+      padding-left: 0;
+    }
+    .hero-status {
+      border-radius: 20px;
+    }
+    .hero-status li + li {
+      border-left: 0;
     }
   }
 </style>

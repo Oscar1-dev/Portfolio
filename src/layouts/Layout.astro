@@ -80,36 +80,20 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
       import { mountGlass } from '../scripts/glass';
       import { destroyScroll, mountScroll } from '../scripts/scroll-fx';
 
-      type Scene = { refresh: () => void; dispose: () => void };
-      let scene: Scene | null = null;
-      let loading = false;
+      import { mountBackdrop, type BackdropHandle } from '../scripts/backdrop';
 
-      const capable = () => {
-        const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
-        if (nav.connection?.saveData) return null;
-        try {
-          if (!document.createElement('canvas').getContext('webgl2')) return null;
-        } catch {
-          return null;
-        }
-        const weak = (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || window.innerWidth < 900;
-        return { rich: !weak };
-      };
+      let backdrop: BackdropHandle | null = null;
 
-      /** The 3D environment loads after the page is idle, once per visit. */
-      const startScene = () => {
-        if (scene || loading || !document.documentElement.classList.contains('motion-ok')) return scene?.refresh();
-        const ability = capable();
+      /** The fluted-glass background: animated with motion allowed, a single
+       *  still frame otherwise; skipped without WebGL2 (CSS fallback). */
+      const startBackdrop = () => {
+        if (backdrop) return backdrop.refresh();
         const canvas = document.querySelector<HTMLCanvasElement>('[data-scene-canvas]');
-        if (!ability || !canvas) return;
-        loading = true;
-        const go = () =>
-          void import('../scripts/scene').then(({ mountScene }) => {
-            scene = mountScene(canvas, ability.rich);
-            loading = false;
-          });
-        if ('requestIdleCallback' in window) window.requestIdleCallback(go, { timeout: 1200 });
-        else setTimeout(go, 400);
+        if (!canvas) return;
+        const nav = navigator as Navigator & { deviceMemory?: number; connection?: { saveData?: boolean } };
+        const weak = (nav.hardwareConcurrency ?? 8) <= 4 || (nav.deviceMemory ?? 8) <= 4 || window.innerWidth < 900;
+        const still = !document.documentElement.classList.contains('motion-ok') || nav.connection?.saveData === true;
+        backdrop = mountBackdrop(canvas, { rich: !weak, still });
       };
 
       // Runs on first load and after every client-side navigation.
@@ -121,7 +105,7 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
         mountSplitFlaps();
         mountGlass();
         mountScroll();
-        startScene();
+        startBackdrop();
       });
       document.addEventListener('astro:before-swap', () => destroyScroll());
     </script>

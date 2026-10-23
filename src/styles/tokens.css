@@ -20,8 +20,8 @@
   --line-3: rgb(255 255 255 / 0.24);
 
   --text: #f2f0ee;
-  --text-2: #b6b3bd;
-  --text-3: #7c7986;
+  --text-2: #cdcad3;
+  --text-3: #95919f;
 
   /* The signal foil. */
   --sig-red: #ff4d6d;
@@ -93,11 +93,11 @@
   --z-modal: 80;
 
   /* Glass: frosted surfaces over the 3D environment. */
-  --glass-bg: rgb(17 16 24 / 0.46);
+  --glass-bg: rgb(13 12 20 / 0.5);
   --glass-bg-strong: rgb(14 13 20 / 0.7);
   --glass-line: rgb(255 255 255 / 0.09);
-  --glass-blur: 22px;
-  --glass-radius: 22px;
+  --glass-blur: 30px;
+  --glass-radius: 26px;
   --shadow-deep: 0 50px 100px -50px rgb(0 0 0 / 0.95);
 
   color-scheme: dark;
