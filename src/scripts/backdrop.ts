@@ -98,12 +98,13 @@ float sdBox(vec2 p, vec2 halfSize) {
 }
 
 float specimen(vec2 p) {
-  // An elongated, asymmetric slab of decompiled matter. Three overlapping
-  // volumes form one continuous silhouette without suggesting a face.
-  float core = sdEllipse(p - vec2(0.015, 0.02), vec2(0.14, 0.50));
-  float upper = sdEllipse(p - vec2(-0.055, 0.36), vec2(0.105, 0.23));
-  float lower = sdEllipse(p - vec2(0.055, -0.39), vec2(0.115, 0.25));
-  return min(core, min(upper, lower));
+  // A long, low piece of decompiled matter. The overlapping volumes make a
+  // continuous horizontal silhouette with an irregular, eroded profile.
+  float core = sdEllipse(p - vec2(0.02, 0.0), vec2(0.70, 0.155));
+  float shoulder = sdEllipse(p - vec2(-0.39, 0.045), vec2(0.34, 0.13));
+  float nose = sdEllipse(p - vec2(0.48, -0.035), vec2(0.30, 0.105));
+  float lower = sdEllipse(p - vec2(0.03, -0.10), vec2(0.44, 0.09));
+  return min(min(core, shoulder), min(nose, lower));
 }
 
 void main() {
@@ -120,11 +121,11 @@ void main() {
   float fluid = fbm(world + 2.35 * r + vec2(0.0, uScroll * 0.22));
   float ribbon = pow(1.0 - abs(sin(fluid * 6.4 + r.x * 2.7)), 4.0);
 
-  vec2 centre = vec2(0.88, 0.50);
+  float portrait = 1.0 - smoothstep(0.72, 0.9, aspect);
+  vec2 centre = vec2(0.79, mix(0.43, 0.58, portrait));
   vec2 p = vec2((uv.x - centre.x) * aspect, uv.y - centre.y);
   vec2 pointer = vec2((uPointer.x - centre.x) * aspect, uPointer.y - centre.y);
-  float portrait = 1.0 - smoothstep(0.72, 0.9, aspect);
-  float portraitScale = mix(1.0, 1.34, portrait);
+  vec2 portraitScale = mix(vec2(1.0), vec2(2.15, 1.12), portrait);
   p *= portraitScale;
   pointer *= portraitScale;
   vec2 dp = p - pointer;
@@ -132,7 +133,7 @@ void main() {
 
   // Fluid deformation bends the sculpture without destroying its silhouette.
   p += (q - 0.5) * 0.032;
-  p.x += (sin(p.y * 5.2 + uScroll * 0.34) + sin(p.y * 11.0 - uTime * 0.035) * 0.35) * 0.014 * (1.0 - uMode);
+  p.y += (sin(p.x * 4.8 + uScroll * 0.34) + sin(p.x * 10.5 - uTime * 0.035) * 0.35) * 0.014 * (1.0 - uMode);
   float sdf = specimen(p);
   float mask = smoothstep(0.008, -0.006, sdf);
   float rim = smoothstep(0.018, 0.0, abs(sdf));
@@ -164,7 +165,7 @@ void main() {
 
   // One soft pool of reflected light gives the sculpture dimensional depth;
   // outside the hero it fades to near-black rather than becoming another effect.
-  float halo = exp(-dot(p * vec2(0.76, 1.0), p * vec2(0.76, 1.0)) * 8.0);
+  float halo = exp(-dot(p * vec2(0.58, 1.9), p * vec2(0.58, 1.9)) * 4.5);
   colour += mix(uA, uC, fluid) * halo * ribbon * 0.13 * specimenFade;
   // Broad fluid illumination fills the hero behind the ASCII form. It stays
   // deliberately low contrast around the name, but avoids an empty black void.
