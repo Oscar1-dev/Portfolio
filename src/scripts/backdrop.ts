@@ -98,15 +98,12 @@ float sdBox(vec2 p, vec2 halfSize) {
 }
 
 float specimen(vec2 p) {
-  // A front-facing forensic bust. Positive Y is screen-up in this shader, so
-  // the shoulders sit below the head rather than forming a stray upper arc.
-  float cranium = sdEllipse(p - vec2(0.0, 0.105), vec2(0.15, 0.19));
-  float jaw = sdEllipse(p - vec2(0.0, -0.045), vec2(0.108, 0.145));
-  float head = min(cranium, jaw);
-  float ears = min(sdEllipse(p - vec2(-0.105, 0.015), vec2(0.026, 0.052)),
-                   sdEllipse(p - vec2( 0.105, 0.015), vec2(0.026, 0.052)));
-  head = min(head, ears);
-  return head;
+  // An elongated, asymmetric slab of decompiled matter. Three overlapping
+  // volumes form one continuous silhouette without suggesting a face.
+  float core = sdEllipse(p - vec2(0.015, 0.02), vec2(0.14, 0.50));
+  float upper = sdEllipse(p - vec2(-0.055, 0.36), vec2(0.105, 0.23));
+  float lower = sdEllipse(p - vec2(0.055, -0.39), vec2(0.115, 0.25));
+  return min(core, min(upper, lower));
 }
 
 void main() {
@@ -123,19 +120,19 @@ void main() {
   float fluid = fbm(world + 2.35 * r + vec2(0.0, uScroll * 0.22));
   float ribbon = pow(1.0 - abs(sin(fluid * 6.4 + r.x * 2.7)), 4.0);
 
-  vec2 centre = vec2(0.90, 0.49);
+  vec2 centre = vec2(0.88, 0.50);
   vec2 p = vec2((uv.x - centre.x) * aspect, uv.y - centre.y);
   vec2 pointer = vec2((uPointer.x - centre.x) * aspect, uPointer.y - centre.y);
   float portrait = 1.0 - smoothstep(0.72, 0.9, aspect);
-  float portraitScale = mix(1.0, 1.58, portrait);
+  float portraitScale = mix(1.0, 1.34, portrait);
   p *= portraitScale;
   pointer *= portraitScale;
   vec2 dp = p - pointer;
   p -= dp * exp(-dot(dp, dp) * 12.0) * 0.11 * uLens;
 
   // Fluid deformation bends the sculpture without destroying its silhouette.
-  p += (q - 0.5) * 0.025;
-  p.x += sin(p.y * 7.0 + uScroll * 0.34) * 0.008 * (1.0 - uMode);
+  p += (q - 0.5) * 0.032;
+  p.x += (sin(p.y * 5.2 + uScroll * 0.34) + sin(p.y * 11.0 - uTime * 0.035) * 0.35) * 0.014 * (1.0 - uMode);
   float sdf = specimen(p);
   float mask = smoothstep(0.008, -0.006, sdf);
   float rim = smoothstep(0.018, 0.0, abs(sdf));
@@ -152,16 +149,8 @@ void main() {
   vec2 atlasUv = vec2((charIndex + cellUv.x) / 16.0, 1.0 - cellUv.y);
   float glyph = texture(uGlyphs, atlasUv).a;
 
-  float faceShade = smoothstep(0.26, -0.08, p.y) * 0.2 + ribbon * 0.55 + fluid * 0.25;
-  float eyeLine = exp(-pow((p.y - 0.075) * 42.0, 2.0)) * smoothstep(0.108, 0.025, abs(p.x));
-  float eyeSockets = (exp(-dot((p - vec2(-0.043, 0.07)) * vec2(25.0, 38.0),
-                              (p - vec2(-0.043, 0.07)) * vec2(25.0, 38.0))) +
-                      exp(-dot((p - vec2( 0.043, 0.07)) * vec2(25.0, 38.0),
-                              (p - vec2( 0.043, 0.07)) * vec2(25.0, 38.0))));
-  float mouth = exp(-pow((p.y + 0.105) * 48.0, 2.0)) * smoothstep(0.075, 0.018, abs(p.x));
-  float featureCut = smoothstep(0.22, 0.58, eyeSockets + mouth * 0.65);
-  float centreFalloff = smoothstep(0.34, 0.02, length(p * vec2(0.82, 1.0)));
-  // The ASCII face belongs to the hero only. It dissolves completely before
+  float surfaceShade = 0.18 + ribbon * 0.56 + fluid * 0.28;
+  // The ASCII sculpture belongs to the hero only. It dissolves completely before
   // the next composition arrives instead of following the user down the page.
   float specimenFade = 1.0 - smoothstep(0.08, 0.32, uMode);
   float leftSpace = smoothstep(0.43, 0.6, uv.x);
@@ -169,15 +158,20 @@ void main() {
   vec3 metal = mix(uA, uC, fluid);
   vec3 asciiLight = mix(uC, uB, ribbon * 0.8 + depth * 0.2);
   vec3 colour = vec3(0.008, 0.009, 0.011);
-  colour += metal * mask * faceShade * 0.16 * specimenFade;
-  colour += asciiLight * glyph * (1.0 - featureCut) * mask * (0.34 + depth * 0.88) * specimenFade;
+  colour += metal * mask * surfaceShade * 0.18 * specimenFade;
+  colour += asciiLight * glyph * mask * (0.42 + depth * 0.94) * specimenFade;
   colour += uB * rim * (0.16 + ribbon * 0.28) * specimenFade;
-  colour -= vec3((eyeLine * 0.05 + eyeSockets * 0.48 + mouth * 0.2) * mask);
 
   // One soft pool of reflected light gives the sculpture dimensional depth;
   // outside the hero it fades to near-black rather than becoming another effect.
   float halo = exp(-dot(p * vec2(0.76, 1.0), p * vec2(0.76, 1.0)) * 8.0);
   colour += mix(uA, uC, fluid) * halo * ribbon * 0.13 * specimenFade;
+  // Broad fluid illumination fills the hero behind the ASCII form. It stays
+  // deliberately low contrast around the name, but avoids an empty black void.
+  float heroVeil = (0.03 + ribbon * 0.078 + pow(fluid, 3.0) * 0.04) * specimenFade;
+  float veilShape = 0.45 + 0.55 * smoothstep(0.05, 0.92, uv.x + q.y * 0.18);
+  colour += mix(uA, uC, fluid) * heroVeil * veilShape;
+  colour += uB * pow(ribbon, 2.0) * 0.019 * specimenFade;
   colour += uC * ribbon * 0.012 * uIntensity * (1.0 - specimenFade);
 
   // The rest of the page uses two restrained supporting compositions. The
@@ -201,8 +195,7 @@ void main() {
   float memoryLines = (addressRail * 0.8 + dataRail * 0.45 + rowBand * 0.3) * memoryBounds;
   float memoryPulse = 0.55 + 0.45 * sin(row * 1.7 + uTime * 0.32 + fluid * 3.0);
   colour += mix(uC, uB, 0.28) * (memoryFrame * 0.08 + memoryLines * memoryPulse * 0.035) * memoryPresence;
-  colour *= mix(0.14, 1.0, leftSpace);
-  colour *= mix(0.48, 1.0, centreFalloff + 0.18);
+  colour *= mix(0.58, 1.0, leftSpace);
 
   float vignette = smoothstep(1.2, 0.22, length((uv - vec2(0.56, 0.52)) * vec2(0.88, 1.18)));
   colour *= mix(0.38, 1.0, vignette);
