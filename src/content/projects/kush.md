@@ -1,6 +1,6 @@
 ---
 title: "KUSH"
-description: "An independent software and digital-services business I founded and build: a custom website with Discord sign-in, accounts and 2FA, a Fastify/PostgreSQL platform API, and a provisioned Discord server with its own bot."
+description: "My software and digital-services business: a custom website with Discord sign-in, accounts and 2FA, a Fastify/PostgreSQL API, and a provisioned Discord server with its own bot."
 tagline: "One account across the website and Discord: sign in with Discord, track tickets and commissions, and staff work from the same records."
 projectType: "Business Platform"
 status: "Active"

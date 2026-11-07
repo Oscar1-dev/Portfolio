@@ -22,20 +22,20 @@
   --text-3: #95919f;
 
   /* Restrained signal spectrum. Red is reserved for warnings elsewhere. */
-  --sig-red: #d87468;
-  --sig-magenta: #7bf7bb;
-  --sig-violet: #87b9c9;
-  --sig-ice: #b8fbd9;
-  --sig-pearl: #d8e6df;
-  --foil: linear-gradient(100deg, #7bf7bb 0%, #b8fbd9 28%, #87b9c9 60%, #d8e6df 82%, #7bf7bb 100%);
-  --foil-soft: linear-gradient(100deg, rgb(123 247 187 / 0.9), rgb(184 251 217 / 0.9) 34%, rgb(135 185 201 / 0.9));
-  --accent: #7bf7bb;
+  --sig-red: #b96d68;
+  --sig-magenta: #d8d5ce;
+  --sig-violet: #8198aa;
+  --sig-ice: #aabfce;
+  --sig-pearl: #ece8df;
+  --foil: linear-gradient(100deg, #ece8df 0%, #aebbc3 38%, #8198aa 68%, #d8d5ce 100%);
+  --foil-soft: linear-gradient(100deg, rgb(236 232 223 / 0.9), rgb(174 187 195 / 0.9) 44%, rgb(129 152 170 / 0.9));
+  --accent: #aabfce;
   /* Live scene colours (space-separated RGB), written by scene.ts as the
      3D scene blends between sections. These are the resting values. */
-  --scene-a: 74 183 134;
-  --scene-b: 123 247 187;
-  --scene-c: 135 185 201;
-  --accent-ink: #04110d;
+  --scene-a: 67 76 84;
+  --scene-b: 174 187 195;
+  --scene-c: 129 152 170;
+  --accent-ink: #080b0d;
 
   --ok: #8fe3b9;
   --warn: #f2d083;
@@ -122,8 +122,8 @@
   --color-tier-core: var(--sig-magenta);
   --color-tier-learning: var(--sig-violet);
   --color-tier-foundation: var(--sig-ice);
-  --page-accent: #7bf7bb;
-  --page-accent-2: #87b9c9;
-  --page-accent-3: #d8e6df;
+  --page-accent: #aabfce;
+  --page-accent-2: #8198aa;
+  --page-accent-3: #ece8df;
   --sidebar-width: 0px;
 }

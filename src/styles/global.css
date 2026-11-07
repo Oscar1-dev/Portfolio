@@ -160,7 +160,7 @@ h4 {
 /* ------------------------------------------------------------ layout */
 
 .wrap {
-  width: min(100% - 2 * var(--gutter), var(--content-max));
+  width: min(calc(100% - var(--gutter) - var(--gutter)), var(--content-max));
   margin-inline: auto;
 }
 /* Sections breathe: generous space between them, and no rules. */
@@ -596,25 +596,13 @@ main,
   position: relative;
   z-index: 1;
 }
-/* Readability scrim plus a very quiet instrument grid. The actual character
-   field lives in WebGL; these stable rules keep the page structured when the
-   canvas is unavailable. */
+/* Readability scrim: the artwork must fall away behind content. */
 .atmosphere {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    linear-gradient(90deg, rgb(123 247 187 / 0.025) 1px, transparent 1px) 0 0 / 8rem 100%,
-    linear-gradient(0deg, rgb(135 185 201 / 0.02) 1px, transparent 1px) 0 0 / 100% 8rem,
-    linear-gradient(180deg, rgb(5 6 6 / 0.62), transparent 20%, transparent 72%, rgb(5 6 6 / 0.58));
-}
-.atmosphere::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(180deg, transparent 0 3px, rgb(0 0 0 / 0.055) 4px);
-  opacity: 0.45;
+  background: linear-gradient(180deg, rgb(4 5 6 / 0.34), transparent 21%, transparent 70%, rgb(4 5 6 / 0.5));
 }
 
 /* Lenis */

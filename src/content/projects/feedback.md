@@ -1,6 +1,6 @@
 ---
 title: "FEEDBACK"
-description: "Local-first music + music-video player. Desktop app with offline-first library, LAN phone server, and PWA."
+description: "A local-first music and video player built as a desktop app, with an offline library, a phone controller over the local network and a PWA."
 projectType: "Desktop App"
 status: "Production"
 year: 2024

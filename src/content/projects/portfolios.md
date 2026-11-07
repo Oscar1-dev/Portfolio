@@ -1,6 +1,6 @@
 ---
 title: "Cipher Protocol"
-description: "Personal portfolio site (\"Oscar Senior — Cipher Protocol\"): a React/Vite SPA with a TryHackMe badge gallery, admin dashboard, and Vercel Blob-backed media."
+description: "An earlier React and Vite portfolio with a TryHackMe badge gallery, an admin dashboard and media stored in Vercel Blob."
 projectType: "Design/UX"
 status: "Active"
 year: 2023

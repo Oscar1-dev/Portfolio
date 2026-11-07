@@ -1,6 +1,6 @@
 ---
 title: "Inertia"
-description: "Inertia — Game Marketplace. A static storefront on a hand-rolled Node.js HTTP server with Stripe checkout, MongoDB, and a 5-bot Discord operations fleet."
+description: "A game marketplace with a static storefront, a hand-written Node.js HTTP server, Stripe checkout, MongoDB and five Discord bots for operations."
 projectType: "E-Commerce / Bot Ecosystem"
 status: "Active"
 year: 2023

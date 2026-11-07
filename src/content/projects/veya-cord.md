@@ -1,6 +1,6 @@
 ---
 title: "Veyra"
-description: "An original realtime community/social platform (not a Discord bot or reskin) — NestJS + Next.js Turborepo monorepo with Prisma/PostgreSQL and Better-Auth."
+description: "A real-time community platform built as a NestJS and Next.js Turborepo monorepo with Prisma, PostgreSQL and Better Auth."
 projectType: "Full-Stack Platform"
 status: "Active"
 year: 2024

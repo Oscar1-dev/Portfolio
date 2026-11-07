@@ -1,6 +1,6 @@
 ---
 title: "SentiCord"
-description: "A gothic / graphic-Y2K real-time social platform: customizable profiles, cosmetics, badges, and 3D elements over a NestJS + Next.js monorepo."
+description: "A real-time social platform with gothic and graphic-Y2K styling, customisable profiles, cosmetics, badges and 3D elements, built in a NestJS and Next.js monorepo."
 projectType: "Full-Stack Platform"
 status: "Active"
 year: 2024

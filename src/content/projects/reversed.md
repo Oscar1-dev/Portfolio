@@ -1,6 +1,6 @@
 ---
 title: "reversed"
-description: "A Next.js marketplace with Stripe Checkout, Discord bot integration, and layered account authentication."
+description: "A Next.js marketplace with Stripe Checkout, Discord bot integration and several account authentication methods."
 projectType: "Full-Stack Platform"
 status: "Active"
 year: 2024

@@ -1,6 +1,6 @@
 ---
 title: "Nops.Bio"
-description: "SaaS bio/profile platform: gamified badges, a small in-app shop, Stripe subscriptions, Discord OAuth, and IP/security audit logging."
+description: "A SaaS profile platform with badges, a small in-app shop, Stripe subscriptions, Discord OAuth and IP/security audit logs."
 projectType: "SaaS Platform"
 status: "Active"
 year: 2023

@@ -24,7 +24,7 @@ export const roles: Role[] = [
     period: 'October 2026 – Present',
     current: true,
     summary:
-      "Velnqo is a hosting and infrastructure business in development, built around hosting management (WHMCS), server provisioning and Pterodactyl/Wings-based game and application hosting. I'm its Chief Security Officer.",
+      "Velnqo is a hosting and infrastructure business in development. It uses WHMCS for hosting management and Pterodactyl/Wings for game and application hosting. I'm its Chief Security Officer.",
     focus: [
       'Security engineering',
       'Application & API security',
@@ -44,7 +44,7 @@ export const roles: Role[] = [
     current: true,
     kind: 'Founder',
     summary:
-      'My independent software and digital-services business (formerly Veyrix). I design and build all of it: the website, the platform API and database, the Discord server and its bot, and internal tools. In development and preparing for launch.',
+      'KUSH is my software and digital-services business, previously called Veyrix. I build the website, platform API, database, Discord server, bot and internal tools. It is still in development and preparing for launch.',
     focus: ['Full-stack engineering', 'Authentication & 2FA', 'API & database design', 'Discord platform engineering', 'Security-conscious architecture'],
     link: { href: 'projects/kush/', label: 'KUSH case study' },
   },
@@ -56,7 +56,7 @@ export const roles: Role[] = [
     period: 'Final year',
     current: true,
     kind: 'Education',
-    summary: 'Final-year student specialising in cybersecurity and IT, practising offensive and defensive security on TryHackMe alongside project work.',
+    summary: 'I am in my final year studying cybersecurity and IT. Alongside college work, I practise offensive and defensive security on TryHackMe and apply it in software projects.',
     focus: ['Cybersecurity', 'IT', 'Networking', 'Linux'],
     link: { href: 'credentials/', label: 'Security record' },
   },

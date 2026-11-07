@@ -1,6 +1,6 @@
 ---
 title: "NOPS / Cyber Intelligence"
-description: "A unified cybersecurity intelligence and investigation workspace — observable detection, 35 provider modules across live threat-intel sources, correlation, evidence graphing, and case management, built on Next.js + PostgreSQL."
+description: "A Next.js and PostgreSQL investigation workspace that detects observables, queries 35 threat-intelligence provider modules, correlates results and builds evidence graphs and cases."
 tagline: "One box to paste an IP, domain, URL, hash or CVE into — and a full, provenance-tracked investigation comes back."
 projectType: "Cybersecurity Platform"
 status: "Production"

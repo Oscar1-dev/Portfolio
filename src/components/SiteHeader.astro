@@ -15,7 +15,10 @@ const links = [
   <div class="site-header-inner glass" data-glass>
     <a class="brand" href={base} aria-label="Oscar Senior, home">
       <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32"><path d="M5 26 16 5l11 21M10 17.5h12"></path></svg>
+        <svg viewBox="0 0 32 32">
+          <path class="mark-main" d="M7 24V8l18 16V8"></path>
+          <path class="mark-cut" d="M11 12.2 21 21M21 11v5.8"></path>
+        </svg>
       </span>
       <span class="brand-name">
         <b>Oscar Senior</b>
@@ -95,6 +98,7 @@ const links = [
     gap: 12px;
   }
   .brand-mark {
+    position: relative;
     display: grid;
     place-items: center;
     width: 34px;
@@ -102,19 +106,29 @@ const links = [
     border-radius: 50%;
     background: var(--foil);
     background-size: 220% 100%;
-    transition: background-position 1.2s var(--ease);
+    overflow: hidden;
+    transition: background-position 1.2s var(--ease), transform 500ms var(--ease), box-shadow 500ms var(--ease);
   }
   .brand:hover .brand-mark {
     background-position: 100% 0;
+    transform: rotate(-4deg) scale(1.04);
+    box-shadow: 0 0 0 1px rgb(var(--scene-c) / 0.34), 0 8px 24px rgb(0 0 0 / 0.3);
   }
   .brand-mark svg {
     width: 16px;
     height: 16px;
     fill: none;
     stroke: var(--accent-ink);
-    stroke-width: 2.6;
+    stroke-width: 2.35;
     stroke-linejoin: round;
     stroke-linecap: round;
+  }
+  .brand-mark .mark-cut {
+    stroke-width: 1.15;
+    opacity: 0.48;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .brand:hover .brand-mark { transform: none; }
   }
   .brand-name {
     display: flex;
@@ -241,6 +255,11 @@ const links = [
     display: none;
   }
   @media (max-width: 960px) {
+    .site-header-inner {
+      width: 100%;
+      min-width: 0;
+      gap: 12px;
+    }
     .nav {
       display: none;
     }

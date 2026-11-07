@@ -1,6 +1,6 @@
 ---
 title: "Rust+ Discord Bridge"
-description: "A Node.js Discord bot that bridges a server's chat with the Rust+ companion app API — live player/server status on command."
+description: "A Node.js Discord bot that connects a Discord server to the Rust+ companion API for chat and live player or server status."
 projectType: "Integration / Bot"
 status: "Learning"
 year: 2024

@@ -16,9 +16,6 @@ const lines = ['Oscar', 'Senior'];
 <section class="hero" aria-labelledby="hero-name" data-progress="pin" data-scene="hero" data-hero>
   <div class="hero-frame">
     <div class="wrap hero-inner">
-      <div class="hero-readout mono" aria-hidden="true">
-        <span>SUBJECT / PORTFOLIO</span><span>MODE / ANALYSIS</span><span>STATUS / ONLINE</span>
-      </div>
       <p class="hero-kicker mono">Software engineering <span aria-hidden="true">/</span> Cybersecurity</p>
 
       <h1 id="hero-name" class="hero-name display" aria-label="Oscar Senior">
@@ -37,7 +34,7 @@ const lines = ['Oscar', 'Senior'];
 
       <div class="hero-foot">
         <p class="hero-lede">
-          Final-year DISC student in cybersecurity and IT. Founder and developer of <a href={`${base}projects/kush/`}>KUSH</a>, Chief Security
+          I'm a final-year cybersecurity and IT student at DISC. I build <a href={`${base}projects/kush/`}>KUSH</a> and work as Chief Security
           Officer at Velnqo.
         </p>
         <div class="hero-actions">
@@ -45,7 +42,7 @@ const lines = ['Oscar', 'Senior'];
             KUSH case study
             <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
           </a>
-          <a class="btn btn-glass" href={`${base}projects/`}>All {projectCount} projects</a>
+          <a class="btn btn-glass" href={`${base}projects/`}>Browse {projectCount} projects</a>
         </div>
       </div>
 
@@ -133,19 +130,6 @@ const lines = ['Oscar', 'Senior'];
     text-transform: uppercase;
     color: rgb(255 255 255 / 0.66);
     opacity: calc(1 - var(--p) * 3);
-  }
-  .hero-readout {
-    position: absolute;
-    inset: calc(var(--header-h) + 28px) var(--gutter) auto;
-    display: flex;
-    justify-content: space-between;
-    gap: 18px;
-    padding-top: 10px;
-    border-top: 1px solid rgb(var(--scene-b) / 0.28);
-    color: rgb(255 255 255 / 0.38);
-    font-size: 9px;
-    letter-spacing: 0.16em;
-    opacity: calc(1 - var(--p) * 2.4);
   }
   .hero-kicker span {
     color: rgb(var(--scene-b));
@@ -295,12 +279,8 @@ const lines = ['Oscar', 'Senior'];
     .hero-status li + li {
       border-left: 0;
     }
-    .hero-readout span:nth-child(2) {
-      display: none;
-    }
   }
   :global(:root:not(.motion-ok)) .hero-kicker,
-  :global(:root:not(.motion-ok)) .hero-readout,
   :global(:root:not(.motion-ok)) .hero-foot,
   :global(:root:not(.motion-ok)) .hero-status {
     opacity: 1;
@@ -314,24 +294,29 @@ const lines = ['Oscar', 'Senior'];
       font-size: clamp(3.3rem, 16vw, 4.2rem);
       letter-spacing: -0.055em;
     }
-    .hero-readout {
-      inset-inline: var(--gutter);
-    }
-    .hero-readout span:last-child {
-      display: none;
-    }
     .hero-foot,
     .hero-actions {
       width: 100%;
+      min-width: 0;
+    }
+    .hero-foot { display: block; }
+    .hero-lede { width: 100%; overflow-wrap: anywhere; }
+    .hero-actions {
+      display: grid;
+      grid-template-columns: 1fr;
+      margin-top: 22px;
     }
     .hero-actions .btn {
-      flex: 1 1 auto;
+      width: 100%;
     }
     .hero-status {
       width: 100%;
     }
     .hero-status li {
       flex: 1 1 45%;
+      min-width: 0;
+      padding-inline: 10px;
+      font-size: 12.5px;
     }
   }
 </style>

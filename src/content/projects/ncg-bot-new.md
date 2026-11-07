@@ -1,6 +1,6 @@
 ---
 title: "NCG Discord Bot"
-description: "Discord bot + web panel for Rust (the game) server/team management — Steam-linked Rust+ pairing, FCM push, and in-game smart device/camera control from Discord."
+description: "A Discord bot and web panel for managing Rust game servers and teams, with Steam-linked Rust+ pairing, FCM notifications and smart-device or camera control."
 projectType: "Bot Platform"
 status: "Active"
 year: 2024

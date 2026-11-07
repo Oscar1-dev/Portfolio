@@ -1,41 +1,402 @@
-// Procedural analysis surface. The original one-triangle WebGL2 lifecycle is
-// retained, but the colourful liquid field is quantised into a restrained
-// character grid, memory bands and signal traces.
-interface Look { colours: [string, string, string]; intensity: number; mode: number }
+// Hero artwork: a single decompiled ASCII specimen suspended inside the
+// original site's slow, domain-warped fluid light. The glyphs are rendered
+// from a real canvas atlas; nothing is drawn as full-screen character noise.
+
+interface Look {
+  colours: [string, string, string];
+  intensity: number;
+  /** 0 = hero specimen; 1 = quiet background. */
+  mode: number;
+}
+
 const LOOKS: Record<string, Look> = {
-  hero:{colours:['#183d30','#7bf7bb','#87b9c9'],intensity:.92,mode:.05}, statement:{colours:['#342d1c','#d6b86a','#7bf7bb'],intensity:.66,mode:.18},
-  kush:{colours:['#263338','#9ac7d3','#b8fbd9'],intensity:.72,mode:.31}, work:{colours:['#142e28','#65d8a4','#8fb7c2'],intensity:.58,mode:.44},
-  experience:{colours:['#1d292d','#87b9c9','#7bf7bb'],intensity:.52,mode:.55}, security:{colours:['#30241d','#d38b62','#7bf7bb'],intensity:.64,mode:.67},
-  archive:{colours:['#172a24','#61b88d','#789aa3'],intensity:.48,mode:.77}, stack:{colours:['#1c2926','#88c9aa','#87b9c9'],intensity:.5,mode:.86},
-  contact:{colours:['#1b3028','#7bf7bb','#d8e6df'],intensity:.64,mode:.96}, page:{colours:['#172b25','#67c596','#87b9c9'],intensity:.5,mode:.42},
-  case:{colours:['#233035','#91bdc9','#7bf7bb'],intensity:.54,mode:.36}, detail:{colours:['#162d27','#70d6a4','#87b9c9'],intensity:.52,mode:.47},
+  hero: { colours: ['#313940', '#ece8df', '#8198aa'], intensity: 1, mode: 0 },
+  statement: { colours: ['#252a2e', '#bfc5c4', '#71899b'], intensity: 0.28, mode: 0.36 },
+  kush: { colours: ['#25282d', '#d6d1c8', '#778b9a'], intensity: 0.22, mode: 0.48 },
+  work: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.16, mode: 0.94 },
+  experience: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.14, mode: 0.94 },
+  security: { colours: ['#282426', '#cbbeb5', '#778d9d'], intensity: 0.2, mode: 0.68 },
+  archive: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.12, mode: 0.94 },
+  stack: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.12, mode: 0.94 },
+  contact: { colours: ['#24272a', '#ded9d0', '#8198aa'], intensity: 0.18, mode: 0.94 },
+  page: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.14, mode: 1 },
+  case: { colours: ['#24272a', '#d2cec5', '#8198aa'], intensity: 0.14, mode: 1 },
+  detail: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.14, mode: 1 },
 };
-const VERT=`#version 300 es
-in vec2 aPos;void main(){gl_Position=vec4(aPos,0.,1.);}`;
-const frag=(rich:boolean)=>`#version 300 es
+
+const CHARSET = ' .:-=+*#%@01<>[]';
+const GLYPH_SIZE = 64;
+
+function createGlyphAtlas(gl: WebGL2RenderingContext): WebGLTexture {
+  const canvas = document.createElement('canvas');
+  canvas.width = GLYPH_SIZE * CHARSET.length;
+  canvas.height = GLYPH_SIZE;
+  const ctx = canvas.getContext('2d')!;
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = '#fff';
+  ctx.font = `600 44px "IBM Plex Mono", "Cascadia Mono", monospace`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i < CHARSET.length; i++) {
+    ctx.fillText(CHARSET[i]!, i * GLYPH_SIZE + GLYPH_SIZE / 2, GLYPH_SIZE / 2 + 1);
+  }
+  const texture = gl.createTexture()!;
+  gl.bindTexture(gl.TEXTURE_2D, texture);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, 1);
+  gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, canvas);
+  return texture;
+}
+
+const VERT = `#version 300 es
+in vec2 aPos;
+void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
+
+const frag = (rich: boolean) => `#version 300 es
 precision highp float;
-uniform vec2 uRes,uPointer;uniform float uTime,uScroll,uVelocity,uLens,uIntensity,uMode;uniform vec3 uA,uB,uC;out vec4 outColor;
-float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
-float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
-float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<${rich?4:3};i++){v+=a*noise(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
-float glyph(vec2 cell,vec2 f,float density){vec2 px=floor(f*vec2(5.,7.)),q=fract(f*vec2(5.,7.));float seed=hash(cell+floor(uMode*19.));float bit=step(.57+(1.-density)*.24,hash(cell*7.13+px*17.7+seed));bit=max(bit,step(.93,seed)*step(px.x,.1));bit=max(bit,step(.82,seed)*step(px.y,.1)*step(1.,px.x)*step(px.x,3.1));return bit*smoothstep(.44,.24,length(q-.5));}
-void main(){vec2 fc=gl_FragCoord.xy,uv=fc/uRes;float aspect=uRes.x/uRes.y;vec2 p=vec2(uv.x*aspect,uv.y),m=vec2(uPointer.x*aspect,uPointer.y),dm=p-m;p-=dm*exp(-dot(dm,dm)*9.)*.13*uLens;
-float t=uTime*.055;vec2 warp=vec2(fbm(p*1.7+vec2(0,t)),fbm(p*1.9+vec2(6.2,-t)));float signal=fbm(p*2.+warp*1.8+vec2(0,uScroll)),band=smoothstep(.38,.74,signal);
-vec2 grid=vec2(${rich?'78.':'58.'},${rich?'44.':'34.'});grid.x*=aspect/1.78;vec2 gp=uv*grid,cell=floor(gp),cf=fract(gp);float mark=glyph(cell,cf,band),row=floor(gp.y);
-float region=step(.79,hash(vec2(row,floor(uMode*13.))));float memory=region*smoothstep(.48,.44,abs(cf.y-.5))*step(.16,cf.x)*step(cf.x,.84);float tick=step(.965,fract(uv.y*22.+uScroll*.6))*step(uv.x,.075);float trace=smoothstep(.012,0.,abs(uv.x-(.13+.055*sin(uv.y*19.+uMode*12.))))*step(.36,signal);float tear=abs(uVelocity)*step(.94,hash(vec2(row,floor(uTime*10.))))*smoothstep(.5,0.,abs(cf.y-.5));
-float marks=mark*(.16+band*.84)+memory*.2+tick*.34+trace*.18+tear*.22;vec3 colour=mix(uA,uB,smoothstep(.3,.78,signal));colour=mix(colour,uC,memory*.45+trace*.25);vec3 c=vec3(.011,.014,.014)+colour*marks*uIntensity*(.93+.07*sin(fc.y*3.14159))+uB*band*.018*uIntensity;
-float cross=smoothstep(.004,0.,abs(dm.x))*smoothstep(.16,.04,abs(dm.y))+smoothstep(.004,0.,abs(dm.y))*smoothstep(.16,.04,abs(dm.x));c+=uC*cross*uLens*.12;float vig=smoothstep(1.25,.28,length((uv-vec2(.5,.54))*vec2(.92,1.2)));c*=mix(.42,1.,vig);c+=(hash(fc+uTime)-.5)/310.;outColor=vec4(1.-exp(-c*1.4),1.);}`;
-export interface BackdropHandle{refresh():void;dispose():void}
-const hex=(h:string):[number,number,number]=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255) as [number,number,number];
-export function mountBackdrop(canvas:HTMLCanvasElement,opts:{rich:boolean;still:boolean}):BackdropHandle|null{
- const gl=canvas.getContext('webgl2',{antialias:false,alpha:false,powerPreference:opts.rich?'high-performance':'low-power'});if(!gl)return null;
- const compile=(type:number,src:string)=>{const s=gl.createShader(type)!;gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s)??'shader');return s};const program=gl.createProgram()!;
- try{gl.attachShader(program,compile(gl.VERTEX_SHADER,VERT));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,frag(opts.rich)));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)??'link')}catch(e){console.warn('backdrop disabled:',e);return null}gl.useProgram(program);
- const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const pos=gl.getAttribLocation(program,'aPos');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);const u=(name:string)=>gl.getUniformLocation(program,name);const uni={res:u('uRes'),time:u('uTime'),scroll:u('uScroll'),velocity:u('uVelocity'),pointer:u('uPointer'),lens:u('uLens'),a:u('uA'),b:u('uB'),c:u('uC'),intensity:u('uIntensity'),mode:u('uMode')};
- const scale=opts.rich?.66:.48;const resize=()=>{canvas.width=Math.max(1,Math.round(innerWidth*scale));canvas.height=Math.max(1,Math.round(innerHeight*scale));gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(uni.res,canvas.width,canvas.height);if(opts.still)draw(performance.now())};
- let sections:{el:HTMLElement;look:Look}[]=[];const refresh=()=>{sections=[...document.querySelectorAll<HTMLElement>('[data-scene]')].map(el=>({el,look:LOOKS[el.dataset.scene??'page']??LOOKS.page!}));if(opts.still)draw(performance.now())};const cur={cols:LOOKS.hero!.colours.map(hex),intensity:LOOKS.hero!.intensity,mode:LOOKS.hero!.mode};const target={cols:cur.cols.map(c=>[...c] as [number,number,number]),intensity:cur.intensity,mode:cur.mode};
- const blend=()=>{const vh=innerHeight;let total=0,intensity=0,mode=0;const acc=[0,0,0].map(()=>[0,0,0]);for(const{el,look}of sections){const r=el.getBoundingClientRect(),w=Math.max(0,1-Math.abs(r.top+r.height/2-vh/2)/(vh*.5+r.height*.5))**2;if(!w)continue;total+=w;intensity+=look.intensity*w;mode+=look.mode*w;look.colours.forEach((h,i)=>hex(h).forEach((v,j)=>acc[i]![j]!+=v*w))}if(!total)return;target.intensity=intensity/total;target.mode=mode/total;acc.forEach((c,i)=>c.forEach((v,j)=>target.cols[i]![j]=v/total))};
- const pointer={x:.7,y:.6,sx:.7,sy:.6,lens:0};const onPointer=(e:PointerEvent)=>{pointer.x=e.clientX/innerWidth;pointer.y=1-e.clientY/innerHeight;pointer.lens=e.pointerType==='mouse'?1:0};const onLeave=()=>pointer.lens=0;addEventListener('pointermove',onPointer,{passive:true});document.addEventListener('pointerleave',onLeave);const root=document.documentElement;let lens=0,last=performance.now(),frame=0,count=0,lastY=scrollY,velocity=0;
- const draw=(now:number)=>{const dt=Math.min(.05,(now-last)/1000);last=now;blend();const k=opts.still?1:1-Math.exp(-dt*2.8);cur.intensity+=(target.intensity-cur.intensity)*k;cur.mode+=(target.mode-cur.mode)*k;cur.cols.forEach((c,i)=>c.forEach((v,j)=>c[j]=v+(target.cols[i]![j]!-v)*k));pointer.sx+=(pointer.x-pointer.sx)*Math.min(1,k*2.2);pointer.sy+=(pointer.y-pointer.sy)*Math.min(1,k*2.2);lens+=(pointer.lens-lens)*k;const dy=scrollY-lastY;lastY=scrollY;velocity+=(Math.max(-1,Math.min(1,dy/55))-velocity)*.12;gl.uniform1f(uni.time,opts.still?40:now/1000);gl.uniform1f(uni.scroll,(scrollY/innerHeight)*.18);gl.uniform1f(uni.velocity,opts.still?0:velocity);gl.uniform2f(uni.pointer,pointer.sx,pointer.sy);gl.uniform1f(uni.lens,opts.still?0:lens);gl.uniform3fv(uni.a,cur.cols[0]!);gl.uniform3fv(uni.b,cur.cols[1]!);gl.uniform3fv(uni.c,cur.cols[2]!);gl.uniform1f(uni.intensity,cur.intensity);gl.uniform1f(uni.mode,cur.mode);gl.drawArrays(gl.TRIANGLES,0,3);if(count++%4===0){const css=(c:number[])=>c.map(v=>Math.round(Math.min(1,v)*255)).join(' ');root.style.setProperty('--scene-a',css(cur.cols[0]!));root.style.setProperty('--scene-b',css(cur.cols[1]!));root.style.setProperty('--scene-c',css(cur.cols[2]!))}};
- const loop=(now:number)=>{frame=requestAnimationFrame(loop);if(document.hidden)return;if(!opts.rich&&count%2===1){count++;return}draw(now)};const onScrollStill=()=>draw(performance.now());refresh();resize();addEventListener('resize',resize);if(opts.still)addEventListener('scroll',onScrollStill,{passive:true});else frame=requestAnimationFrame(loop);canvas.dataset.ready='true';return{refresh,dispose(){cancelAnimationFrame(frame);removeEventListener('pointermove',onPointer);document.removeEventListener('pointerleave',onLeave);removeEventListener('resize',resize);removeEventListener('scroll',onScrollStill);gl.deleteBuffer(buffer);gl.deleteProgram(program);delete canvas.dataset.ready}};
+uniform vec2 uRes;
+uniform float uTime;
+uniform float uScroll;
+uniform vec2 uPointer;
+uniform float uLens;
+uniform vec3 uA;
+uniform vec3 uB;
+uniform vec3 uC;
+uniform float uIntensity;
+uniform float uMode;
+uniform sampler2D uGlyphs;
+out vec4 outColor;
+
+float hash(vec2 p) {
+  p = fract(p * vec2(123.34, 456.21));
+  p += dot(p, p + 45.32);
+  return fract(p.x * p.y);
+}
+float noise(vec2 p) {
+  vec2 i = floor(p), f = fract(p);
+  vec2 u = f * f * (3.0 - 2.0 * f);
+  return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
+}
+float fbm(vec2 p) {
+  float v = 0.0, a = 0.5;
+  for (int i = 0; i < ${rich ? 5 : 3}; i++) {
+    v += a * noise(p);
+    p = p * 2.03 + vec2(1.7, 9.2);
+    a *= 0.5;
+  }
+  return v;
+}
+float sdEllipse(vec2 p, vec2 radius) {
+  return (length(p / radius) - 1.0) * min(radius.x, radius.y);
+}
+float sdBox(vec2 p, vec2 halfSize) {
+  vec2 d = abs(p) - halfSize;
+  return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
+}
+
+float specimen(vec2 p) {
+  // A front-facing forensic bust. Positive Y is screen-up in this shader, so
+  // the shoulders sit below the head rather than forming a stray upper arc.
+  float cranium = sdEllipse(p - vec2(0.0, 0.105), vec2(0.15, 0.19));
+  float jaw = sdEllipse(p - vec2(0.0, -0.045), vec2(0.108, 0.145));
+  float head = min(cranium, jaw);
+  float ears = min(sdEllipse(p - vec2(-0.105, 0.015), vec2(0.026, 0.052)),
+                   sdEllipse(p - vec2( 0.105, 0.015), vec2(0.026, 0.052)));
+  head = min(head, ears);
+  return head;
+}
+
+void main() {
+  vec2 frag = gl_FragCoord.xy;
+  vec2 uv = frag / uRes;
+  float aspect = uRes.x / uRes.y;
+  float time = uTime * 0.045;
+
+  // Preserve the original organic movement: two nested domain warps produce
+  // broad, slow light rather than particles or a repeating digital texture.
+  vec2 world = vec2(uv.x * aspect, uv.y) * 1.45;
+  vec2 q = vec2(fbm(world + vec2(0.0, time)), fbm(world + vec2(5.2, 1.3) - time));
+  vec2 r = vec2(fbm(world + 2.8 * q + vec2(1.7, 9.2) + time), fbm(world + 2.8 * q + vec2(8.3, 2.8) - time));
+  float fluid = fbm(world + 2.35 * r + vec2(0.0, uScroll * 0.22));
+  float ribbon = pow(1.0 - abs(sin(fluid * 6.4 + r.x * 2.7)), 4.0);
+
+  vec2 centre = vec2(0.90, 0.49);
+  vec2 p = vec2((uv.x - centre.x) * aspect, uv.y - centre.y);
+  vec2 pointer = vec2((uPointer.x - centre.x) * aspect, uPointer.y - centre.y);
+  float portrait = 1.0 - smoothstep(0.72, 0.9, aspect);
+  float portraitScale = mix(1.0, 1.58, portrait);
+  p *= portraitScale;
+  pointer *= portraitScale;
+  vec2 dp = p - pointer;
+  p -= dp * exp(-dot(dp, dp) * 12.0) * 0.11 * uLens;
+
+  // Fluid deformation bends the sculpture without destroying its silhouette.
+  p += (q - 0.5) * 0.025;
+  p.x += sin(p.y * 7.0 + uScroll * 0.34) * 0.008 * (1.0 - uMode);
+  float sdf = specimen(p);
+  float mask = smoothstep(0.008, -0.006, sdf);
+  float rim = smoothstep(0.018, 0.0, abs(sdf));
+
+  // Characters live only on the specimen. Their density follows its fluid
+  // illumination, making the surface dissolve and reform as one object.
+  vec2 glyphWarp = (q - 0.5) * 0.55 + vec2(0.0, time * 0.32 + uScroll * 0.035);
+  vec2 gridSize = vec2(${rich ? '94.0' : '70.0'}, ${rich ? '54.0' : '42.0'});
+  vec2 gp = uv * gridSize + glyphWarp;
+  vec2 cell = floor(gp);
+  vec2 cellUv = fract(gp);
+  float depth = clamp(-sdf * 4.5 + fluid * 0.72 + ribbon * 0.24, 0.0, 1.0);
+  float charIndex = floor(clamp(depth * 15.0 + (hash(cell) - 0.5) * 2.0, 0.0, 15.0));
+  vec2 atlasUv = vec2((charIndex + cellUv.x) / 16.0, 1.0 - cellUv.y);
+  float glyph = texture(uGlyphs, atlasUv).a;
+
+  float faceShade = smoothstep(0.26, -0.08, p.y) * 0.2 + ribbon * 0.55 + fluid * 0.25;
+  float eyeLine = exp(-pow((p.y - 0.075) * 42.0, 2.0)) * smoothstep(0.108, 0.025, abs(p.x));
+  float eyeSockets = (exp(-dot((p - vec2(-0.043, 0.07)) * vec2(25.0, 38.0),
+                              (p - vec2(-0.043, 0.07)) * vec2(25.0, 38.0))) +
+                      exp(-dot((p - vec2( 0.043, 0.07)) * vec2(25.0, 38.0),
+                              (p - vec2( 0.043, 0.07)) * vec2(25.0, 38.0))));
+  float mouth = exp(-pow((p.y + 0.105) * 48.0, 2.0)) * smoothstep(0.075, 0.018, abs(p.x));
+  float featureCut = smoothstep(0.22, 0.58, eyeSockets + mouth * 0.65);
+  float centreFalloff = smoothstep(0.34, 0.02, length(p * vec2(0.82, 1.0)));
+  // The ASCII face belongs to the hero only. It dissolves completely before
+  // the next composition arrives instead of following the user down the page.
+  float specimenFade = 1.0 - smoothstep(0.08, 0.32, uMode);
+  float leftSpace = smoothstep(0.43, 0.6, uv.x);
+
+  vec3 metal = mix(uA, uC, fluid);
+  vec3 asciiLight = mix(uC, uB, ribbon * 0.8 + depth * 0.2);
+  vec3 colour = vec3(0.008, 0.009, 0.011);
+  colour += metal * mask * faceShade * 0.16 * specimenFade;
+  colour += asciiLight * glyph * (1.0 - featureCut) * mask * (0.34 + depth * 0.88) * specimenFade;
+  colour += uB * rim * (0.16 + ribbon * 0.28) * specimenFade;
+  colour -= vec3((eyeLine * 0.05 + eyeSockets * 0.48 + mouth * 0.2) * mask);
+
+  // One soft pool of reflected light gives the sculpture dimensional depth;
+  // outside the hero it fades to near-black rather than becoming another effect.
+  float halo = exp(-dot(p * vec2(0.76, 1.0), p * vec2(0.76, 1.0)) * 8.0);
+  colour += mix(uA, uC, fluid) * halo * ribbon * 0.13 * specimenFade;
+  colour += uC * ribbon * 0.012 * uIntensity * (1.0 - specimenFade);
+
+  // The rest of the page uses two restrained supporting compositions. The
+  // opening statement/KUSH transition gets a broad fluid material fold; the
+  // security section gets a sparse memory-map cross-section. Neither is a
+  // second full-screen character field.
+  float matterPresence = (1.0 - smoothstep(0.13, 0.3, abs(uMode - 0.43))) * (1.0 - specimenFade);
+  vec2 matterP = vec2((uv.x - 0.72) * aspect, uv.y - 0.5);
+  float matterBody = exp(-dot(matterP * vec2(0.72, 1.35), matterP * vec2(0.72, 1.35)) * 2.6);
+  float matterFold = pow(clamp(1.0 - abs(sin((fluid + r.y * 0.55) * 8.0)), 0.0, 1.0), 7.0);
+  colour += mix(uA, uC, fluid) * matterBody * (0.025 + matterFold * 0.075) * matterPresence;
+
+  float memoryPresence = (1.0 - smoothstep(0.055, 0.16, abs(uMode - 0.68))) * (1.0 - specimenFade);
+  vec2 memoryP = vec2((uv.x - 0.78) * aspect, uv.y - 0.5);
+  float memoryFrame = smoothstep(0.012, 0.002, abs(sdBox(memoryP, vec2(0.24, 0.28))));
+  float row = floor((memoryP.y + 0.24) * 15.0);
+  float rowBand = step(0.72, fract((memoryP.y + 0.24) * 15.0));
+  float addressRail = smoothstep(0.012, 0.0, abs(memoryP.x + 0.19));
+  float dataRail = smoothstep(0.012, 0.0, abs(memoryP.x - 0.07));
+  float memoryBounds = step(abs(memoryP.x), 0.24) * step(abs(memoryP.y), 0.28);
+  float memoryLines = (addressRail * 0.8 + dataRail * 0.45 + rowBand * 0.3) * memoryBounds;
+  float memoryPulse = 0.55 + 0.45 * sin(row * 1.7 + uTime * 0.32 + fluid * 3.0);
+  colour += mix(uC, uB, 0.28) * (memoryFrame * 0.08 + memoryLines * memoryPulse * 0.035) * memoryPresence;
+  colour *= mix(0.14, 1.0, leftSpace);
+  colour *= mix(0.48, 1.0, centreFalloff + 0.18);
+
+  float vignette = smoothstep(1.2, 0.22, length((uv - vec2(0.56, 0.52)) * vec2(0.88, 1.18)));
+  colour *= mix(0.38, 1.0, vignette);
+  colour += (hash(frag + uTime) - 0.5) / 420.0;
+  outColor = vec4(1.0 - exp(-colour * 1.28), 1.0);
+}`;
+
+export interface BackdropHandle {
+  refresh(): void;
+  dispose(): void;
+}
+
+const hex = (value: string): [number, number, number] =>
+  [1, 3, 5].map((i) => parseInt(value.slice(i, i + 2), 16) / 255) as [number, number, number];
+
+export function mountBackdrop(canvas: HTMLCanvasElement, opts: { rich: boolean; still: boolean }): BackdropHandle | null {
+  const gl = canvas.getContext('webgl2', {
+    antialias: false,
+    alpha: false,
+    powerPreference: opts.rich ? 'high-performance' : 'low-power',
+  });
+  if (!gl) return null;
+
+  const compile = (type: number, source: string) => {
+    const shader = gl.createShader(type)!;
+    gl.shaderSource(shader, source);
+    gl.compileShader(shader);
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(shader) ?? 'shader');
+    return shader;
+  };
+  const program = gl.createProgram()!;
+  try {
+    gl.attachShader(program, compile(gl.VERTEX_SHADER, VERT));
+    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, frag(opts.rich)));
+    gl.linkProgram(program);
+    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) ?? 'link');
+  } catch (error) {
+    console.warn('backdrop disabled:', error);
+    return null;
+  }
+  gl.useProgram(program);
+
+  const buffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  const position = gl.getAttribLocation(program, 'aPos');
+  gl.enableVertexAttribArray(position);
+  gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+  const glyphTexture = createGlyphAtlas(gl);
+  gl.activeTexture(gl.TEXTURE0);
+  gl.bindTexture(gl.TEXTURE_2D, glyphTexture);
+
+  const uniform = (name: string) => gl.getUniformLocation(program, name);
+  const u = {
+    res: uniform('uRes'),
+    time: uniform('uTime'),
+    scroll: uniform('uScroll'),
+    pointer: uniform('uPointer'),
+    lens: uniform('uLens'),
+    a: uniform('uA'),
+    b: uniform('uB'),
+    c: uniform('uC'),
+    intensity: uniform('uIntensity'),
+    mode: uniform('uMode'),
+    glyphs: uniform('uGlyphs'),
+  };
+  gl.uniform1i(u.glyphs, 0);
+
+  const scale = opts.rich ? 0.72 : 0.5;
+  const resize = () => {
+    canvas.width = Math.max(1, Math.round(window.innerWidth * scale));
+    canvas.height = Math.max(1, Math.round(window.innerHeight * scale));
+    gl.viewport(0, 0, canvas.width, canvas.height);
+    gl.uniform2f(u.res, canvas.width, canvas.height);
+    if (opts.still) draw(performance.now());
+  };
+
+  let sections: { el: HTMLElement; look: Look }[] = [];
+  const refresh = () => {
+    sections = [...document.querySelectorAll<HTMLElement>('[data-scene]')].map((el) => ({
+      el,
+      look: LOOKS[el.dataset.scene ?? 'page'] ?? LOOKS.page!,
+    }));
+    if (opts.still) draw(performance.now());
+  };
+  const current = {
+    colours: LOOKS.hero!.colours.map(hex),
+    intensity: LOOKS.hero!.intensity,
+    mode: LOOKS.hero!.mode,
+  };
+  const target = {
+    colours: current.colours.map((colour) => [...colour] as [number, number, number]),
+    intensity: current.intensity,
+    mode: current.mode,
+  };
+  const blend = () => {
+    const viewport = window.innerHeight;
+    let total = 0;
+    let intensity = 0;
+    let mode = 0;
+    const colours = [0, 0, 0].map(() => [0, 0, 0]);
+    for (const { el, look } of sections) {
+      const rect = el.getBoundingClientRect();
+      const weight = Math.max(0, 1 - Math.abs(rect.top + rect.height / 2 - viewport / 2) / (viewport * 0.5 + rect.height * 0.5)) ** 2;
+      if (!weight) continue;
+      total += weight;
+      intensity += look.intensity * weight;
+      mode += look.mode * weight;
+      look.colours.forEach((value, i) => hex(value).forEach((channel, j) => (colours[i]![j]! += channel * weight)));
+    }
+    if (!total) return;
+    target.intensity = intensity / total;
+    target.mode = mode / total;
+    colours.forEach((colour, i) => colour.forEach((channel, j) => (target.colours[i]![j] = channel / total)));
+  };
+
+  const pointer = { x: 0.73, y: 0.48, smoothX: 0.73, smoothY: 0.48, lens: 0 };
+  const onPointer = (event: PointerEvent) => {
+    pointer.x = event.clientX / window.innerWidth;
+    pointer.y = 1 - event.clientY / window.innerHeight;
+    pointer.lens = event.pointerType === 'mouse' ? 1 : 0;
+  };
+  const onLeave = () => (pointer.lens = 0);
+  window.addEventListener('pointermove', onPointer, { passive: true });
+  document.addEventListener('pointerleave', onLeave);
+
+  const root = document.documentElement;
+  let lens = 0;
+  let last = performance.now();
+  let frame = 0;
+  let tick = 0;
+  const draw = (now: number) => {
+    const delta = Math.min(0.05, (now - last) / 1000);
+    last = now;
+    blend();
+    const easing = opts.still ? 1 : 1 - Math.exp(-delta * 2.35);
+    current.intensity += (target.intensity - current.intensity) * easing;
+    current.mode += (target.mode - current.mode) * easing;
+    current.colours.forEach((colour, i) =>
+      colour.forEach((channel, j) => (colour[j] = channel + (target.colours[i]![j]! - channel) * easing)),
+    );
+    pointer.smoothX += (pointer.x - pointer.smoothX) * Math.min(1, easing * 2.1);
+    pointer.smoothY += (pointer.y - pointer.smoothY) * Math.min(1, easing * 2.1);
+    lens += (pointer.lens - lens) * easing;
+
+    gl.uniform1f(u.time, opts.still ? 38 : now / 1000);
+    gl.uniform1f(u.scroll, window.scrollY / window.innerHeight);
+    gl.uniform2f(u.pointer, pointer.smoothX, pointer.smoothY);
+    gl.uniform1f(u.lens, opts.still ? 0 : lens);
+    gl.uniform3fv(u.a, current.colours[0]!);
+    gl.uniform3fv(u.b, current.colours[1]!);
+    gl.uniform3fv(u.c, current.colours[2]!);
+    gl.uniform1f(u.intensity, current.intensity);
+    gl.uniform1f(u.mode, current.mode);
+    gl.drawArrays(gl.TRIANGLES, 0, 3);
+
+    if (tick++ % 4 === 0) {
+      const css = (colour: number[]) => colour.map((value) => Math.round(Math.min(1, value) * 255)).join(' ');
+      root.style.setProperty('--scene-a', css(current.colours[0]!));
+      root.style.setProperty('--scene-b', css(current.colours[1]!));
+      root.style.setProperty('--scene-c', css(current.colours[2]!));
+    }
+  };
+  const loop = (now: number) => {
+    frame = requestAnimationFrame(loop);
+    if (document.hidden) return;
+    if (!opts.rich && tick % 2 === 1) {
+      tick++;
+      return;
+    }
+    draw(now);
+  };
+  const drawStill = () => draw(performance.now());
+
+  refresh();
+  resize();
+  window.addEventListener('resize', resize);
+  if (opts.still) window.addEventListener('scroll', drawStill, { passive: true });
+  else frame = requestAnimationFrame(loop);
+  canvas.dataset.ready = 'true';
+
+  return {
+    refresh,
+    dispose() {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('pointermove', onPointer);
+      document.removeEventListener('pointerleave', onLeave);
+      window.removeEventListener('resize', resize);
+      window.removeEventListener('scroll', drawStill);
+      gl.deleteTexture(glyphTexture);
+      gl.deleteBuffer(buffer);
+      gl.deleteProgram(program);
+      delete canvas.dataset.ready;
+    },
+  };
 }

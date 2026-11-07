@@ -1,6 +1,6 @@
 ---
 title: "MINDHOUSE"
-description: "A multi-agent AI facility — a central coordinating agent plus four specialists, each with its own real tools, memory, and a genuine LLM reasoning loop, presented as a physical space instead of a dashboard."
+description: "A multi-agent AI workspace with one coordinator and four specialists. Each agent has its own tools, memory and LLM reasoning loop, presented as rooms rather than a dashboard."
 tagline: "Five agents, one facility — a coordinator that delegates by judgment, not keyword-matching, and specialists with real tools of their own."
 projectType: "Multi-Agent AI Platform"
 status: "Active"

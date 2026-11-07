@@ -1,6 +1,6 @@
 ---
 title: "NEXUS Cyber Lab"
-description: "A desktop cybersecurity training simulator (Tauri 2 + React): an interactive classroom lab with 17 safe, synthetic tool profiles — no live scanning or exploitation of real systems."
+description: "A Tauri and React desktop training simulator with 17 safe, synthetic cybersecurity tool profiles. It does not scan or exploit real systems."
 projectType: "Desktop App / Education"
 status: "Active"
 year: 2024

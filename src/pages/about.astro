@@ -15,24 +15,24 @@ const notes = [
   {
     n: '01',
     h: 'What I build',
-    body: `I learn by building. Every project on this site started from a problem or something specific I wanted to understand — Discord platforms with authentication and payment flows, a Rust/Tauri desktop app, SaaS backends with Prisma and Stripe, and a Fastify-backed security-training simulator. ${projects.length} projects total, each checked against its source rather than described from memory.`,
-    link: { href: `${base}projects/`, label: 'Projects' },
+    body: `I learn fastest when I have something real to make. That has led me through Discord platforms with authentication and payments, Rust and Tauri desktop apps, SaaS backends, and security tools. There are ${projects.length} projects here, and each description is checked against the code or notes I still have.`,
+    link: { href: `${base}projects/`, label: 'See my projects' },
   },
   {
     n: '02',
     h: 'How I got here',
-    body: `I manage an EHCP (Education, Health and Care Plan) accommodation alongside my studies. In practice that means I've had to be deliberate about how I work — breaking problems down, documenting as I go, and building things end-to-end rather than half-finishing them. That shows up in the projects themselves: real error handling, real docs, a real deploy story — not a demo that works once.`,
+    body: `I manage an EHCP (Education, Health and Care Plan) alongside my studies. It has pushed me to be deliberate about how I work: break a problem down, keep notes while I go and finish one part properly before moving on.`,
   },
   {
     n: '03',
     h: "What I'm looking for",
-    body: `A cybersecurity or IT apprenticeship where I can apply these skills in a professional setting, learn from people who've been doing this longer than I have, and keep building. I'm practising offensive and defensive security fundamentals on TryHackMe alongside the project work.`,
-    link: { href: `${base}credentials/`, label: 'Credentials' },
+    body: `I'm looking for a paid cybersecurity or IT apprenticeship, or a junior technical role. I want somewhere I can contribute what I already know, learn from experienced people and keep improving through practical work.`,
+    link: { href: `${base}credentials/`, label: 'See my security practice' },
   },
   {
     n: '04',
     h: 'Right now',
-    body: `I'm building KUSH, my own software and digital-services business (it replaces my earlier Veyrix branding): the website, the backend, the Discord server and its bot are all mine, and it's still being prepared for launch. I'm also Chief Security Officer at Velnqo, a hosting and infrastructure business that's still being set up.`,
+    body: `Right now I'm building KUSH, my software and digital-services business. I handle its website, backend, Discord server and bot; it is still being prepared for launch. I'm also Chief Security Officer at Velnqo, a hosting and infrastructure business that is being set up.`,
     link: { href: `${base}projects/kush/`, label: 'KUSH case study' },
   },
 ];
@@ -100,7 +100,7 @@ const notes = [
         <p class="sec-index">06</p>
         <h2 class="sec-title" data-split data-reveal>Technical capabilities</h2>
       </div>
-      <span class="meta">Grouped by what each decision demonstrates</span>
+      <span class="meta">Drawn from the projects on this site</span>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
     <Capabilities />
@@ -112,7 +112,7 @@ const notes = [
         <p class="sec-index">07</p>
         <h2 class="sec-title" data-split data-reveal>Skills breakdown</h2>
       </div>
-      <span class="meta">Computed from {projects.length} projects — never hand-typed</span>
+      <span class="meta">Calculated from {projects.length} project records</span>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
     <Skills />
@@ -123,7 +123,7 @@ const notes = [
       <div>
         <p class="sec-index">08</p>
         <h2 class="sec-title" data-split data-reveal>Contact</h2>
-        <p class="cta-line">Interested in an apprentice or junior hire? <a href="mailto:nopsrust@gmail.com">Let's talk</a>.</p>
+        <p class="cta-line">Hiring an apprentice or junior developer? <a href="mailto:nopsrust@gmail.com">Email me</a>.</p>
       </div>
       <ul class="contact-list">
         <li><span>Email</span> <a href="mailto:nopsrust@gmail.com">nopsrust@gmail.com</a></li>

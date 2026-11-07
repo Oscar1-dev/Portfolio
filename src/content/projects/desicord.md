@@ -1,6 +1,6 @@
 ---
 title: "Desicord"
-description: "A Discord-style desktop chat client: Tauri 2 + React frontend over a Rust/Axum API — servers, channels, DMs, roles, moderation, and TOTP 2FA."
+description: "A Discord-style desktop chat client with a Tauri and React frontend over a Rust/Axum API, covering servers, channels, DMs, roles, moderation and TOTP 2FA."
 projectType: "Desktop App"
 status: "Active"
 year: 2024
