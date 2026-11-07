@@ -16,6 +16,8 @@ interface Target {
   el: HTMLElement;
   mode: Mode;
   last: number;
+  top: number;
+  height: number;
 }
 
 let lenis: Lenis | null = null;
@@ -23,6 +25,8 @@ let frame = 0;
 let targets: Target[] = [];
 let lastY = 0;
 let velocity = 0;
+let geometryFrame = 0;
+let geometryObserver: ResizeObserver | null = null;
 const listeners = new Set<(y: number) => void>();
 
 /** Subscribe to scroll ticks (used by the 3D scene and the hero). */
@@ -31,16 +35,34 @@ export function onScrollTick(fn: (y: number) => void) {
   return () => listeners.delete(fn);
 }
 
-function measure() {
-  const vh = window.innerHeight;
+function cacheGeometry() {
+  const y = window.scrollY;
   for (const t of targets) {
     const r = t.el.getBoundingClientRect();
+    t.top = r.top + y;
+    t.height = r.height;
+  }
+}
+
+function scheduleGeometry() {
+  cancelAnimationFrame(geometryFrame);
+  geometryFrame = requestAnimationFrame(cacheGeometry);
+}
+
+function measure(y: number) {
+  const vh = window.innerHeight;
+  for (const t of targets) {
+    const relativeTop = t.top - y;
+    // Distant sections cannot produce a visible progress change. Avoid style
+    // work until they are near the viewport, while still resolving endpoints.
+    if (relativeTop > vh * 1.5 && t.last === 0) continue;
+    if (relativeTop + t.height < -vh * 0.5 && t.last === 1) continue;
     let p: number;
     if (t.mode === 'pin') {
-      const span = r.height - vh;
-      p = span > 0 ? -r.top / span : r.top < 0 ? 1 : 0;
+      const span = t.height - vh;
+      p = span > 0 ? -relativeTop / span : relativeTop < 0 ? 1 : 0;
     } else {
-      p = (vh - r.top) / (vh + r.height);
+      p = (vh - relativeTop) / (vh + t.height);
     }
     p = Math.min(1, Math.max(0, p));
     if (Math.abs(p - t.last) > 0.0005) {
@@ -59,7 +81,7 @@ function tick(time: number) {
   document.documentElement.style.setProperty('--scroll-v', velocity.toFixed(3));
   const max = document.documentElement.scrollHeight - window.innerHeight;
   document.documentElement.style.setProperty('--page-p', max > 0 ? (y / max).toFixed(4) : '0');
-  measure();
+  measure(y);
   listeners.forEach((fn) => fn(y));
   frame = requestAnimationFrame(tick);
 }
@@ -71,6 +93,8 @@ export function mountScroll(): void {
     el,
     mode: (el.dataset.progress === 'pin' ? 'pin' : 'pass') as Mode,
     last: -1,
+    top: 0,
+    height: 0,
   }));
   if (!motion) {
     // Static resting states: pinned sequences show their finished frame,
@@ -80,8 +104,12 @@ export function mountScroll(): void {
     return;
   }
   delete document.documentElement.dataset.static;
-  lenis = new Lenis({ lerp: 0.085, smoothWheel: true, wheelMultiplier: 0.95, anchors: { offset: -80 } });
+  cacheGeometry();
+  lenis = new Lenis({ lerp: 0.105, smoothWheel: true, wheelMultiplier: 1, anchors: { offset: -80 } });
   lastY = lenis.scroll;
+  window.addEventListener('resize', scheduleGeometry, { passive: true });
+  geometryObserver = new ResizeObserver(scheduleGeometry);
+  geometryObserver.observe(document.body);
   frame = requestAnimationFrame(tick);
 }
 
@@ -89,6 +117,10 @@ export function destroyScroll(): void {
   cancelAnimationFrame(frame);
   lenis?.destroy();
   lenis = null;
+  window.removeEventListener('resize', scheduleGeometry);
+  geometryObserver?.disconnect();
+  geometryObserver = null;
+  cancelAnimationFrame(geometryFrame);
   targets = [];
 }
 

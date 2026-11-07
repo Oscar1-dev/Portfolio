@@ -1,289 +1,41 @@
-// The site background: slow ribbons of colour seen through fluted (reeded)
-// glass. A domain-warped noise field makes the ribbons; each vertical flute
-// bends what's behind it and splits it slightly into colour fringes. The
-// cursor acts like a lens pressed against the glass. Each section declares a
-// data-scene; its palette and brightness blend in as it scrolls into view,
-// and the live colours are mirrored into CSS (--scene-a/b/c).
-//
-// Raw WebGL2, one fullscreen triangle, rendered below screen resolution (the
-// image is soft by nature). With reduced motion a single still frame is drawn.
-
-interface Look {
-  colours: [string, string, string];
-  /** Overall brightness of the colour field, 0…1. */
-  intensity: number;
-}
-
+// Procedural analysis surface. The original one-triangle WebGL2 lifecycle is
+// retained, but the colourful liquid field is quantised into a restrained
+// character grid, memory bands and signal traces.
+interface Look { colours: [string, string, string]; intensity: number; mode: number }
 const LOOKS: Record<string, Look> = {
-  hero: { colours: ['#ff2d55', '#8a3cff', '#2b7bff'], intensity: 1.45 },
-  statement: { colours: ['#ff6a1a', '#ff2d55', '#ffc83d'], intensity: 0.7 },
-  kush: { colours: ['#c9a7ff', '#ff9ad5', '#7ff0c4'], intensity: 0.75 },
-  work: { colours: ['#2b7bff', '#00c9a7', '#8a3cff'], intensity: 0.5 },
-  experience: { colours: ['#8a3cff', '#ff3d8b', '#2b7bff'], intensity: 0.48 },
-  security: { colours: ['#ff2626', '#ff6a1a', '#ffc83d'], intensity: 0.55 },
-  archive: { colours: ['#00d98a', '#2b7bff', '#ffc83d'], intensity: 0.42 },
-  stack: { colours: ['#ffc83d', '#00d98a', '#ff6a1a'], intensity: 0.48 },
-  contact: { colours: ['#ff3d8b', '#8a3cff', '#ffe8f4'], intensity: 0.9 },
-  page: { colours: ['#8a3cff', '#ff2d55', '#2b7bff'], intensity: 0.6 },
-  case: { colours: ['#c9a7ff', '#ff9ad5', '#7ff0c4'], intensity: 0.6 },
-  detail: { colours: ['#2b7bff', '#8a3cff', '#00c9a7'], intensity: 0.5 },
+  hero:{colours:['#183d30','#7bf7bb','#87b9c9'],intensity:.92,mode:.05}, statement:{colours:['#342d1c','#d6b86a','#7bf7bb'],intensity:.66,mode:.18},
+  kush:{colours:['#263338','#9ac7d3','#b8fbd9'],intensity:.72,mode:.31}, work:{colours:['#142e28','#65d8a4','#8fb7c2'],intensity:.58,mode:.44},
+  experience:{colours:['#1d292d','#87b9c9','#7bf7bb'],intensity:.52,mode:.55}, security:{colours:['#30241d','#d38b62','#7bf7bb'],intensity:.64,mode:.67},
+  archive:{colours:['#172a24','#61b88d','#789aa3'],intensity:.48,mode:.77}, stack:{colours:['#1c2926','#88c9aa','#87b9c9'],intensity:.5,mode:.86},
+  contact:{colours:['#1b3028','#7bf7bb','#d8e6df'],intensity:.64,mode:.96}, page:{colours:['#172b25','#67c596','#87b9c9'],intensity:.5,mode:.42},
+  case:{colours:['#233035','#91bdc9','#7bf7bb'],intensity:.54,mode:.36}, detail:{colours:['#162d27','#70d6a4','#87b9c9'],intensity:.52,mode:.47},
 };
-
-const VERT = `#version 300 es
-in vec2 aPos;
-void main() { gl_Position = vec4(aPos, 0.0, 1.0); }`;
-
-const frag = (rich: boolean) => `#version 300 es
+const VERT=`#version 300 es
+in vec2 aPos;void main(){gl_Position=vec4(aPos,0.,1.);}`;
+const frag=(rich:boolean)=>`#version 300 es
 precision highp float;
-uniform vec2 uRes;
-uniform float uTime;
-uniform float uScroll;
-uniform vec2 uPointer;
-uniform float uLens;
-uniform float uFlute;
-uniform vec3 uA;
-uniform vec3 uB;
-uniform vec3 uC;
-uniform float uIntensity;
-out vec4 outColor;
-
-float hash(vec2 p) {
-  p = fract(p * vec2(123.34, 456.21));
-  p += dot(p, p + 45.32);
-  return fract(p.x * p.y);
-}
-float noise(vec2 p) {
-  vec2 i = floor(p), f = fract(p);
-  vec2 u = f * f * (3.0 - 2.0 * f);
-  return mix(mix(hash(i), hash(i + vec2(1, 0)), u.x), mix(hash(i + vec2(0, 1)), hash(i + vec2(1, 1)), u.x), u.y);
-}
-float fbm(vec2 p) {
-  float v = 0.0, a = 0.5;
-  for (int i = 0; i < ${rich ? 4 : 3}; i++) {
-    v += a * noise(p);
-    p = p * 2.03 + vec2(1.7, 9.2);
-    a *= 0.5;
-  }
-  return v;
-}
-
-// Ribbons of colour with dark space between them.
-vec3 field(vec2 p) {
-  float t = uTime * 0.035;
-  vec2 q = vec2(fbm(p + vec2(0.0, t)), fbm(p + vec2(5.2, 1.3) - t));
-  vec2 r = vec2(fbm(p + 3.0 * q + vec2(1.7, 9.2) + t * 1.4), fbm(p + 3.0 * q + vec2(8.3, 2.8) - t));
-  float n = fbm(p + 2.6 * r);
-  vec3 col = mix(uA, uB, smoothstep(0.25, 0.75, q.x));
-  col = mix(col, uC, smoothstep(0.45, 0.85, r.y));
-  float mask = smoothstep(0.36, 0.78, n);
-  float silk = pow(1.0 - abs(sin(n * 7.0 + r.x * 3.0)), 3.0);
-  vec3 c = col * mask * (0.45 + silk * 0.9);
-  c += vec3(1.0) * pow(silk, 8.0) * mask * 0.35;
-  return c;
-}
-
-void main() {
-  vec2 frag = gl_FragCoord.xy;
-  vec2 uv = frag / uRes;
-  float aspect = uRes.x / uRes.y;
-
-  // Fluted glass: position across the current flute, -0.5 … 0.5.
-  float fx = fract(frag.x / uFlute) - 0.5;
-
-  vec2 p = vec2(uv.x * aspect, uv.y) * 1.35 + vec2(0.0, uScroll);
-  vec2 m = vec2(uPointer.x * aspect, uPointer.y) * 1.35 + vec2(0.0, uScroll);
-  // The lens: magnifies the field around the cursor.
-  vec2 dm = p - m;
-  p -= dm * exp(-dot(dm, dm) * 5.0) * 0.45 * uLens;
-
-  float bend = fx * 0.07;
-  ${
-    rich
-      ? `vec3 a = field(p + vec2(bend, 0.0));
-  vec3 b = field(p + vec2(bend * 1.35, 0.0));
-  vec3 c = vec3(b.r, a.g, a.b * 0.6 + b.b * 0.4);`
-      : `vec3 c = field(p + vec2(bend, 0.0));`
-  }
-
-  // Each flute is a rounded rib: brighter along its crest, a fine bright
-  // edge where two ribs meet.
-  float rib = 0.78 + 0.22 * cos(fx * 3.14159);
-  float edge = smoothstep(0.43, 0.5, abs(fx));
-  c *= rib;
-  c += (c * 0.8 + vec3(0.012)) * edge;
-
-  c *= uIntensity;
-  // Calm the edges of the screen, and keep the very top darker for the nav.
-  float vig = smoothstep(1.3, 0.25, length((uv - vec2(0.5, 0.55)) * vec2(1.0, 1.25)));
-  c *= mix(0.5, 1.0, vig);
-
-  c = vec3(0.022, 0.02, 0.03) + c;
-  c = 1.0 - exp(-c * 1.35);
-  c += (hash(frag + uTime) - 0.5) / 255.0; // dither against banding
-  outColor = vec4(c, 1.0);
-}`;
-
-export interface BackdropHandle {
-  refresh(): void;
-  dispose(): void;
-}
-
-const hex = (h: string): [number, number, number] => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255) as [number, number, number];
-
-export function mountBackdrop(canvas: HTMLCanvasElement, opts: { rich: boolean; still: boolean }): BackdropHandle | null {
-  const gl = canvas.getContext('webgl2', { antialias: false, alpha: false, powerPreference: opts.rich ? 'high-performance' : 'low-power' });
-  if (!gl) return null;
-
-  const compile = (type: number, src: string) => {
-    const s = gl.createShader(type)!;
-    gl.shaderSource(s, src);
-    gl.compileShader(s);
-    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s) ?? 'shader');
-    return s;
-  };
-  const program = gl.createProgram()!;
-  try {
-    gl.attachShader(program, compile(gl.VERTEX_SHADER, VERT));
-    gl.attachShader(program, compile(gl.FRAGMENT_SHADER, frag(opts.rich)));
-    gl.linkProgram(program);
-    if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(program) ?? 'link');
-  } catch (e) {
-    console.warn('backdrop disabled:', e);
-    return null;
-  }
-  gl.useProgram(program);
-  const buffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
-  const loc = gl.getAttribLocation(program, 'aPos');
-  gl.enableVertexAttribArray(loc);
-  gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
-  const u = (name: string) => gl.getUniformLocation(program, name);
-  const uni = {
-    res: u('uRes'),
-    time: u('uTime'),
-    scroll: u('uScroll'),
-    pointer: u('uPointer'),
-    lens: u('uLens'),
-    flute: u('uFlute'),
-    a: u('uA'),
-    b: u('uB'),
-    c: u('uC'),
-    intensity: u('uIntensity'),
-  };
-
-  // Render scale: the field is soft, so a fraction of the pixels is plenty.
-  const scale = opts.rich ? 0.55 : 0.4;
-  const resize = () => {
-    canvas.width = Math.max(1, Math.round(window.innerWidth * scale));
-    canvas.height = Math.max(1, Math.round(window.innerHeight * scale));
-    gl.viewport(0, 0, canvas.width, canvas.height);
-    gl.uniform2f(uni.res, canvas.width, canvas.height);
-    // Flutes about 44 CSS px wide (wider on phones so they stay readable).
-    gl.uniform1f(uni.flute, (window.innerWidth < 720 ? 34 : 44) * scale);
-    if (opts.still) draw(performance.now());
-  };
-
-  let sections: { el: HTMLElement; look: Look }[] = [];
-  const refresh = () => {
-    sections = [...document.querySelectorAll<HTMLElement>('[data-scene]')].map((el) => ({ el, look: LOOKS[el.dataset.scene ?? 'page'] ?? LOOKS.page! }));
-    if (opts.still) draw(performance.now());
-  };
-
-  const cur = { cols: LOOKS.hero!.colours.map(hex), intensity: LOOKS.hero!.intensity };
-  const target = { cols: cur.cols.map((c) => [...c] as [number, number, number]), intensity: cur.intensity };
-  const blend = () => {
-    const vh = window.innerHeight;
-    let total = 0;
-    const acc = [0, 0, 0].map(() => [0, 0, 0]);
-    let inten = 0;
-    for (const { el, look } of sections) {
-      const r = el.getBoundingClientRect();
-      const w = Math.max(0, 1 - Math.abs(r.top + r.height / 2 - vh / 2) / (vh * 0.5 + r.height * 0.5)) ** 2;
-      if (w <= 0) continue;
-      total += w;
-      inten += look.intensity * w;
-      look.colours.forEach((h, i) => hex(h).forEach((v, j) => (acc[i]![j]! += v * w)));
-    }
-    if (!total) return;
-    target.intensity = inten / total;
-    acc.forEach((c, i) => c.forEach((v, j) => (target.cols[i]![j] = v / total)));
-  };
-
-  const pointer = { x: 0.7, y: 0.6, sx: 0.7, sy: 0.6, lens: 0 };
-  const onPointer = (e: PointerEvent) => {
-    pointer.x = e.clientX / window.innerWidth;
-    pointer.y = 1 - e.clientY / window.innerHeight;
-    pointer.lens = e.pointerType === 'mouse' ? 1 : 0;
-  };
-  const onLeave = () => (pointer.lens = 0);
-  window.addEventListener('pointermove', onPointer, { passive: true });
-  document.addEventListener('pointerleave', onLeave);
-
-  const root = document.documentElement;
-  let lens = 0;
-  let last = performance.now();
-  let frame = 0;
-  let tickCount = 0;
-  const draw = (now: number) => {
-    const dt = Math.min(0.05, (now - last) / 1000);
-    last = now;
-    blend();
-    const k = opts.still ? 1 : 1 - Math.exp(-dt * 2.4);
-    cur.intensity += (target.intensity - cur.intensity) * k;
-    cur.cols.forEach((c, i) => c.forEach((v, j) => (c[j] = v + (target.cols[i]![j]! - v) * k)));
-    pointer.sx += (pointer.x - pointer.sx) * Math.min(1, k * 2.2);
-    pointer.sy += (pointer.y - pointer.sy) * Math.min(1, k * 2.2);
-    lens += (pointer.lens - lens) * k;
-
-    gl.uniform1f(uni.time, opts.still ? 40 : now / 1000);
-    gl.uniform1f(uni.scroll, (window.scrollY / window.innerHeight) * 0.22);
-    gl.uniform2f(uni.pointer, pointer.sx, pointer.sy);
-    gl.uniform1f(uni.lens, opts.still ? 0 : lens);
-    gl.uniform3fv(uni.a, cur.cols[0]!);
-    gl.uniform3fv(uni.b, cur.cols[1]!);
-    gl.uniform3fv(uni.c, cur.cols[2]!);
-    gl.uniform1f(uni.intensity, cur.intensity);
-    gl.drawArrays(gl.TRIANGLES, 0, 3);
-
-    if (tickCount++ % 4 === 0) {
-      const css = (c: number[]) => c.map((v) => Math.round(Math.min(1, v) * 255)).join(' ');
-      root.style.setProperty('--scene-a', css(cur.cols[0]!));
-      root.style.setProperty('--scene-b', css(cur.cols[1]!));
-      root.style.setProperty('--scene-c', css(cur.cols[2]!));
-    }
-  };
-
-  const loop = (now: number) => {
-    frame = requestAnimationFrame(loop);
-    if (document.hidden) return;
-    // Weaker devices draw every other frame; the field moves slowly anyway.
-    if (!opts.rich && tickCount % 2 === 1) {
-      tickCount++;
-      return;
-    }
-    draw(now);
-  };
-
-  const onScrollStill = () => draw(performance.now());
-  refresh();
-  resize();
-  window.addEventListener('resize', resize);
-  if (opts.still) window.addEventListener('scroll', onScrollStill, { passive: true });
-  else frame = requestAnimationFrame(loop);
-  canvas.dataset.ready = 'true';
-
-  return {
-    refresh,
-    dispose() {
-      cancelAnimationFrame(frame);
-      window.removeEventListener('pointermove', onPointer);
-      document.removeEventListener('pointerleave', onLeave);
-      window.removeEventListener('resize', resize);
-      window.removeEventListener('scroll', onScrollStill);
-      gl.deleteBuffer(buffer);
-      gl.deleteProgram(program);
-      delete canvas.dataset.ready;
-    },
-  };
+uniform vec2 uRes,uPointer;uniform float uTime,uScroll,uVelocity,uLens,uIntensity,uMode;uniform vec3 uA,uB,uC;out vec4 outColor;
+float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
+float noise(vec2 p){vec2 i=floor(p),f=fract(p),u=f*f*(3.-2.*f);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+float fbm(vec2 p){float v=0.,a=.5;for(int i=0;i<${rich?4:3};i++){v+=a*noise(p);p=p*2.03+vec2(1.7,9.2);a*=.5;}return v;}
+float glyph(vec2 cell,vec2 f,float density){vec2 px=floor(f*vec2(5.,7.)),q=fract(f*vec2(5.,7.));float seed=hash(cell+floor(uMode*19.));float bit=step(.57+(1.-density)*.24,hash(cell*7.13+px*17.7+seed));bit=max(bit,step(.93,seed)*step(px.x,.1));bit=max(bit,step(.82,seed)*step(px.y,.1)*step(1.,px.x)*step(px.x,3.1));return bit*smoothstep(.44,.24,length(q-.5));}
+void main(){vec2 fc=gl_FragCoord.xy,uv=fc/uRes;float aspect=uRes.x/uRes.y;vec2 p=vec2(uv.x*aspect,uv.y),m=vec2(uPointer.x*aspect,uPointer.y),dm=p-m;p-=dm*exp(-dot(dm,dm)*9.)*.13*uLens;
+float t=uTime*.055;vec2 warp=vec2(fbm(p*1.7+vec2(0,t)),fbm(p*1.9+vec2(6.2,-t)));float signal=fbm(p*2.+warp*1.8+vec2(0,uScroll)),band=smoothstep(.38,.74,signal);
+vec2 grid=vec2(${rich?'78.':'58.'},${rich?'44.':'34.'});grid.x*=aspect/1.78;vec2 gp=uv*grid,cell=floor(gp),cf=fract(gp);float mark=glyph(cell,cf,band),row=floor(gp.y);
+float region=step(.79,hash(vec2(row,floor(uMode*13.))));float memory=region*smoothstep(.48,.44,abs(cf.y-.5))*step(.16,cf.x)*step(cf.x,.84);float tick=step(.965,fract(uv.y*22.+uScroll*.6))*step(uv.x,.075);float trace=smoothstep(.012,0.,abs(uv.x-(.13+.055*sin(uv.y*19.+uMode*12.))))*step(.36,signal);float tear=abs(uVelocity)*step(.94,hash(vec2(row,floor(uTime*10.))))*smoothstep(.5,0.,abs(cf.y-.5));
+float marks=mark*(.16+band*.84)+memory*.2+tick*.34+trace*.18+tear*.22;vec3 colour=mix(uA,uB,smoothstep(.3,.78,signal));colour=mix(colour,uC,memory*.45+trace*.25);vec3 c=vec3(.011,.014,.014)+colour*marks*uIntensity*(.93+.07*sin(fc.y*3.14159))+uB*band*.018*uIntensity;
+float cross=smoothstep(.004,0.,abs(dm.x))*smoothstep(.16,.04,abs(dm.y))+smoothstep(.004,0.,abs(dm.y))*smoothstep(.16,.04,abs(dm.x));c+=uC*cross*uLens*.12;float vig=smoothstep(1.25,.28,length((uv-vec2(.5,.54))*vec2(.92,1.2)));c*=mix(.42,1.,vig);c+=(hash(fc+uTime)-.5)/310.;outColor=vec4(1.-exp(-c*1.4),1.);}`;
+export interface BackdropHandle{refresh():void;dispose():void}
+const hex=(h:string):[number,number,number]=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)/255) as [number,number,number];
+export function mountBackdrop(canvas:HTMLCanvasElement,opts:{rich:boolean;still:boolean}):BackdropHandle|null{
+ const gl=canvas.getContext('webgl2',{antialias:false,alpha:false,powerPreference:opts.rich?'high-performance':'low-power'});if(!gl)return null;
+ const compile=(type:number,src:string)=>{const s=gl.createShader(type)!;gl.shaderSource(s,src);gl.compileShader(s);if(!gl.getShaderParameter(s,gl.COMPILE_STATUS))throw new Error(gl.getShaderInfoLog(s)??'shader');return s};const program=gl.createProgram()!;
+ try{gl.attachShader(program,compile(gl.VERTEX_SHADER,VERT));gl.attachShader(program,compile(gl.FRAGMENT_SHADER,frag(opts.rich)));gl.linkProgram(program);if(!gl.getProgramParameter(program,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(program)??'link')}catch(e){console.warn('backdrop disabled:',e);return null}gl.useProgram(program);
+ const buffer=gl.createBuffer();gl.bindBuffer(gl.ARRAY_BUFFER,buffer);gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,3,-1,-1,3]),gl.STATIC_DRAW);const pos=gl.getAttribLocation(program,'aPos');gl.enableVertexAttribArray(pos);gl.vertexAttribPointer(pos,2,gl.FLOAT,false,0,0);const u=(name:string)=>gl.getUniformLocation(program,name);const uni={res:u('uRes'),time:u('uTime'),scroll:u('uScroll'),velocity:u('uVelocity'),pointer:u('uPointer'),lens:u('uLens'),a:u('uA'),b:u('uB'),c:u('uC'),intensity:u('uIntensity'),mode:u('uMode')};
+ const scale=opts.rich?.66:.48;const resize=()=>{canvas.width=Math.max(1,Math.round(innerWidth*scale));canvas.height=Math.max(1,Math.round(innerHeight*scale));gl.viewport(0,0,canvas.width,canvas.height);gl.uniform2f(uni.res,canvas.width,canvas.height);if(opts.still)draw(performance.now())};
+ let sections:{el:HTMLElement;look:Look}[]=[];const refresh=()=>{sections=[...document.querySelectorAll<HTMLElement>('[data-scene]')].map(el=>({el,look:LOOKS[el.dataset.scene??'page']??LOOKS.page!}));if(opts.still)draw(performance.now())};const cur={cols:LOOKS.hero!.colours.map(hex),intensity:LOOKS.hero!.intensity,mode:LOOKS.hero!.mode};const target={cols:cur.cols.map(c=>[...c] as [number,number,number]),intensity:cur.intensity,mode:cur.mode};
+ const blend=()=>{const vh=innerHeight;let total=0,intensity=0,mode=0;const acc=[0,0,0].map(()=>[0,0,0]);for(const{el,look}of sections){const r=el.getBoundingClientRect(),w=Math.max(0,1-Math.abs(r.top+r.height/2-vh/2)/(vh*.5+r.height*.5))**2;if(!w)continue;total+=w;intensity+=look.intensity*w;mode+=look.mode*w;look.colours.forEach((h,i)=>hex(h).forEach((v,j)=>acc[i]![j]!+=v*w))}if(!total)return;target.intensity=intensity/total;target.mode=mode/total;acc.forEach((c,i)=>c.forEach((v,j)=>target.cols[i]![j]=v/total))};
+ const pointer={x:.7,y:.6,sx:.7,sy:.6,lens:0};const onPointer=(e:PointerEvent)=>{pointer.x=e.clientX/innerWidth;pointer.y=1-e.clientY/innerHeight;pointer.lens=e.pointerType==='mouse'?1:0};const onLeave=()=>pointer.lens=0;addEventListener('pointermove',onPointer,{passive:true});document.addEventListener('pointerleave',onLeave);const root=document.documentElement;let lens=0,last=performance.now(),frame=0,count=0,lastY=scrollY,velocity=0;
+ const draw=(now:number)=>{const dt=Math.min(.05,(now-last)/1000);last=now;blend();const k=opts.still?1:1-Math.exp(-dt*2.8);cur.intensity+=(target.intensity-cur.intensity)*k;cur.mode+=(target.mode-cur.mode)*k;cur.cols.forEach((c,i)=>c.forEach((v,j)=>c[j]=v+(target.cols[i]![j]!-v)*k));pointer.sx+=(pointer.x-pointer.sx)*Math.min(1,k*2.2);pointer.sy+=(pointer.y-pointer.sy)*Math.min(1,k*2.2);lens+=(pointer.lens-lens)*k;const dy=scrollY-lastY;lastY=scrollY;velocity+=(Math.max(-1,Math.min(1,dy/55))-velocity)*.12;gl.uniform1f(uni.time,opts.still?40:now/1000);gl.uniform1f(uni.scroll,(scrollY/innerHeight)*.18);gl.uniform1f(uni.velocity,opts.still?0:velocity);gl.uniform2f(uni.pointer,pointer.sx,pointer.sy);gl.uniform1f(uni.lens,opts.still?0:lens);gl.uniform3fv(uni.a,cur.cols[0]!);gl.uniform3fv(uni.b,cur.cols[1]!);gl.uniform3fv(uni.c,cur.cols[2]!);gl.uniform1f(uni.intensity,cur.intensity);gl.uniform1f(uni.mode,cur.mode);gl.drawArrays(gl.TRIANGLES,0,3);if(count++%4===0){const css=(c:number[])=>c.map(v=>Math.round(Math.min(1,v)*255)).join(' ');root.style.setProperty('--scene-a',css(cur.cols[0]!));root.style.setProperty('--scene-b',css(cur.cols[1]!));root.style.setProperty('--scene-c',css(cur.cols[2]!))}};
+ const loop=(now:number)=>{frame=requestAnimationFrame(loop);if(document.hidden)return;if(!opts.rich&&count%2===1){count++;return}draw(now)};const onScrollStill=()=>draw(performance.now());refresh();resize();addEventListener('resize',resize);if(opts.still)addEventListener('scroll',onScrollStill,{passive:true});else frame=requestAnimationFrame(loop);canvas.dataset.ready='true';return{refresh,dispose(){cancelAnimationFrame(frame);removeEventListener('pointermove',onPointer);document.removeEventListener('pointerleave',onLeave);removeEventListener('resize',resize);removeEventListener('scroll',onScrollStill);gl.deleteBuffer(buffer);gl.deleteProgram(program);delete canvas.dataset.ready}};
 }

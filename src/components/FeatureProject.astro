@@ -29,6 +29,11 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
           </span>
         )
       }
+      <span class="feature-diagnostic mono" aria-hidden="true">
+        <span>ARTIFACT / {project.slug.toUpperCase()}</span>
+        <span>ENTRY / {index}</span>
+        <span>STATE / {data.status.toUpperCase()}</span>
+      </span>
       <span class="feature-scan" aria-hidden="true"></span>
     </span>
     <span class="feature-index display" aria-hidden="true">{index}</span>
@@ -92,6 +97,41 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
     transform: translateY(calc((var(--p) - 0.5) * -8%));
     transition: filter 1.2s var(--ease);
     filter: saturate(0.92);
+  }
+  .feature-tilt::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(123 247 187 / 0.06) 1px, transparent 1px) 0 0 / 12.5% 100%,
+      linear-gradient(0deg, rgb(135 185 201 / 0.045) 1px, transparent 1px) 0 0 / 100% 20%;
+    opacity: 0;
+    transition: opacity var(--t) var(--ease);
+    pointer-events: none;
+  }
+  .feature:hover .feature-tilt::after {
+    opacity: 1;
+  }
+  .feature-diagnostic {
+    position: absolute;
+    z-index: 2;
+    inset: 12px 12px auto;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 6px 16px;
+    padding: 7px 9px;
+    border: 1px solid rgb(123 247 187 / 0.18);
+    background: rgb(5 6 6 / 0.72);
+    color: rgb(216 230 223 / 0.64);
+    font-size: 8px;
+    letter-spacing: 0.12em;
+    opacity: 0.5;
+    transition: opacity var(--t) var(--ease), border-color var(--t) var(--ease);
+  }
+  .feature:hover .feature-diagnostic {
+    opacity: 1;
+    border-color: rgb(123 247 187 / 0.42);
   }
   .feature:hover .feature-tilt img {
     filter: saturate(1.08) brightness(1.04);
@@ -214,6 +254,11 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
       translate: none;
     }
     .feature-index {
+      display: none;
+    }
+  }
+  @media (max-width: 560px) {
+    .feature-diagnostic span:nth-child(2) {
       display: none;
     }
   }

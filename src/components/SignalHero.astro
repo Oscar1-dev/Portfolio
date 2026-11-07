@@ -16,6 +16,9 @@ const lines = ['Oscar', 'Senior'];
 <section class="hero" aria-labelledby="hero-name" data-progress="pin" data-scene="hero" data-hero>
   <div class="hero-frame">
     <div class="wrap hero-inner">
+      <div class="hero-readout mono" aria-hidden="true">
+        <span>SUBJECT / PORTFOLIO</span><span>MODE / ANALYSIS</span><span>STATUS / ONLINE</span>
+      </div>
       <p class="hero-kicker mono">Software engineering <span aria-hidden="true">/</span> Cybersecurity</p>
 
       <h1 id="hero-name" class="hero-name display" aria-label="Oscar Senior">
@@ -102,7 +105,7 @@ const lines = ['Oscar', 'Senior'];
     overflow-x: clip;
   }
   :global(.motion-ok) .hero {
-    height: 165vh;
+    height: 148vh;
   }
   .hero-frame {
     position: relative;
@@ -130,6 +133,19 @@ const lines = ['Oscar', 'Senior'];
     text-transform: uppercase;
     color: rgb(255 255 255 / 0.66);
     opacity: calc(1 - var(--p) * 3);
+  }
+  .hero-readout {
+    position: absolute;
+    inset: calc(var(--header-h) + 28px) var(--gutter) auto;
+    display: flex;
+    justify-content: space-between;
+    gap: 18px;
+    padding-top: 10px;
+    border-top: 1px solid rgb(var(--scene-b) / 0.28);
+    color: rgb(255 255 255 / 0.38);
+    font-size: 9px;
+    letter-spacing: 0.16em;
+    opacity: calc(1 - var(--p) * 2.4);
   }
   .hero-kicker span {
     color: rgb(var(--scene-b));
@@ -196,6 +212,8 @@ const lines = ['Oscar', 'Senior'];
   }
   .hero-lede {
     margin: 0;
+    min-width: 0;
+    width: min(100%, 40ch);
     max-width: 40ch;
     font-size: clamp(1.05rem, 1.35vw, 1.25rem);
     line-height: 1.55;
@@ -219,6 +237,7 @@ const lines = ['Oscar', 'Senior'];
     align-items: center;
     gap: 6px 0;
     width: fit-content;
+    max-width: 100%;
     margin: clamp(22px, 4vh, 40px) 0 0;
     padding: 10px 8px;
     list-style: none;
@@ -275,6 +294,44 @@ const lines = ['Oscar', 'Senior'];
     }
     .hero-status li + li {
       border-left: 0;
+    }
+    .hero-readout span:nth-child(2) {
+      display: none;
+    }
+  }
+  :global(:root:not(.motion-ok)) .hero-kicker,
+  :global(:root:not(.motion-ok)) .hero-readout,
+  :global(:root:not(.motion-ok)) .hero-foot,
+  :global(:root:not(.motion-ok)) .hero-status {
+    opacity: 1;
+    translate: none;
+  }
+  :global(:root:not(.motion-ok)) .hero-line {
+    letter-spacing: -0.045em;
+  }
+  @media (max-width: 560px) {
+    .hero-name {
+      font-size: clamp(3.3rem, 16vw, 4.2rem);
+      letter-spacing: -0.055em;
+    }
+    .hero-readout {
+      inset-inline: var(--gutter);
+    }
+    .hero-readout span:last-child {
+      display: none;
+    }
+    .hero-foot,
+    .hero-actions {
+      width: 100%;
+    }
+    .hero-actions .btn {
+      flex: 1 1 auto;
+    }
+    .hero-status {
+      width: 100%;
+    }
+    .hero-status li {
+      flex: 1 1 45%;
     }
   }
 </style>

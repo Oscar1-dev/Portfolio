@@ -1,6 +1,6 @@
 ---
 title: "reversed"
-description: "Full-stack marketplace platform with Stripe payments, Discord bot integration, and complex authentication."
+description: "A Next.js marketplace with Stripe Checkout, Discord bot integration, and layered account authentication."
 projectType: "Full-Stack Platform"
 status: "Active"
 year: 2024
@@ -53,7 +53,7 @@ timeline:
 
 ## Overview
 
-**reversed** is a marketplace platform demonstrating full-stack Next.js development with production payment processing, bot automation, and multi-layered authentication.
+**reversed** is a Next.js marketplace built around Stripe Checkout, Discord bot automation, and multi-layered account authentication.
 
 ---
 
@@ -96,7 +96,7 @@ timeline:
 
 ## Portfolio Value
 
-Demonstrates advanced Next.js patterns, payment integration at production scale, and bot automation in a cohesive platform.
+The project combines server-rendered Next.js flows, payment integration and Discord-side automation in one application.
 
 **For roles**: Full-Stack Developer, Backend Engineer, Payment Systems Engineer
 

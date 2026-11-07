@@ -1,15 +1,13 @@
 /* ==========================================================================
-   SIGNAL — design tokens for Oscar Senior's portfolio.
-   Shares a family resemblance with KUSH (carbon inks, expanded uppercase
-   Archivo, hairline editorial rules, foil used sparingly) but has its own
-   identity: an infrared → magenta → violet → ice "signal" foil instead of
-   KUSH's pastels, Inter + IBM Plex Mono instead of Geist, and technical
-   textures (blueprint grid, scanlines, halftone) used with purpose.
+   ANALYSIS SURFACE — design tokens for Oscar Senior's portfolio.
+   Carbon, phosphor and cold steel: an editorial security/reverse-engineering
+   system rather than a neon "hacker" theme. Technical colour is used as a
+   status signal; the content remains the brightest thing on the page.
    ========================================================================== */
 
 :root {
   /* Inks: each step slightly lighter, never a coloured panel. */
-  --ink-0: #060608;
+  --ink-0: #050606;
   --ink-1: #0b0b0f;
   --ink-2: #111116;
   --ink-3: #18181f;
@@ -23,21 +21,21 @@
   --text-2: #cdcad3;
   --text-3: #95919f;
 
-  /* The signal foil. */
-  --sig-red: #ff4d6d;
-  --sig-magenta: #ff5fc8;
-  --sig-violet: #b98cff;
-  --sig-ice: #8fd3ff;
-  --sig-pearl: #ffd9ec;
-  --foil: linear-gradient(100deg, #ff4d6d 0%, #ff5fc8 26%, #b98cff 52%, #8fd3ff 76%, #ffd9ec 90%, #ff4d6d 100%);
-  --foil-soft: linear-gradient(100deg, rgb(255 77 109 / 0.9), rgb(255 95 200 / 0.9) 30%, rgb(185 140 255 / 0.9) 62%, rgb(143 211 255 / 0.9));
-  --accent: #ff6fb5;
+  /* Restrained signal spectrum. Red is reserved for warnings elsewhere. */
+  --sig-red: #d87468;
+  --sig-magenta: #7bf7bb;
+  --sig-violet: #87b9c9;
+  --sig-ice: #b8fbd9;
+  --sig-pearl: #d8e6df;
+  --foil: linear-gradient(100deg, #7bf7bb 0%, #b8fbd9 28%, #87b9c9 60%, #d8e6df 82%, #7bf7bb 100%);
+  --foil-soft: linear-gradient(100deg, rgb(123 247 187 / 0.9), rgb(184 251 217 / 0.9) 34%, rgb(135 185 201 / 0.9));
+  --accent: #7bf7bb;
   /* Live scene colours (space-separated RGB), written by scene.ts as the
      3D scene blends between sections. These are the resting values. */
-  --scene-a: 255 77 109;
-  --scene-b: 255 95 200;
-  --scene-c: 143 211 255;
-  --accent-ink: #12060c;
+  --scene-a: 74 183 134;
+  --scene-b: 123 247 187;
+  --scene-c: 135 185 201;
+  --accent-ink: #04110d;
 
   --ok: #8fe3b9;
   --warn: #f2d083;
@@ -93,8 +91,8 @@
   --z-modal: 80;
 
   /* Glass: frosted surfaces over the 3D environment. */
-  --glass-bg: rgb(13 12 20 / 0.5);
-  --glass-bg-strong: rgb(14 13 20 / 0.7);
+  --glass-bg: rgb(8 12 11 / 0.56);
+  --glass-bg-strong: rgb(8 13 11 / 0.74);
   --glass-line: rgb(255 255 255 / 0.09);
   --glass-blur: 30px;
   --glass-radius: 26px;
@@ -124,8 +122,8 @@
   --color-tier-core: var(--sig-magenta);
   --color-tier-learning: var(--sig-violet);
   --color-tier-foundation: var(--sig-ice);
-  --page-accent: var(--sig-magenta);
-  --page-accent-2: var(--sig-violet);
-  --page-accent-3: var(--sig-ice);
+  --page-accent: #7bf7bb;
+  --page-accent-2: #87b9c9;
+  --page-accent-3: #d8e6df;
   --sidebar-width: 0px;
 }

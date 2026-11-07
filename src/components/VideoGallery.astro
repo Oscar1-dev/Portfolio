@@ -131,6 +131,21 @@ const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
     border-color: var(--color-border-strong);
     box-shadow: 0 24px 60px -30px color-mix(in srgb, var(--page-accent) 45%, transparent);
   }
+  .clip-frame::before {
+    content: 'MEDIA / LOCAL ARCHIVE';
+    position: absolute;
+    z-index: 2;
+    top: 10px;
+    left: 12px;
+    padding: 4px 6px;
+    border: 1px solid rgb(123 247 187 / 0.2);
+    background: rgb(5 6 6 / 0.66);
+    color: rgb(184 251 217 / 0.72);
+    font-family: var(--font-mono);
+    font-size: 8px;
+    letter-spacing: 0.14em;
+    pointer-events: none;
+  }
 
   .clip-video {
     display: block;

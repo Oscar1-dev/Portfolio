@@ -576,7 +576,7 @@ h4 {
   translate: none;
 }
 
-/* Scene canvas: the 3D environment behind every page. */
+/* Scene canvas: the procedural analysis surface behind every page. */
 .scene {
   position: fixed;
   inset: 0;
@@ -596,14 +596,25 @@ main,
   position: relative;
   z-index: 1;
 }
-/* Gentle vignette so text stays readable over the 3D light. */
+/* Readability scrim plus a very quiet instrument grid. The actual character
+   field lives in WebGL; these stable rules keep the page structured when the
+   canvas is unavailable. */
 .atmosphere {
   position: fixed;
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* A light scrim for legibility: darker under the nav and at the foot. */
-  background: linear-gradient(180deg, rgb(5 5 8 / 0.45), transparent 18%, transparent 75%, rgb(5 5 8 / 0.4));
+  background:
+    linear-gradient(90deg, rgb(123 247 187 / 0.025) 1px, transparent 1px) 0 0 / 8rem 100%,
+    linear-gradient(0deg, rgb(135 185 201 / 0.02) 1px, transparent 1px) 0 0 / 100% 8rem,
+    linear-gradient(180deg, rgb(5 6 6 / 0.62), transparent 20%, transparent 72%, rgb(5 6 6 / 0.58));
+}
+.atmosphere::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(180deg, transparent 0 3px, rgb(0 0 0 / 0.055) 4px);
+  opacity: 0.45;
 }
 
 /* Lenis */
