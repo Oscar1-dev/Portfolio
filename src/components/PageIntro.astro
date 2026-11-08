@@ -4,11 +4,12 @@ interface Props {
   label: string;
   title: string;
   accent?: string;
+  scene?: string;
 }
-const { index, label, title, accent } = Astro.props;
+const { index, label, title, accent, scene = 'page' } = Astro.props;
 ---
 
-<header class="intro wrap" data-scene="page">
+<header class="intro wrap" data-scene={scene}>
   <p class="intro-meta"><span class="mono">{index}</span><span class="meta">{label}</span></p>
   <h1 class="display intro-title" data-split data-reveal>
     {title}

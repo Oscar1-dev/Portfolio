@@ -1,30 +1,33 @@
-// Hero artwork: a single decompiled ASCII specimen suspended inside the
-// original site's slow, domain-warped fluid light. The glyphs are rendered
-// from a real canvas atlas; nothing is drawn as full-screen character noise.
+// One procedural ASCII sculpture evolves through the whole site. The original
+// domain-warped fluid field supplies movement and light; a depth surface drives
+// glyph weight and contour direction, so the characters describe a form rather
+// than filling a rectangular mask.
 
 interface Look {
   colours: [string, string, string];
   intensity: number;
-  /** 0 = hero specimen; 1 = quiet background. */
+  /** 0 = suspended sculpture; 1 = settled remnant. */
   mode: number;
 }
 
 const LOOKS: Record<string, Look> = {
   hero: { colours: ['#313940', '#ece8df', '#8198aa'], intensity: 1, mode: 0 },
-  statement: { colours: ['#252a2e', '#bfc5c4', '#71899b'], intensity: 0.28, mode: 0.36 },
-  kush: { colours: ['#25282d', '#d6d1c8', '#778b9a'], intensity: 0.22, mode: 0.48 },
-  work: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.16, mode: 0.94 },
-  experience: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.14, mode: 0.94 },
-  security: { colours: ['#282426', '#cbbeb5', '#778d9d'], intensity: 0.2, mode: 0.68 },
-  archive: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.12, mode: 0.94 },
-  stack: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.12, mode: 0.94 },
-  contact: { colours: ['#24272a', '#ded9d0', '#8198aa'], intensity: 0.18, mode: 0.94 },
-  page: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.14, mode: 1 },
-  case: { colours: ['#24272a', '#d2cec5', '#8198aa'], intensity: 0.14, mode: 1 },
-  detail: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.14, mode: 1 },
+  statement: { colours: ['#252a2e', '#c9c5bd', '#71899b'], intensity: 0.42, mode: 0.16 },
+  kush: { colours: ['#25282d', '#d6d1c8', '#778b9a'], intensity: 0.38, mode: 0.3 },
+  work: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.32, mode: 0.46 },
+  experience: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.24, mode: 0.58 },
+  security: { colours: ['#282426', '#d2cbc2', '#778d9d'], intensity: 0.4, mode: 0.72 },
+  archive: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.24, mode: 0.84 },
+  stack: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.22, mode: 0.91 },
+  contact: { colours: ['#24272a', '#ded9d0', '#8198aa'], intensity: 0.26, mode: 1 },
+  page: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.22, mode: 0.9 },
+  case: { colours: ['#24272a', '#d2cec5', '#8198aa'], intensity: 0.25, mode: 0.34 },
+  detail: { colours: ['#202429', '#c8c5bd', '#71889a'], intensity: 0.22, mode: 0.48 },
 };
 
-const CHARSET = ' .:-=+*#%@01<>[]';
+// Ordered mostly by visual weight. Directional strokes occupy 5–8 and are
+// selected from the surface normal along silhouettes.
+const CHARSET = ' .,:;-/\\|+*#%@01';
 const GLYPH_SIZE = 64;
 
 function createGlyphAtlas(gl: WebGL2RenderingContext): WebGLTexture {
@@ -60,6 +63,7 @@ precision highp float;
 uniform vec2 uRes;
 uniform float uTime;
 uniform float uScroll;
+uniform float uVelocity;
 uniform vec2 uPointer;
 uniform float uLens;
 uniform vec3 uA;
@@ -97,14 +101,44 @@ float sdBox(vec2 p, vec2 halfSize) {
   return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-float specimen(vec2 p) {
-  // A long, low piece of decompiled matter. The overlapping volumes make a
-  // continuous horizontal silhouette with an irregular, eroded profile.
-  float core = sdEllipse(p - vec2(0.02, 0.0), vec2(0.70, 0.155));
-  float shoulder = sdEllipse(p - vec2(-0.39, 0.045), vec2(0.34, 0.13));
-  float nose = sdEllipse(p - vec2(0.48, -0.035), vec2(0.30, 0.105));
-  float lower = sdEllipse(p - vec2(0.03, -0.10), vec2(0.44, 0.09));
-  return min(min(core, shoulder), min(nose, lower));
+vec2 rotate2(vec2 p, float angle) {
+  float c = cos(angle), s = sin(angle);
+  return mat2(c, -s, s, c) * p;
+}
+
+float ellipseDepth(vec2 p, vec2 radius, float crown) {
+  float d = dot(p / radius, p / radius);
+  return sqrt(max(0.0, 1.0 - d)) * crown;
+}
+
+float sculptureDepth(vec2 p, float state) {
+  // Section transitions are continuous envelopes rather than hard scene cuts.
+  float plates = smoothstep(0.1, 0.29, state) * (1.0 - smoothstep(0.34, 0.5, state));
+  float fracture = smoothstep(0.31, 0.49, state) * (1.0 - smoothstep(0.59, 0.73, state));
+  float rebuild = smoothstep(0.56, 0.72, state) * (1.0 - smoothstep(0.78, 0.9, state));
+  float residue = smoothstep(0.78, 1.0, state);
+
+  // Five authored volumes form a hooked, folded object in the hero. They
+  // flatten for KUSH, separate through Work, become skeletal for Experience,
+  // and reconstruct vertically around Security before dispersing to a remnant.
+  vec2 a = vec2(-0.24, 0.08) + vec2(-0.05, 0.05) * plates + vec2(-0.2, 0.14) * fracture + vec2(0.2, 0.18) * rebuild + vec2(-0.16, 0.08) * residue;
+  vec2 b = vec2(-0.01, 0.025) + vec2(0.05, -0.04) * plates + vec2(0.02, -0.18) * fracture + vec2(-0.1, 0.13) * rebuild + vec2(0.18, -0.12) * residue;
+  vec2 c = vec2(0.27, -0.025) + vec2(0.1, 0.05) * plates + vec2(0.22, 0.13) * fracture + vec2(-0.18, -0.12) * rebuild + vec2(0.32, 0.14) * residue;
+  vec2 d = vec2(-0.02, -0.105) + vec2(-0.08, -0.07) * plates + vec2(-0.12, -0.2) * fracture + vec2(0.11, -0.18) * rebuild + vec2(-0.28, -0.12) * residue;
+  vec2 e = vec2(0.08, 0.135) + vec2(0.13, 0.02) * plates + vec2(0.12, 0.22) * fracture + vec2(0.0, 0.26) * rebuild + vec2(0.09, 0.24) * residue;
+
+  float turn = rebuild * 1.15;
+  float da = ellipseDepth(rotate2(p - a, -0.28 + turn), vec2(0.34, 0.1), 0.78);
+  float db = ellipseDepth(rotate2(p - b, 0.12 - turn * 0.45), vec2(0.38, 0.15), 1.0);
+  float dc = ellipseDepth(rotate2(p - c, -0.22 + turn * 0.6), vec2(0.28, 0.085), 0.68);
+  float dd = ellipseDepth(rotate2(p - d, 0.34 - turn * 0.25), vec2(0.28, 0.07), 0.58);
+  float de = ellipseDepth(rotate2(p - e, -0.5 + turn * 0.2), vec2(0.21, 0.06), 0.52);
+
+  // Experience retains a fine structural skeleton; later states become more
+  // open without allowing the artwork to disappear completely.
+  float quiet = 1.0 - smoothstep(0.5, 0.6, state) * (1.0 - smoothstep(0.62, 0.72, state)) * 0.38;
+  float finalScale = mix(1.0, 0.7, residue);
+  return max(max(da, db), max(max(dc, dd), de)) * quiet * finalScale;
 }
 
 void main() {
@@ -121,82 +155,90 @@ void main() {
   float fluid = fbm(world + 2.35 * r + vec2(0.0, uScroll * 0.22));
   float ribbon = pow(1.0 - abs(sin(fluid * 6.4 + r.x * 2.7)), 4.0);
 
+  float state = uMode;
   float portrait = 1.0 - smoothstep(0.72, 0.9, aspect);
-  vec2 centre = vec2(0.79, mix(0.43, 0.58, portrait));
+  float fracture = smoothstep(0.31, 0.49, state) * (1.0 - smoothstep(0.59, 0.73, state));
+  float securityState = 1.0 - smoothstep(0.07, 0.15, abs(state - 0.72));
+  float residue = smoothstep(0.78, 1.0, state);
+  vec2 centre = vec2(
+    0.86 - smoothstep(0.18, 0.58, state) * 0.17 + securityState * 0.17 + residue * 0.03,
+    mix(0.43 + sin(state * 8.0) * 0.035, 0.59, portrait)
+  );
   vec2 p = vec2((uv.x - centre.x) * aspect, uv.y - centre.y);
   vec2 pointer = vec2((uPointer.x - centre.x) * aspect, uPointer.y - centre.y);
-  vec2 portraitScale = mix(vec2(1.0), vec2(2.15, 1.12), portrait);
+  vec2 portraitScale = mix(vec2(1.0), vec2(1.82, 1.18), portrait);
   p *= portraitScale;
   pointer *= portraitScale;
+  float formScale = mix(1.12, 1.38, smoothstep(0.12, 0.42, state));
+  p *= formScale;
+  pointer *= formScale;
   vec2 dp = p - pointer;
-  p -= dp * exp(-dot(dp, dp) * 12.0) * 0.11 * uLens;
+  p -= dp * exp(-dot(dp, dp) * 11.0) * 0.095 * uLens;
 
-  // Fluid deformation bends the sculpture without destroying its silhouette.
-  p += (q - 0.5) * 0.032;
-  p.y += (sin(p.x * 4.8 + uScroll * 0.34) + sin(p.x * 10.5 - uTime * 0.035) * 0.35) * 0.014 * (1.0 - uMode);
-  float sdf = specimen(p);
-  float mask = smoothstep(0.008, -0.006, sdf);
-  float rim = smoothstep(0.018, 0.0, abs(sdf));
+  // Fluid displacement is shared by every state. Scroll speed briefly pulls
+  // the form apart, then the smoothed velocity returns it to rest.
+  p += (q - 0.5) * mix(0.038, 0.024, state);
+  p.y += (sin(p.x * 4.8 + uScroll * 0.34) + sin(p.x * 10.5 - uTime * 0.035) * 0.35) * 0.012;
+  p.x -= uVelocity * (0.035 + fracture * 0.075) * (0.35 + abs(p.y));
+  float depth = sculptureDepth(p, state);
+  float mask = smoothstep(0.018, 0.07, depth);
+  float rim = (1.0 - smoothstep(0.04, 0.13, depth)) * mask;
+  vec3 normal = normalize(vec3(-dFdx(depth) * 10.0, -dFdy(depth) * 10.0, 0.72));
+  vec3 lightDir = normalize(vec3(-0.48 + q.x * 0.24, 0.58 + q.y * 0.18, 0.88));
+  float diffuse = clamp(dot(normal, lightDir), 0.0, 1.0);
+  float fresnel = pow(1.0 - clamp(normal.z, 0.0, 1.0), 2.2);
 
-  // Characters live only on the specimen. Their density follows its fluid
-  // illumination, making the surface dissolve and reform as one object.
-  vec2 glyphWarp = (q - 0.5) * 0.55 + vec2(0.0, time * 0.32 + uScroll * 0.035);
-  vec2 gridSize = vec2(${rich ? '94.0' : '70.0'}, ${rich ? '54.0' : '42.0'});
+  // Glyph weight follows the lit depth surface. Stable per-cell variation is
+  // deliberately subtle; shape, normals and light—not randomness—do the work.
+  vec2 glyphWarp = (q - 0.5) * 0.48 + vec2(uVelocity * 1.4, time * 0.27 + uScroll * 0.032);
+  float densityScale = 1.0 + securityState * 0.12 - fracture * 0.08;
+  vec2 gridSize = vec2(${rich ? '96.0' : '72.0'}, ${rich ? '56.0' : '42.0'}) * densityScale;
   vec2 gp = uv * gridSize + glyphWarp;
   vec2 cell = floor(gp);
   vec2 cellUv = fract(gp);
-  float depth = clamp(-sdf * 4.5 + fluid * 0.72 + ribbon * 0.24, 0.0, 1.0);
-  float charIndex = floor(clamp(depth * 15.0 + (hash(cell) - 0.5) * 2.0, 0.0, 15.0));
-  vec2 atlasUv = vec2((charIndex + cellUv.x) / 16.0, 1.0 - cellUv.y);
+  float tone = clamp(depth * 0.58 + diffuse * 0.52 + ribbon * 0.16 + (hash(cell) - 0.5) * 0.055, 0.0, 1.0);
+  float charIndex = floor(mix(1.0, 13.0, tone));
+  if (rim > 0.42) {
+    vec2 n = normal.xy;
+    if (abs(n.x) > abs(n.y) * 1.55) charIndex = 8.0;
+    else if (abs(n.y) > abs(n.x) * 1.55) charIndex = 5.0;
+    else charIndex = n.x * n.y > 0.0 ? 6.0 : 7.0;
+  }
+  vec2 atlasUv = vec2((charIndex + cellUv.x) / ${CHARSET.length}.0, 1.0 - cellUv.y);
   float glyph = texture(uGlyphs, atlasUv).a;
+  float cellularDensity = smoothstep(0.02 + fracture * 0.055, 0.13, depth + noise(cell * 0.11) * 0.055);
 
-  float surfaceShade = 0.18 + ribbon * 0.56 + fluid * 0.28;
-  // The ASCII sculpture belongs to the hero only. It dissolves completely before
-  // the next composition arrives instead of following the user down the page.
-  float specimenFade = 1.0 - smoothstep(0.08, 0.32, uMode);
-  float leftSpace = smoothstep(0.43, 0.6, uv.x);
+  float surfaceShade = 0.12 + diffuse * 0.52 + ribbon * 0.24 + fresnel * 0.28;
+  float quietState = smoothstep(0.5, 0.57, state) * (1.0 - smoothstep(0.63, 0.71, state));
+  float readability = mix(0.5, 1.0, smoothstep(0.4, 0.64, uv.x));
+  float artStrength = mix(1.0, 0.48, smoothstep(0.12, 0.42, state));
 
   vec3 metal = mix(uA, uC, fluid);
-  vec3 asciiLight = mix(uC, uB, ribbon * 0.8 + depth * 0.2);
+  vec3 asciiLight = mix(uC, uB, clamp(diffuse * 0.7 + depth * 0.28 + ribbon * 0.16, 0.0, 1.0));
   vec3 colour = vec3(0.008, 0.009, 0.011);
-  colour += metal * mask * surfaceShade * 0.18 * specimenFade;
-  colour += asciiLight * glyph * mask * (0.42 + depth * 0.94) * specimenFade;
-  colour += uB * rim * (0.16 + ribbon * 0.28) * specimenFade;
+  colour += metal * mask * surfaceShade * (0.12 + uIntensity * 0.12) * artStrength;
+  colour += asciiLight * glyph * mask * cellularDensity * (0.3 + tone * 0.95) * mix(1.0, 0.52, quietState) * artStrength;
+  colour += uB * rim * (0.09 + fresnel * 0.22 + ribbon * 0.12) * artStrength;
 
-  // One soft pool of reflected light gives the sculpture dimensional depth;
-  // outside the hero it fades to near-black rather than becoming another effect.
-  float halo = exp(-dot(p * vec2(0.58, 1.9), p * vec2(0.58, 1.9)) * 4.5);
-  colour += mix(uA, uC, fluid) * halo * ribbon * 0.13 * specimenFade;
-  // Broad fluid illumination fills the hero behind the ASCII form. It stays
-  // deliberately low contrast around the name, but avoids an empty black void.
-  float heroVeil = (0.03 + ribbon * 0.078 + pow(fluid, 3.0) * 0.04) * specimenFade;
-  float veilShape = 0.45 + 0.55 * smoothstep(0.05, 0.92, uv.x + q.y * 0.18);
-  colour += mix(uA, uC, fluid) * heroVeil * veilShape;
-  colour += uB * pow(ribbon, 2.0) * 0.019 * specimenFade;
-  colour += uC * ribbon * 0.012 * uIntensity * (1.0 - specimenFade);
+  // The original smoke becomes reflected atmosphere around the form instead
+  // of the only thing left after the hero.
+  float halo = exp(-dot(p * vec2(0.72, 1.35), p * vec2(0.72, 1.35)) * 3.7);
+  colour += mix(uA, uC, fluid) * halo * (0.025 + ribbon * (0.055 + uIntensity * 0.08));
+  float veil = 0.014 + ribbon * (0.025 + uIntensity * 0.04) + pow(fluid, 3.0) * 0.018;
+  colour += mix(uA, uC, fluid) * veil * (0.45 + 0.55 * smoothstep(0.04, 0.94, uv.x + q.y * 0.16));
 
-  // The rest of the page uses two restrained supporting compositions. The
-  // opening statement/KUSH transition gets a broad fluid material fold; the
-  // security section gets a sparse memory-map cross-section. Neither is a
-  // second full-screen character field.
-  float matterPresence = (1.0 - smoothstep(0.13, 0.3, abs(uMode - 0.43))) * (1.0 - specimenFade);
-  vec2 matterP = vec2((uv.x - 0.72) * aspect, uv.y - 0.5);
-  float matterBody = exp(-dot(matterP * vec2(0.72, 1.35), matterP * vec2(0.72, 1.35)) * 2.6);
-  float matterFold = pow(clamp(1.0 - abs(sin((fluid + r.y * 0.55) * 8.0)), 0.0, 1.0), 7.0);
-  colour += mix(uA, uC, fluid) * matterBody * (0.025 + matterFold * 0.075) * matterPresence;
-
-  float memoryPresence = (1.0 - smoothstep(0.055, 0.16, abs(uMode - 0.68))) * (1.0 - specimenFade);
-  vec2 memoryP = vec2((uv.x - 0.78) * aspect, uv.y - 0.5);
-  float memoryFrame = smoothstep(0.012, 0.002, abs(sdBox(memoryP, vec2(0.24, 0.28))));
-  float row = floor((memoryP.y + 0.24) * 15.0);
-  float rowBand = step(0.72, fract((memoryP.y + 0.24) * 15.0));
-  float addressRail = smoothstep(0.012, 0.0, abs(memoryP.x + 0.19));
-  float dataRail = smoothstep(0.012, 0.0, abs(memoryP.x - 0.07));
-  float memoryBounds = step(abs(memoryP.x), 0.24) * step(abs(memoryP.y), 0.28);
-  float memoryLines = (addressRail * 0.8 + dataRail * 0.45 + rowBand * 0.3) * memoryBounds;
-  float memoryPulse = 0.55 + 0.45 * sin(row * 1.7 + uTime * 0.32 + fluid * 3.0);
-  colour += mix(uC, uB, 0.28) * (memoryFrame * 0.08 + memoryLines * memoryPulse * 0.035) * memoryPresence;
-  colour *= mix(0.58, 1.0, leftSpace);
+  // Security annotations are tied to the reconstructed object: a few address
+  // rails and scan rows, not a generic full-screen data texture.
+  vec2 memoryP = vec2((uv.x - centre.x) * aspect, uv.y - centre.y);
+  float row = floor((memoryP.y + 0.32) * 18.0);
+  float rowBand = smoothstep(0.87, 0.98, fract((memoryP.y + 0.32) * 18.0));
+  float bounds = step(abs(memoryP.x), 0.48) * step(abs(memoryP.y), 0.34);
+  float addressRail = smoothstep(0.009, 0.001, abs(memoryP.x + 0.43));
+  float dataRail = smoothstep(0.009, 0.001, abs(memoryP.x - 0.37));
+  float memoryPulse = 0.45 + 0.55 * sin(row * 1.7 + uTime * 0.22 + fluid * 3.0);
+  float annotations = (addressRail * 0.7 + dataRail * 0.45 + rowBand * 0.16) * bounds;
+  colour += mix(uC, uB, 0.24) * annotations * memoryPulse * 0.11 * securityState;
+  colour *= readability;
 
   float vignette = smoothstep(1.2, 0.22, length((uv - vec2(0.56, 0.52)) * vec2(0.88, 1.18)));
   colour *= mix(0.38, 1.0, vignette);
@@ -255,6 +297,7 @@ export function mountBackdrop(canvas: HTMLCanvasElement, opts: { rich: boolean; 
     res: uniform('uRes'),
     time: uniform('uTime'),
     scroll: uniform('uScroll'),
+    velocity: uniform('uVelocity'),
     pointer: uniform('uPointer'),
     lens: uniform('uLens'),
     a: uniform('uA'),
@@ -327,6 +370,8 @@ export function mountBackdrop(canvas: HTMLCanvasElement, opts: { rich: boolean; 
   const root = document.documentElement;
   let lens = 0;
   let last = performance.now();
+  let lastScrollY = window.scrollY;
+  let scrollVelocity = 0;
   let frame = 0;
   let tick = 0;
   const draw = (now: number) => {
@@ -342,9 +387,16 @@ export function mountBackdrop(canvas: HTMLCanvasElement, opts: { rich: boolean; 
     pointer.smoothX += (pointer.x - pointer.smoothX) * Math.min(1, easing * 2.1);
     pointer.smoothY += (pointer.y - pointer.smoothY) * Math.min(1, easing * 2.1);
     lens += (pointer.lens - lens) * easing;
+    const scrollY = window.scrollY;
+    const velocityTarget = opts.still
+      ? 0
+      : Math.max(-1, Math.min(1, (scrollY - lastScrollY) / Math.max(1, delta * 900)));
+    scrollVelocity += (velocityTarget - scrollVelocity) * (1 - Math.exp(-delta * 10));
+    lastScrollY = scrollY;
 
     gl.uniform1f(u.time, opts.still ? 38 : now / 1000);
-    gl.uniform1f(u.scroll, window.scrollY / window.innerHeight);
+    gl.uniform1f(u.scroll, scrollY / window.innerHeight);
+    gl.uniform1f(u.velocity, scrollVelocity);
     gl.uniform2f(u.pointer, pointer.smoothX, pointer.smoothY);
     gl.uniform1f(u.lens, opts.still ? 0 : lens);
     gl.uniform3fv(u.a, current.colours[0]!);
