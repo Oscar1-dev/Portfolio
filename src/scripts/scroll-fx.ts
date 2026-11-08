@@ -6,9 +6,8 @@
 //                         viewport, 1 when it leaves the top
 //   data-progress="pin"   for a tall container holding a position:sticky
 //                         child: 0 when it pins, 1 when it releases
-// The document also gets --scroll-v (scroll velocity, roughly −1…1) for the
-// few effects that respond to speed. Reduced motion: native scroll, and every
-// element is given its resting state (--p: 1) so nothing is half-hidden.
+// This engine is foreground-only. The WebGL atmosphere does not subscribe to
+// it and receives no scroll position, velocity or section state.
 import Lenis from 'lenis';
 
 type Mode = 'pass' | 'pin';
@@ -23,17 +22,8 @@ interface Target {
 let lenis: Lenis | null = null;
 let frame = 0;
 let targets: Target[] = [];
-let lastY = 0;
-let velocity = 0;
 let geometryFrame = 0;
 let geometryObserver: ResizeObserver | null = null;
-const listeners = new Set<(y: number) => void>();
-
-/** Subscribe to scroll ticks (used by the 3D scene and the hero). */
-export function onScrollTick(fn: (y: number) => void) {
-  listeners.add(fn);
-  return () => listeners.delete(fn);
-}
 
 function cacheGeometry() {
   const y = window.scrollY;
@@ -75,14 +65,9 @@ function measure(y: number) {
 function tick(time: number) {
   lenis?.raf(time);
   const y = lenis ? lenis.scroll : window.scrollY;
-  const dy = y - lastY;
-  lastY = y;
-  velocity += (Math.max(-1, Math.min(1, dy / 60)) - velocity) * 0.12;
-  document.documentElement.style.setProperty('--scroll-v', velocity.toFixed(3));
   const max = document.documentElement.scrollHeight - window.innerHeight;
   document.documentElement.style.setProperty('--page-p', max > 0 ? (y / max).toFixed(4) : '0');
   measure(y);
-  listeners.forEach((fn) => fn(y));
   frame = requestAnimationFrame(tick);
 }
 
@@ -106,7 +91,6 @@ export function mountScroll(): void {
   delete document.documentElement.dataset.static;
   cacheGeometry();
   lenis = new Lenis({ lerp: 0.105, smoothWheel: true, wheelMultiplier: 1, anchors: { offset: -80 } });
-  lastY = lenis.scroll;
   window.addEventListener('resize', scheduleGeometry, { passive: true });
   geometryObserver = new ResizeObserver(scheduleGeometry);
   geometryObserver.observe(document.body);

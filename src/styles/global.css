@@ -16,8 +16,8 @@ body {
   min-height: 100svh;
   /* Shown only if the WebGL backdrop can't run. */
   background:
-    radial-gradient(120% 70% at 80% 0%, rgb(138 60 255 / 0.28), transparent 60%),
-    radial-gradient(90% 60% at 10% 30%, rgb(255 45 85 / 0.18), transparent 60%),
+    radial-gradient(110% 72% at 82% 8%, rgb(92 119 136 / 0.14), transparent 62%),
+    radial-gradient(90% 68% at 8% 36%, rgb(105 104 98 / 0.06), transparent 64%),
     var(--ink-0);
   background-attachment: fixed;
   color: var(--text);

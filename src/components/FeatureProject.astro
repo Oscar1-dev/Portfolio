@@ -18,7 +18,7 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
 ---
 
 <article class:list={['feature', { flip }]} data-progress="pass">
-  <a class="feature-media" href={`${base}projects/${project.slug}/`} aria-label={`${data.title} case study`} tabindex="-1">
+  <a class="feature-media" href={`${base}projects/${project.slug}/`} aria-label={`${data.title} case study`} tabindex="-1" data-reveal="media">
     <span class="feature-tilt">
       {
         image ? (
@@ -38,7 +38,7 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
     </span>
     <span class="feature-index display" aria-hidden="true">{index}</span>
   </a>
-  <div class="feature-plate glass" data-glass>
+  <div class="feature-plate glass" data-glass data-reveal>
     <p class="feature-meta">
       <span class="status" data-status={data.status}>{data.status}</span>
       <span class="meta">{data.projectType} · {data.year}</span>
