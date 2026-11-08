@@ -93,52 +93,104 @@ float fbm(vec2 p) {
   }
   return v;
 }
-float sdEllipse(vec2 p, vec2 radius) {
-  return (length(p / radius) - 1.0) * min(radius.x, radius.y);
-}
-float sdBox(vec2 p, vec2 halfSize) {
-  vec2 d = abs(p) - halfSize;
-  return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
-}
-
 vec2 rotate2(vec2 p, float angle) {
   float c = cos(angle), s = sin(angle);
   return mat2(c, -s, s, c) * p;
 }
 
-float ellipseDepth(vec2 p, vec2 radius, float crown) {
-  float d = dot(p / radius, p / radius);
-  return sqrt(max(0.0, 1.0 - d)) * crown;
+mat2 rot(float a) { float c = cos(a), s = sin(a); return mat2(c, -s, s, c); }
+float sdRoundBox(vec3 p, vec3 b, float r) {
+  vec3 q = abs(p) - b;
+  return length(max(q, 0.0)) + min(max(q.x, max(q.y, q.z)), 0.0) - r;
+}
+float sdCylinder(vec3 p, vec2 h) {
+  vec2 d = abs(vec2(length(p.xy), p.z)) - h;
+  return min(max(d.x, d.y), 0.0) + length(max(d, 0.0));
+}
+float sdTorus(vec3 p, vec2 t) { return length(vec2(length(p.xy) - t.x, p.z)) - t.y; }
+float sdCapsule(vec3 p, vec3 a, vec3 b, float r) {
+  vec3 pa = p - a, ba = b - a;
+  float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+  return length(pa - ba * h) - r;
+}
+vec2 opUnion(vec2 a, vec2 b) { return a.x < b.x ? a : b; }
+
+vec3 modelTransform(vec3 p, float state) {
+  float turn = -0.32 + sin(uTime * 0.11) * 0.055 + state * 0.24;
+  p.yz *= rot(-0.2 + state * 0.08);
+  p.xz *= rot(turn);
+  return p;
 }
 
-float sculptureDepth(vec2 p, float state) {
-  // Section transitions are continuous envelopes rather than hard scene cuts.
-  float plates = smoothstep(0.1, 0.29, state) * (1.0 - smoothstep(0.34, 0.5, state));
-  float fracture = smoothstep(0.31, 0.49, state) * (1.0 - smoothstep(0.59, 0.73, state));
-  float rebuild = smoothstep(0.56, 0.72, state) * (1.0 - smoothstep(0.78, 0.9, state));
-  float residue = smoothstep(0.78, 1.0, state);
+vec2 driveCore(vec3 worldP, float state) {
+  vec3 p = modelTransform(worldP, state);
+  float split = smoothstep(0.16, 0.5, state);
+  float rebuild = smoothstep(0.58, 0.76, state);
+  float residue = smoothstep(0.8, 1.0, state);
+  float scatter = split * (1.0 - rebuild * 0.78) + abs(uVelocity) * 0.12;
+  vec2 scene = vec2(10.0, 0.0);
 
-  // Five authored volumes form a hooked, folded object in the hero. They
-  // flatten for KUSH, separate through Work, become skeletal for Experience,
-  // and reconstruct vertically around Security before dispersing to a remnant.
-  vec2 a = vec2(-0.24, 0.08) + vec2(-0.05, 0.05) * plates + vec2(-0.2, 0.14) * fracture + vec2(0.2, 0.18) * rebuild + vec2(-0.16, 0.08) * residue;
-  vec2 b = vec2(-0.01, 0.025) + vec2(0.05, -0.04) * plates + vec2(0.02, -0.18) * fracture + vec2(-0.1, 0.13) * rebuild + vec2(0.18, -0.12) * residue;
-  vec2 c = vec2(0.27, -0.025) + vec2(0.1, 0.05) * plates + vec2(0.22, 0.13) * fracture + vec2(-0.18, -0.12) * rebuild + vec2(0.32, 0.14) * residue;
-  vec2 d = vec2(-0.02, -0.105) + vec2(-0.08, -0.07) * plates + vec2(-0.12, -0.2) * fracture + vec2(0.11, -0.18) * rebuild + vec2(-0.28, -0.12) * residue;
-  vec2 e = vec2(0.08, 0.135) + vec2(0.13, 0.02) * plates + vec2(0.12, 0.22) * fracture + vec2(0.0, 0.26) * rebuild + vec2(0.09, 0.24) * residue;
+  // An incomplete casing assembled from offset rails. Deliberately omitting
+  // corners keeps the silhouette mechanical without enclosing it in a box.
+  vec3 frameP = p - vec3(-0.04 - scatter * 0.18, 0.0, -0.16 - scatter * 0.22);
+  scene = opUnion(scene, vec2(sdRoundBox(frameP - vec3(-0.5, -0.12, 0.0), vec3(0.055, 0.47, 0.08), 0.045), 1.0));
+  scene = opUnion(scene, vec2(sdRoundBox(frameP - vec3(-0.22, 0.65, 0.035), vec3(0.32, 0.055, 0.075), 0.045), 1.0));
+  scene = opUnion(scene, vec2(sdRoundBox(frameP - vec3(0.42, 0.48, -0.025), vec3(0.16, 0.055, 0.07), 0.04), 1.0));
+  scene = opUnion(scene, vec2(sdRoundBox(frameP - vec3(0.5, -0.37, 0.025), vec3(0.055, 0.25, 0.08), 0.045), 1.0));
+  vec3 lowerRail = frameP - vec3(0.12, -0.65, 0.04);
+  lowerRail.xy *= rot(-0.08);
+  scene = opUnion(scene, vec2(sdRoundBox(lowerRail, vec3(0.38, 0.055, 0.075), 0.045), 1.0));
 
-  float turn = rebuild * 1.15;
-  float da = ellipseDepth(rotate2(p - a, -0.28 + turn), vec2(0.34, 0.1), 0.78);
-  float db = ellipseDepth(rotate2(p - b, 0.12 - turn * 0.45), vec2(0.38, 0.15), 1.0);
-  float dc = ellipseDepth(rotate2(p - c, -0.22 + turn * 0.6), vec2(0.28, 0.085), 0.68);
-  float dd = ellipseDepth(rotate2(p - d, 0.34 - turn * 0.25), vec2(0.28, 0.07), 0.58);
-  float de = ellipseDepth(rotate2(p - e, -0.5 + turn * 0.2), vec2(0.21, 0.06), 0.52);
+  // Three recessed platter rings have distinct depths, so the rear rings are
+  // naturally occluded instead of being merged into one mask.
+  for (int i = 0; i < 3; i++) {
+    float fi = float(i);
+    vec3 rp = p - vec3(0.0 + scatter * (fi - 1.0) * 0.16, 0.02 + scatter * fi * 0.08, 0.08 + fi * 0.105 + scatter * fi * 0.12);
+    float ring = sdTorus(rp, vec2(0.365 - fi * 0.018, 0.035));
+    scene = opUnion(scene, vec2(ring, 2.0 + fi));
+  }
 
-  // Experience retains a fine structural skeleton; later states become more
-  // open without allowing the artwork to disappear completely.
-  float quiet = 1.0 - smoothstep(0.5, 0.6, state) * (1.0 - smoothstep(0.62, 0.72, state)) * 0.38;
-  float finalScale = mix(1.0, 0.7, residue);
-  return max(max(da, db), max(max(dc, dd), de)) * quiet * finalScale;
+  vec3 hubP = p - vec3(0.0, 0.02, 0.22 + scatter * 0.08);
+  scene = opUnion(scene, vec2(sdCylinder(hubP, vec2(0.105, 0.24)), 5.0));
+  scene = opUnion(scene, vec2(sdTorus(hubP - vec3(0.0, 0.0, 0.25), vec2(0.105, 0.025)), 6.0));
+
+  // Articulated read-head assembly: pivot, arm and a small separated head.
+  vec3 armP = p - vec3(scatter * 0.22, -scatter * 0.16, scatter * 0.2);
+  scene = opUnion(scene, vec2(sdCylinder(armP - vec3(0.34, -0.42, 0.24), vec2(0.11, 0.09)), 7.0));
+  scene = opUnion(scene, vec2(sdCapsule(armP, vec3(0.34, -0.42, 0.24), vec3(-0.12, 0.16, 0.3), 0.055), 8.0));
+  scene = opUnion(scene, vec2(sdRoundBox(armP - vec3(-0.17, 0.22, 0.3), vec3(0.13, 0.07, 0.035), 0.025), 9.0));
+
+  // Suspended circuit and shell fragments create an intentional exploded view.
+  vec3 boardP = p - vec3(0.64 + scatter * 0.42, 0.16 + scatter * 0.18, -0.02 + scatter * 0.2);
+  boardP.xy *= rot(-0.18 - scatter * 0.3);
+  scene = opUnion(scene, vec2(sdRoundBox(boardP, vec3(0.2, 0.42, 0.035), 0.055), 10.0));
+  vec3 plateP = p - vec3(-0.48 - scatter * 0.34, 0.64 + scatter * 0.26, 0.12 + scatter * 0.25);
+  plateP.xy *= rot(0.36 + scatter * 0.24);
+  scene = opUnion(scene, vec2(sdRoundBox(plateP, vec3(0.25, 0.09, 0.04), 0.045), 11.0));
+
+  // Later sections quieten the system without replacing it with unrelated art.
+  scene.x += residue * 0.035;
+  return scene;
+}
+
+vec3 coreNormal(vec3 p, float state) {
+  float e = 0.0025;
+  vec2 h = vec2(e, 0.0);
+  return normalize(vec3(
+    driveCore(p + h.xyy, state).x - driveCore(p - h.xyy, state).x,
+    driveCore(p + h.yxy, state).x - driveCore(p - h.yxy, state).x,
+    driveCore(p + h.yyx, state).x - driveCore(p - h.yyx, state).x
+  ));
+}
+
+float coreShadow(vec3 p, vec3 lightDir, float state) {
+  float shade = 1.0, t = 0.035;
+  for (int i = 0; i < 12; i++) {
+    float h = driveCore(p + lightDir * t, state).x;
+    shade = min(shade, 8.0 * h / t);
+    t += clamp(h, 0.025, 0.14);
+  }
+  return clamp(shade, 0.15, 1.0);
 }
 
 void main() {
@@ -161,44 +213,61 @@ void main() {
   float securityState = 1.0 - smoothstep(0.07, 0.15, abs(state - 0.72));
   float residue = smoothstep(0.78, 1.0, state);
   vec2 centre = vec2(
-    0.86 - smoothstep(0.18, 0.58, state) * 0.17 + securityState * 0.17 + residue * 0.03,
-    mix(0.43 + sin(state * 8.0) * 0.035, 0.59, portrait)
+    0.825 - smoothstep(0.18, 0.58, state) * 0.14 + securityState * 0.12 + residue * 0.035,
+    mix(0.49 + sin(state * 8.0) * 0.025, 0.62, portrait)
   );
   vec2 p = vec2((uv.x - centre.x) * aspect, uv.y - centre.y);
   vec2 pointer = vec2((uPointer.x - centre.x) * aspect, uPointer.y - centre.y);
   vec2 portraitScale = mix(vec2(1.0), vec2(1.82, 1.18), portrait);
   p *= portraitScale;
   pointer *= portraitScale;
-  float formScale = mix(1.12, 1.38, smoothstep(0.12, 0.42, state));
+  float formScale = mix(1.36, 1.56, smoothstep(0.12, 0.42, state));
   p *= formScale;
   pointer *= formScale;
   vec2 dp = p - pointer;
   p -= dp * exp(-dot(dp, dp) * 11.0) * 0.095 * uLens;
 
-  // Fluid displacement is shared by every state. Scroll speed briefly pulls
-  // the form apart, then the smoothed velocity returns it to rest.
-  p += (q - 0.5) * mix(0.038, 0.024, state);
+  // Fluid movement bends the camera rays slightly; it no longer substitutes
+  // for geometry or erases the intentional silhouette.
+  p += (q - 0.5) * mix(0.026, 0.016, state);
   p.y += (sin(p.x * 4.8 + uScroll * 0.34) + sin(p.x * 10.5 - uTime * 0.035) * 0.35) * 0.012;
   p.x -= uVelocity * (0.035 + fracture * 0.075) * (0.35 + abs(p.y));
-  float depth = sculptureDepth(p, state);
-  float mask = smoothstep(0.018, 0.07, depth);
-  float rim = (1.0 - smoothstep(0.04, 0.13, depth)) * mask;
-  vec3 normal = normalize(vec3(-dFdx(depth) * 10.0, -dFdy(depth) * 10.0, 0.72));
-  vec3 lightDir = normalize(vec3(-0.48 + q.x * 0.24, 0.58 + q.y * 0.18, 0.88));
-  float diffuse = clamp(dot(normal, lightDir), 0.0, 1.0);
-  float fresnel = pow(1.0 - clamp(normal.z, 0.0, 1.0), 2.2);
 
-  // Glyph weight follows the lit depth surface. Stable per-cell variation is
-  // deliberately subtle; shape, normals and light—not randomness—do the work.
+  // One camera ray is derived from each visible character cell. The returned
+  // surface normal, shadow and travel distance choose the glyph and its tone.
   vec2 glyphWarp = (q - 0.5) * 0.48 + vec2(uVelocity * 1.4, time * 0.27 + uScroll * 0.032);
   float densityScale = 1.0 + securityState * 0.12 - fracture * 0.08;
-  vec2 gridSize = vec2(${rich ? '96.0' : '72.0'}, ${rich ? '56.0' : '42.0'}) * densityScale;
+  vec2 gridSize = vec2(${rich ? '112.0' : '78.0'}, ${rich ? '64.0' : '44.0'}) * densityScale;
   vec2 gp = uv * gridSize + glyphWarp;
   vec2 cell = floor(gp);
   vec2 cellUv = fract(gp);
-  float tone = clamp(depth * 0.58 + diffuse * 0.52 + ribbon * 0.16 + (hash(cell) - 0.5) * 0.055, 0.0, 1.0);
+  vec2 cellScreen = (cell + 0.5 - glyphWarp) / gridSize;
+  vec2 rayP = vec2((cellScreen.x - centre.x) * aspect, cellScreen.y - centre.y) * portraitScale * formScale;
+  rayP += (q - 0.5) * mix(0.026, 0.016, state);
+  rayP.y += sin(rayP.x * 4.8 + uScroll * 0.34) * 0.01;
+  vec3 rayOrigin = vec3(0.0, 0.0, 3.25);
+  vec3 rayDir = normalize(vec3(rayP * 1.62, -2.35));
+  float travel = 0.0;
+  float material = 0.0;
+  float hit = 0.0;
+  for (int i = 0; i < ${rich ? 54 : 38}; i++) {
+    vec3 sampleP = rayOrigin + rayDir * travel;
+    vec2 surface = driveCore(sampleP, state);
+    if (surface.x < 0.0035) { hit = 1.0; material = surface.y; break; }
+    travel += surface.x * 0.78;
+    if (travel > 6.0) break;
+  }
+  vec3 hitP = rayOrigin + rayDir * travel;
+  vec3 normal = hit > 0.5 ? coreNormal(hitP, state) : vec3(0.0, 0.0, 1.0);
+  vec3 lightDir = normalize(vec3(-0.52 + q.x * 0.18, 0.66 + q.y * 0.14, 0.92));
+  float shadow = hit > 0.5 ? coreShadow(hitP + normal * 0.008, lightDir, state) : 1.0;
+  float diffuse = max(dot(normal, lightDir), 0.0) * shadow;
+  float rim = hit * pow(1.0 - max(dot(normal, -rayDir), 0.0), 2.25);
+  float cavity = smoothstep(3.45, 4.8, travel) * hit;
+  float componentTone = 0.04 * sin(material * 2.41);
+  float tone = clamp(0.12 + diffuse * 0.67 + rim * 0.22 - cavity * 0.09 + componentTone + ribbon * 0.08, 0.0, 1.0);
   float charIndex = floor(mix(1.0, 13.0, tone));
-  if (rim > 0.42) {
+  if (rim > 0.36) {
     vec2 n = normal.xy;
     if (abs(n.x) > abs(n.y) * 1.55) charIndex = 8.0;
     else if (abs(n.y) > abs(n.x) * 1.55) charIndex = 5.0;
@@ -206,19 +275,20 @@ void main() {
   }
   vec2 atlasUv = vec2((charIndex + cellUv.x) / ${CHARSET.length}.0, 1.0 - cellUv.y);
   float glyph = texture(uGlyphs, atlasUv).a;
-  float cellularDensity = smoothstep(0.02 + fracture * 0.055, 0.13, depth + noise(cell * 0.11) * 0.055);
+  float cellularDensity = hit * smoothstep(0.05 + fracture * 0.05, 0.18, tone + noise(cell * 0.11) * 0.075);
 
-  float surfaceShade = 0.12 + diffuse * 0.52 + ribbon * 0.24 + fresnel * 0.28;
+  float surfaceShade = 0.08 + diffuse * 0.48 + ribbon * 0.12 + rim * 0.22;
   float quietState = smoothstep(0.5, 0.57, state) * (1.0 - smoothstep(0.63, 0.71, state));
   float readability = mix(0.5, 1.0, smoothstep(0.4, 0.64, uv.x));
   float artStrength = mix(1.0, 0.48, smoothstep(0.12, 0.42, state));
 
   vec3 metal = mix(uA, uC, fluid);
-  vec3 asciiLight = mix(uC, uB, clamp(diffuse * 0.7 + depth * 0.28 + ribbon * 0.16, 0.0, 1.0));
+  float steelAccent = smoothstep(6.5, 10.5, material) * 0.18;
+  vec3 asciiLight = mix(uC, uB, clamp(diffuse * 0.78 + rim * 0.2 + steelAccent, 0.0, 1.0));
   vec3 colour = vec3(0.008, 0.009, 0.011);
-  colour += metal * mask * surfaceShade * (0.12 + uIntensity * 0.12) * artStrength;
-  colour += asciiLight * glyph * mask * cellularDensity * (0.3 + tone * 0.95) * mix(1.0, 0.52, quietState) * artStrength;
-  colour += uB * rim * (0.09 + fresnel * 0.22 + ribbon * 0.12) * artStrength;
+  colour += metal * hit * surfaceShade * (0.09 + uIntensity * 0.09) * artStrength;
+  colour += asciiLight * glyph * cellularDensity * (0.28 + tone * 1.05) * mix(1.0, 0.52, quietState) * artStrength;
+  colour += uB * rim * (0.08 + ribbon * 0.1) * artStrength;
 
   // The original smoke becomes reflected atmosphere around the form instead
   // of the only thing left after the hero.
