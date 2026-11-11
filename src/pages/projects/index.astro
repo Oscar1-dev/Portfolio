@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import PageIntro from '../../components/PageIntro.astro';
 import ArchiveRows from '../../components/ArchiveRows.astro';
+import ScreenWall from '../../components/ScreenWall.astro';
 import { areaOf, byOrder } from '../../data/links';
 
 const projects = (await getCollection('projects')).sort(byOrder);
@@ -31,6 +32,11 @@ const statuses = [...new Set(projects.map((p) => p.data.status))];
       is private or was attached to my old NopsFR GitHub account, the project page says so.
     </p>
   </PageIntro>
+
+  <section class="wrap" aria-labelledby="wall-title">
+    <h2 id="wall-title" class="sr-only">Projects with screenshots</h2>
+    <ScreenWall projects={projects} />
+  </section>
 
   <section class="wrap archive-page">
     <div class="filters" role="search">

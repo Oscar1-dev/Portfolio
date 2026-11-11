@@ -20,7 +20,7 @@ const { project, prev, next } = Astro.props;
 const { data } = project;
 const { Content } = await render(project);
 const base = import.meta.env.BASE_URL;
-const image = data.cover ?? data.logo;
+const image = data.cover ?? ({ feedback: '/images/feedback-cover.png' } as Record<string, string>)[project.slug] ?? data.logo;
 const humanise = (key: string) => key.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase());
 ---
 
@@ -48,6 +48,7 @@ const humanise = (key: string) => key.replace(/_/g, ' ').replace(/^\w/, (c) => c
       image ? (
         <figure class="case-cover wrap" data-progress="pass" data-reveal>
           <span class="case-cover-tilt">
+          <span class="case-bar" aria-hidden="true"><i></i><i></i><i></i></span>
           <img src={assetPath(image)} alt={`${data.title}: screenshot`} width="1600" height="1000" decoding="async" />
           </span>
         </figure>
@@ -186,7 +187,9 @@ const humanise = (key: string) => key.replace(/_/g, ' ').replace(/^\w/, (c) => c
   }
   .case-title {
     margin: 0 0 30px;
-    font-size: clamp(3rem, 10vw, 9rem);
+    font-size: clamp(2.2rem, 5vw, 4.4rem);
+    line-height: 1.02;
+    font-variation-settings: 'wdth' 110;
     overflow-wrap: anywhere;
   }
   .case-intro {
@@ -220,11 +223,25 @@ const humanise = (key: string) => key.replace(/_/g, ' ').replace(/^\w/, (c) => c
     transform: rotateX(calc((0.5 - var(--p)) * 14deg)) scale(calc(0.94 + var(--p) * 0.06));
     transform-origin: 50% 100%;
   }
+  .case-cover-tilt {
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 0 0 1px var(--line-2), var(--shadow-deep), 0 0 90px -20px rgb(var(--scene-c) / 0.4);
+  }
+  .case-bar {
+    display: flex;
+    gap: 6px;
+    padding: 10px 14px;
+    background: #15161a;
+  }
+  .case-bar i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.25);
+  }
   .case-cover img {
     width: 100%;
-    border-radius: 18px;
-    border: 1px solid rgb(var(--fg-rgb) / 0.12);
-    box-shadow: var(--shadow-deep);
   }
   .case-block {
     padding-block: clamp(1.8rem, 3.5vw, 2.8rem);
