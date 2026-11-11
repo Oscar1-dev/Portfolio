@@ -65,7 +65,8 @@ const words = text.split(' ');
   }
   /* Each word brightens as scroll progress passes its position in the line. */
   .sw {
-    opacity: clamp(0.12, calc((var(--p) * 1.18 - var(--wi)) * 9), 1);
+    /* unlit words stay readable: 3:1 or better at this size in both themes */
+    opacity: clamp(0.5, calc((var(--p) * 1.18 - var(--wi)) * 9), 1);
     transition: opacity 120ms linear;
   }
   .sw.hl {
