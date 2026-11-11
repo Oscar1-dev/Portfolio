@@ -1,107 +1,175 @@
 ---
-// Home hero. The rendered "Teardown" loop fills the frame and plays on its own;
-// the copy sits on a scrim so it holds contrast over every frame of the video.
-// The whole block uses the dark token set in both themes, because the film is dark.
-import SceneMedia from './SceneMedia.astro';
+// Home hero. Copy on the left; on the right a stage of real project screens
+// floating in depth. Each screen is a link to its project. The stage drifts on
+// its own (CSS, seamless), leans a little towards the pointer, and closes up
+// into a stack as the hero scrolls away (foreground only, reversible).
+import { assetPath } from '../data/asset-path';
 interface Props {
   projectCount: number;
   rooms: number;
 }
 const { projectCount, rooms } = Astro.props;
 const base = import.meta.env.BASE_URL;
-const interests = ['Reverse engineering', 'Application security', 'Rust & Tauri desktop apps', 'Backend systems'];
+const screens = [
+  { slug: 'mindhouse', name: 'MINDHOUSE', what: 'multi-agent AI platform', img: '/images/projects/mindhouse.png', w: 1280, h: 720 },
+  { slug: 'kush', name: 'KUSH', what: 'my software business', img: '/images/projects/kush-home.webp', w: 1600, h: 1000 },
+  { slug: 'nops-cyber-intelligence', name: 'NOPS / Cyber Intelligence', what: 'threat-intelligence workspace', img: '/images/projects/nops-investigations.webp', w: 2000, h: 1023 },
+];
 ---
 
-<section class="hero theme-dark" aria-labelledby="hero-name">
-  <SceneMedia name="hero-teardown" title="Teardown, the opening film" fill priority focus="64% 50%" />
-  <div class="hero-scrim" aria-hidden="true"></div>
-
-  <div class="wrap hero-inner">
-    <p class="hero-kicker mono" data-hero-in style="--d:0">
-      <span>Oscar Senior</span><span class="sep" aria-hidden="true"></span><span>also known as Nops</span>
-    </p>
-
-    <h1 id="hero-name" class="hero-title display">
-      <span class="hero-line" data-hero-line style="--d:1"><span>I take systems</span></span>
-      <span class="hero-line" data-hero-line style="--d:2"><span>apart to see</span></span>
-      <span class="hero-line" data-hero-line style="--d:3"><span class="foil">how they work.</span></span>
-    </h1>
-
-    <div class="hero-foot">
+<section class="hero" aria-labelledby="hero-name" data-progress="pass" data-hero>
+  <div class="hero-glow" aria-hidden="true"></div>
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <p class="hero-kicker mono" data-hero-in style="--d:0"><span>Oscar Senior</span><span class="sep" aria-hidden="true"></span><span>Nops</span></p>
+      <h1 id="hero-name" class="hero-title">
+        <span class="hero-line" style="--d:1"><span>I pull software apart</span></span>
+        <span class="hero-line" style="--d:2"><span>to learn how it works,</span></span>
+        <span class="hero-line" style="--d:3"><span class="foil">then build my own.</span></span>
+      </h1>
       <p class="hero-lede" data-hero-in style="--d:5">
-        Then I build my own. I'm a final-year cybersecurity and IT student at DISC, the founder of
-        <a href={`${base}projects/kush/`}>KUSH</a> and Chief Security Officer at Velnqo.
+        Final-year cybersecurity and IT student at DISC. I'm building <a href={`${base}projects/kush/`}>KUSH</a>, I'm Chief Security Officer at
+        Velnqo, and I've finished {rooms} rooms on TryHackMe.
       </p>
       <div class="hero-actions" data-hero-in style="--d:6">
         <a class="btn btn-primary" href={`${base}projects/`}>
-          See {projectCount} projects
+          Browse {projectCount} projects
           <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
         </a>
-        <a class="btn btn-glass" href={`${base}projects/kush/`}>KUSH case study</a>
+        <a class="btn btn-outline" href={`${base}credentials/`}>Security work</a>
       </div>
     </div>
 
-    <ul class="hero-interests" aria-label="What I work on" data-hero-in style="--d:7">
-      {interests.map((t) => <li>{t}</li>)}
-      <li><a href={`${base}credentials/`}>{rooms} TryHackMe rooms</a></li>
-    </ul>
+    <div class="stage-wrap" data-hero-in style="--d:4">
+      <ul class="stage" data-stage aria-label="Three of my projects">
+        {
+          screens.map((s, i) => (
+            <li class={`win win-${i}`} style={`--i:${i}`}>
+              <a href={`${base}projects/${s.slug}/`}>
+                <span class="win-bar" aria-hidden="true"><i /><i /><i /><b>{s.name}</b></span>
+                <img src={assetPath(s.img)} alt="" width={s.w} height={s.h} style={`aspect-ratio:${s.w}/${s.h}`} loading="eager" fetchpriority={i === 2 ? 'high' : 'auto'} decoding="async" />
+                <span class="win-label"><b>{s.name}</b><span class="sr-only">, </span><span>{s.what}</span></span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+      <button class="stage-toggle" type="button" data-stage-toggle aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-pause" d="M8 5v14M16 5v14"></path><path class="i-play" d="M8 5l11 7-11 7z"></path></svg>
+        <span class="sr-only" data-label>Pause the moving screens</span>
+      </button>
+    </div>
   </div>
-
-  <p class="hero-plate mono" aria-hidden="true">Fig. 01 — Teardown · original render, Blender Cycles · 10 s loop</p>
 </section>
+
+<script>
+  // Pointer lean (eased, small) and the pause control. Nothing here is needed
+  // to reach content: the screens are plain links.
+  let stop: (() => void) | null = null;
+  document.addEventListener('astro:page-load', () => {
+    stop?.();
+    stop = null;
+    const stage = document.querySelector<HTMLElement>('[data-stage]');
+    const toggle = document.querySelector<HTMLButtonElement>('[data-stage-toggle]');
+    if (!stage || !toggle) return;
+    const set = (paused: boolean) => {
+      stage.dataset.paused = String(paused);
+      toggle.setAttribute('aria-pressed', String(paused));
+      toggle.querySelector('[data-label]')!.textContent = paused ? 'Play the moving screens' : 'Pause the moving screens';
+    };
+    const motionOk = () => document.documentElement.classList.contains('motion-ok');
+    set(!motionOk());
+    const onToggle = () => set(stage.dataset.paused !== 'true');
+    toggle.addEventListener('click', onToggle);
+    const onMode = () => set(!motionOk());
+    document.addEventListener('prefs:motion', onMode);
+
+    let raf = 0;
+    let tx = 0;
+    let ty = 0;
+    let x = 0;
+    let y = 0;
+    const tick = () => {
+      x += (tx - x) * 0.07;
+      y += (ty - y) * 0.07;
+      stage.style.setProperty('--px', x.toFixed(4));
+      stage.style.setProperty('--py', y.toFixed(4));
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.001 ? requestAnimationFrame(tick) : 0;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (stage.dataset.paused === 'true' || e.pointerType !== 'mouse') return;
+      tx = e.clientX / innerWidth - 0.5;
+      ty = e.clientY / innerHeight - 0.5;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    stop = () => {
+      window.removeEventListener('pointermove', onMove);
+      toggle.removeEventListener('click', onToggle);
+      document.removeEventListener('prefs:motion', onMode);
+      cancelAnimationFrame(raf);
+    };
+  });
+</script>
 
 <style>
   .hero {
+    --p: 0.5;
+    /* 0 at the top of the page, 1 once the hero has scrolled away */
+    --s: clamp(0, calc((var(--p) - 0.54) * 2.6), 1);
     position: relative;
-    min-height: max(100svh, 680px);
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-end;
-    overflow: hidden;
-    background: #050606;
-    color: var(--text);
-    isolation: isolate;
+    padding: calc(var(--header-h) + clamp(2.5rem, 7vh, 5rem)) 0 clamp(3rem, 8vh, 6rem);
+    overflow: clip;
   }
-  /* Scrim: guarantees text contrast over the film, strongest where text sits. */
-  .hero-scrim {
+  .hero-glow {
     position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
+    inset: -10% -10% 0;
+    z-index: -1;
     background:
-      linear-gradient(90deg, rgb(5 6 6 / 0.88) 0%, rgb(5 6 6 / 0.62) 38%, rgb(5 6 6 / 0.05) 72%),
-      linear-gradient(0deg, rgb(5 6 6 / 0.92) 0%, rgb(5 6 6 / 0.35) 34%, transparent 58%),
-      linear-gradient(180deg, rgb(5 6 6 / 0.7) 0%, transparent 22%);
+      radial-gradient(46% 56% at 70% 46%, rgb(var(--scene-c) / 0.42), transparent 70%),
+      radial-gradient(30% 36% at 86% 78%, rgb(208 129 123 / 0.1), transparent 70%);
+    filter: blur(20px);
   }
-  .hero-inner {
-    position: relative;
-    z-index: 2;
-    padding-top: calc(var(--header-h) + 48px);
-    padding-bottom: clamp(64px, 9vh, 96px);
+  :global(.motion-ok) .hero-glow {
+    animation: glow-drift 16s ease-in-out infinite alternate;
+  }
+  @keyframes glow-drift {
+    to {
+      translate: -3% 2%;
+      scale: 1.06;
+    }
+  }
+  .hero-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: clamp(2rem, 4vw, 4rem);
+    min-height: min(74svh, 720px);
   }
   .hero-kicker {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
-    gap: 6px 14px;
-    margin: 0 0 clamp(18px, 3vh, 30px);
+    gap: 12px;
+    margin: 0 0 20px;
     font-size: 0.8rem;
-    letter-spacing: 0.18em;
+    letter-spacing: 0.16em;
     text-transform: uppercase;
     color: var(--text-2);
   }
   .hero-kicker .sep {
-    width: 34px;
+    width: 28px;
     height: 1px;
     background: var(--sig-red);
   }
   .hero-title {
     margin: 0;
-    max-width: 14ch;
-    font-size: clamp(2.6rem, 8.4vw, 8.2rem);
-    line-height: 0.92;
-    letter-spacing: -0.04em;
-    color: #fff;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 108;
+    font-weight: 750;
+    font-size: clamp(1.9rem, 3.2vw, 3.1rem);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    color: var(--text-strong);
   }
   .hero-line {
     display: block;
@@ -112,122 +180,227 @@ const interests = ['Reverse engineering', 'Application security', 'Rust & Tauri 
   .hero-line > span {
     display: inline-block;
   }
-  .hero-foot {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 24px 48px;
-    margin-top: clamp(24px, 4.5vh, 48px);
-    max-width: 1080px;
-  }
   .hero-lede {
-    margin: 0;
-    max-width: 46ch;
-    font-size: clamp(1.05rem, 1.35vw, 1.25rem);
-    line-height: 1.55;
-    color: #e6e3ea;
-  }
-  .hero-lede a {
-    color: #fff;
-    text-decoration: underline;
-    text-decoration-thickness: 1px;
-    text-underline-offset: 4px;
+    max-width: 44ch;
+    margin: 22px 0 0;
+    font-size: clamp(1rem, 1.2vw, 1.13rem);
+    line-height: 1.6;
+    color: var(--text-2);
   }
   .hero-actions {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
+    margin-top: 28px;
   }
-  .hero-interests {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px 0;
-    margin: clamp(26px, 4.5vh, 44px) 0 0;
-    padding: 0;
-    list-style: none;
-    font-size: 0.9rem;
-    color: #d5d2db;
-  }
-  .hero-interests li {
-    padding: 4px 18px 4px 0;
-    margin-right: 18px;
-    border-right: 1px solid rgb(255 255 255 / 0.28);
-  }
-  .hero-interests li:last-child {
-    border-right: 0;
-    margin-right: 0;
-  }
-  .hero-interests a {
-    color: #fff;
-    text-decoration: underline;
-    text-underline-offset: 4px;
-  }
-  .hero-plate {
-    position: absolute;
-    right: calc(var(--gutter) + 62px);
-    bottom: 32px;
-    z-index: 2;
-    margin: 0;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #c9c6d0;
-  }
-  .hero :global(.sm-toggle) {
-    right: var(--gutter);
-    bottom: 18px;
+  .hero-actions .btn-outline {
+    border-color: var(--line-3);
   }
 
-  /* Entrance: lines rise out of their masks, then the rest settles in. */
+  /* ---- the stage ---- */
+  .stage-wrap {
+    position: relative;
+    perspective: 1500px;
+    perspective-origin: 40% 40%;
+  }
+  .stage {
+    --px: 0;
+    --py: 0;
+    position: relative;
+    aspect-ratio: 10 / 8;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    transform-style: preserve-3d;
+    /* lean: resting angle + pointer, flattening as the hero scrolls away */
+    transform: rotateY(calc((-17deg + var(--px) * 7deg) * (1 - var(--s)))) rotateX(calc((7deg - var(--py) * 5deg) * (1 - var(--s))));
+  }
+  .win {
+    position: absolute;
+    width: 74%;
+    transform-style: preserve-3d;
+    /* scroll closes the fan: every screen travels towards the centre */
+    translate: calc(var(--fx) * (1 - var(--s))) calc(var(--fy) * (1 - var(--s))) calc(var(--fz) * (1 - var(--s)));
+    left: 13%;
+    top: 16%;
+  }
+  .win-0 { --fx: -20%; --fy: -34%; --fz: -170px; }
+  .win-1 { --fx: 20%; --fy: 34%; --fz: -80px; }
+  .win-2 { --fx: -3%; --fy: 0%; --fz: 70px; }
+  .win a {
+    position: relative;
+    display: block;
+    border-radius: 10px;
+    overflow: hidden;
+    background: #0b0c0e;
+    box-shadow:
+      0 0 0 1px rgb(var(--fg-rgb) / 0.3),
+      0 40px 80px -30px rgb(0 0 0 / 0.75),
+      0 0 90px -6px rgb(var(--scene-c) / 0.5);
+    transition: box-shadow var(--t) var(--ease), scale var(--t) var(--ease);
+  }
+  :global(.motion-ok) .stage:not([data-paused='true']) .win a {
+    animation: win-float 9s ease-in-out infinite alternate;
+    animation-delay: calc(var(--i) * -3s);
+  }
+  @keyframes win-float {
+    from {
+      translate: 0 -9px;
+    }
+    to {
+      translate: 0 9px;
+    }
+  }
+  .win a:hover,
+  .win a:focus-visible {
+    scale: 1.025;
+    box-shadow:
+      0 0 0 2px var(--focus),
+      0 50px 90px -30px rgb(0 0 0 / 0.8),
+      0 0 80px -6px rgb(var(--scene-c) / 0.4);
+  }
+  .win-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 26px;
+    padding: 0 10px;
+    background: #15161a;
+    border-bottom: 1px solid rgb(255 255 255 / 0.08);
+  }
+  .win-bar i {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.22);
+  }
+  .win-bar b {
+    margin-left: 8px;
+    font-family: var(--font-mono);
+    font-size: 0.66rem;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: #b9b6c0;
+  }
+  .win img {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: brightness(1.12) contrast(1.04);
+  }
+  .win-label {
+    position: absolute;
+    left: 10px;
+    bottom: 10px;
+    display: flex;
+    gap: 8px;
+    align-items: baseline;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: rgb(8 9 11 / 0.9);
+    font-size: 0.8rem;
+    color: #cdcad3;
+    opacity: 0;
+    translate: 0 6px;
+    transition: opacity var(--t) var(--ease), translate var(--t) var(--ease);
+  }
+  .win-label b {
+    color: #fff;
+    font-weight: 600;
+  }
+  .win a:hover .win-label,
+  .win a:focus-visible .win-label,
+  .win-2 .win-label {
+    opacity: 1;
+    translate: none;
+  }
+  .stage-toggle {
+    position: absolute;
+    right: 0;
+    bottom: -8px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid var(--line-3);
+    border-radius: 50%;
+    background: var(--ink-1);
+    color: var(--text);
+  }
+  .stage-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .stage-toggle .i-play {
+    display: none;
+    fill: currentColor;
+  }
+  .stage-toggle[aria-pressed='true'] .i-play {
+    display: block;
+  }
+  .stage-toggle[aria-pressed='true'] .i-pause {
+    display: none;
+  }
+  /* Reduced motion / paused: no lean, no scroll travel. A still composition. */
+  :global(:root:not(.motion-ok)) .hero {
+    --s: 0;
+  }
+
   :global(.motion-ok) .hero-line > span {
-    animation: hero-rise 1300ms var(--ease) both;
-    animation-delay: calc(200ms + var(--d) * 110ms);
+    animation: hero-rise 1100ms var(--ease) both;
+    animation-delay: calc(120ms + var(--d) * 90ms);
   }
   :global(.motion-ok) [data-hero-in] {
-    animation: hero-in 1100ms var(--ease) both;
-    animation-delay: calc(260ms + var(--d) * 110ms);
+    animation: hero-in 1000ms var(--ease) both;
+    animation-delay: calc(160ms + var(--d) * 90ms);
   }
   @keyframes hero-rise {
     from {
       translate: 0 110%;
-      rotate: 3deg;
     }
   }
   @keyframes hero-in {
     from {
       opacity: 0;
-      translate: 0 18px;
+      translate: 0 16px;
     }
   }
 
-  @media (max-width: 860px) {
-    .hero-scrim {
-      background:
-        linear-gradient(0deg, rgb(5 6 6 / 0.96) 0%, rgb(5 6 6 / 0.8) 46%, rgb(5 6 6 / 0.2) 78%),
-        linear-gradient(180deg, rgb(5 6 6 / 0.7) 0%, transparent 24%);
+  @media (max-width: 900px) {
+    .hero-grid {
+      grid-template-columns: 1fr;
+      min-height: 0;
     }
-    .hero-plate {
-      display: none;
+    .stage {
+      aspect-ratio: 10 / 7.4;
+      transform: rotateY(calc(-10deg * (1 - var(--s)))) rotateX(calc(5deg * (1 - var(--s))));
     }
-    .hero-inner {
-      padding-bottom: 84px;
+    .win {
+      width: 80%;
+      left: 10%;
     }
-    .hero-actions,
+    .win-0 { --fx: -10%; --fy: -22%; --fz: -120px; }
+    .win-1 { --fx: 10%; --fy: 24%; --fz: -50px; }
     .hero-actions .btn {
-      width: 100%;
-    }
-    .hero-interests li {
-      border-right: 0;
-      margin-right: 0;
       flex: 1 1 100%;
-      padding-block: 2px;
+    }
+    .win-label {
+      opacity: 1;
+      translate: none;
+      font-size: 0.72rem;
+    }
+    .win-label span:last-child {
+      display: none;
     }
   }
   @media (forced-colors: active) {
-    .hero-scrim {
-      background: Canvas;
-      opacity: 0.85;
+    .win a {
+      border: 1px solid CanvasText;
     }
   }
 </style>

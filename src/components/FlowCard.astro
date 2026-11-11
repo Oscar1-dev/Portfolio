@@ -1,0 +1,499 @@
+---
+// Animated project card for NOPS / Cyber Intelligence.
+// Resting: the real screenshot. Live (hover, keyboard focus, or in view on
+// touch screens): an animated walk through what the app does with one
+// observable. The walk-through is drawn in HTML/SVG so it stays sharp, and it
+// is labelled as an illustration; the six provider outcomes are the app's own.
+// The whole card is not a link: the title and the button are, so the pause
+// control and normal navigation both keep working.
+import { assetPath } from '../data/asset-path';
+import ProjectLinks from './ProjectLinks.astro';
+import type { Project } from '../data/links';
+interface Props {
+  project: Project;
+}
+const { project } = Astro.props;
+const { data } = project;
+const base = import.meta.env.BASE_URL;
+const href = `${base}projects/${project.slug}/`;
+const stack = ['Next.js', 'TypeScript', 'Prisma + PostgreSQL', 'Zod', 'Vitest + Playwright'];
+// name, outcome, glyph. Outcome wording is from the project's write-up.
+const providers = [
+  ['DNS records', 'success', '✓'],
+  ['TLS inspection', 'success', '✓'],
+  ['Certificate logs', 'empty', '○'],
+  ['AbuseIPDB', 'rate limited', '!'],
+  ['VirusTotal', 'not configured', '–'],
+];
+---
+
+<article class="fcard" data-flowcard data-live="false">
+  <div class="fcard-copy">
+    <p class="fcard-meta"><span class="status" data-status={data.status}>{data.status}</span><span class="meta">{data.projectType} · {data.year}</span></p>
+    <h3 class="fcard-title"><a href={href}>{data.title}</a></h3>
+    <p class="fcard-lede">
+      Paste in an IP, domain, URL, hash or CVE. It works out what you gave it, asks 35 sources at once, and tells you plainly which ones answered
+      and which didn't.
+    </p>
+    <ul class="fcard-stack" aria-label="Main technologies">{stack.map((t) => <li class="tag">{t}</li>)}</ul>
+    <div class="fcard-actions">
+      <a class="btn btn-primary" href={href}>Read the case study</a>
+      <ProjectLinks project={project} compact />
+    </div>
+  </div>
+
+  <div class="fcard-media theme-dark" data-tilt>
+    <div class="fcard-tilt">
+      <img class="fcard-shot" src={assetPath(data.cover!)} alt="The NOPS investigations list: recent lookups with their type, status and findings." width="2000" height="1023" loading="lazy" decoding="async" />
+      <div class="flow" aria-hidden="true">
+        <div class="flow-input"><span class="flow-prompt">observable</span><span class="flow-typed">example.org</span><span class="flow-chip">domain</span></div>
+        <ul class="flow-rows">
+          {
+            providers.map(([name, outcome, glyph], i) => (
+              <li style={`--r:${i}`} data-outcome={outcome}>
+                <span class="flow-name">{name}</span>
+                <span class="flow-bar"><i /></span>
+                <span class="flow-out"><b>{glyph}</b> {outcome}</span>
+              </li>
+            ))
+          }
+        </ul>
+        <svg class="flow-graph" viewBox="0 0 320 120" preserveAspectRatio="xMidYMid meet">
+          <g class="edges" fill="none" stroke="currentColor" stroke-width="1.2">
+            <path pathLength="1" d="M70 60 L160 28"></path>
+            <path pathLength="1" d="M70 60 L160 92"></path>
+            <path pathLength="1" d="M160 28 L256 60"></path>
+            <path pathLength="1" d="M160 92 L256 60"></path>
+          </g>
+          <g class="nodes" font-size="9" font-family="IBM Plex Mono, monospace">
+            <g style="--n:0"><circle cx="70" cy="60" r="6"></circle><text x="70" y="82" text-anchor="middle">example.org</text></g>
+            <g style="--n:1"><circle cx="160" cy="28" r="5"></circle><text x="160" y="16" text-anchor="middle">resolves to IP</text></g>
+            <g style="--n:2"><circle cx="160" cy="92" r="5"></circle><text x="160" y="112" text-anchor="middle">TLS certificate</text></g>
+            <g style="--n:3"><circle cx="256" cy="60" r="5"></circle><text x="256" y="82" text-anchor="middle">hosting ASN</text></g>
+          </g>
+        </svg>
+        <p class="flow-note">Illustration of the investigation flow, not a recording</p>
+      </div>
+    </div>
+    <button class="fcard-toggle" type="button" data-flow-toggle aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5l11 7-11 7z"></path><path class="i-pause" d="M8 5v14M16 5v14"></path></svg>
+      <span data-label>Play walk-through</span>
+    </button>
+  </div>
+</article>
+
+<script>
+  // Live state: hover or focus on pointer devices, visibility on touch
+  // devices, and the button always wins. The walk-through restarts each time.
+  const LOOP = 9000;
+  let cleanups: Array<() => void> = [];
+  document.addEventListener('astro:page-load', () => {
+    cleanups.forEach((f) => f());
+    cleanups = [];
+    for (const card of document.querySelectorAll<HTMLElement>('[data-flowcard]')) {
+      const media = card.querySelector<HTMLElement>('[data-tilt]')!;
+      const btn = card.querySelector<HTMLButtonElement>('[data-flow-toggle]')!;
+      const label = btn.querySelector<HTMLElement>('[data-label]')!;
+      const hover = matchMedia('(hover: hover) and (pointer: fine)').matches;
+      const motionOk = () => document.documentElement.classList.contains('motion-ok');
+      let pinned: boolean | null = null; // the button's decision
+      let auto = false;
+      let timer = 0;
+      const apply = () => {
+        const live = pinned ?? (auto && motionOk());
+        if ((card.dataset.live === 'true') !== live) {
+          card.dataset.live = 'false';
+          void card.offsetWidth; // restart the CSS timeline
+          card.dataset.live = String(live);
+        }
+        clearInterval(timer);
+        if (live)
+          timer = window.setInterval(() => {
+            card.dataset.live = 'false';
+            void card.offsetWidth;
+            card.dataset.live = 'true';
+          }, LOOP);
+        btn.setAttribute('aria-pressed', String(live));
+        label.textContent = live ? 'Pause walk-through' : 'Play walk-through';
+      };
+      const on = () => ((auto = true), apply());
+      const off = () => ((auto = false), apply());
+      if (hover) {
+        card.addEventListener('pointerenter', on);
+        card.addEventListener('pointerleave', off);
+        card.addEventListener('focusin', on);
+        card.addEventListener('focusout', off);
+      }
+      const io = new IntersectionObserver(
+        ([e]) => {
+          if (!hover) e.isIntersecting ? on() : off();
+          else if (!e.isIntersecting) off();
+          if (!e.isIntersecting) pinned = pinned ? null : pinned;
+        },
+        { threshold: 0.6 },
+      );
+      io.observe(media);
+      const click = () => {
+        pinned = card.dataset.live !== 'true';
+        apply();
+      };
+      btn.addEventListener('click', click);
+      // Tilt: at most 4 degrees, eased, media only. Text never moves.
+      let raf = 0, tx = 0, ty = 0, x = 0, y = 0;
+      const tick = () => {
+        x += (tx - x) * 0.1;
+        y += (ty - y) * 0.1;
+        media.style.setProperty('--rx', `${(-y * 4).toFixed(2)}deg`);
+        media.style.setProperty('--ry', `${(x * 4).toFixed(2)}deg`);
+        raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.002 ? requestAnimationFrame(tick) : 0;
+      };
+      const move = (e: PointerEvent) => {
+        if (!hover || !motionOk()) return;
+        const r = media.getBoundingClientRect();
+        tx = (e.clientX - r.left) / r.width - 0.5;
+        ty = (e.clientY - r.top) / r.height - 0.5;
+        if (!raf) raf = requestAnimationFrame(tick);
+      };
+      const leave = () => {
+        tx = ty = 0;
+        if (!raf) raf = requestAnimationFrame(tick);
+      };
+      media.addEventListener('pointermove', move);
+      media.addEventListener('pointerleave', leave);
+      cleanups.push(() => {
+        io.disconnect();
+        clearInterval(timer);
+        cancelAnimationFrame(raf);
+      });
+    }
+  });
+</script>
+
+<style>
+  .fcard {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    align-items: center;
+    gap: clamp(1.5rem, 4vw, 4rem);
+    padding: clamp(18px, 2.4vw, 32px);
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
+    background: linear-gradient(140deg, rgb(var(--fg-rgb) / 0.045), rgb(var(--fg-rgb) / 0.012));
+    transition: border-color var(--t) var(--ease), translate var(--t) var(--ease), box-shadow var(--t) var(--ease);
+  }
+  .fcard[data-live='true'] {
+    border-color: var(--line-3);
+    translate: 0 -4px;
+    box-shadow: 0 40px 80px -50px rgb(0 0 0 / 0.8);
+  }
+  .fcard-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin: 0 0 12px;
+  }
+  .fcard-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 108;
+    font-size: clamp(1.5rem, 2.4vw, 2.1rem);
+    line-height: 1.1;
+    letter-spacing: -0.02em;
+  }
+  .fcard-title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 5px;
+  }
+  .fcard-lede {
+    max-width: 46ch;
+    margin: 14px 0 18px;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+  .fcard-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 22px;
+    padding: 0;
+    list-style: none;
+  }
+  .fcard-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 18px;
+  }
+
+  .fcard-media {
+    --rx: 0deg;
+    --ry: 0deg;
+    position: relative;
+    perspective: 1200px;
+  }
+  .fcard-tilt {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0a0b0d;
+    color: #e9e7ee;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12), 0 30px 60px -30px rgb(0 0 0 / 0.8);
+    transform: rotateX(var(--rx)) rotateY(var(--ry));
+  }
+  .fcard-shot {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 0 0;
+    transition: opacity 600ms var(--ease), scale 900ms var(--ease), filter 600ms var(--ease);
+  }
+  [data-live='true'] .fcard-shot {
+    opacity: 0.14;
+    scale: 1.06;
+    filter: blur(3px);
+  }
+  .flow {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: auto auto minmax(0, 1fr) auto;
+    gap: clamp(6px, 1.2vw, 12px);
+    padding: clamp(12px, 2.2vw, 24px);
+    font-family: var(--font-mono);
+    font-size: clamp(0.62rem, 1.05vw, 0.8rem);
+    opacity: 0;
+    transition: opacity 400ms var(--ease);
+  }
+  [data-live='true'] .flow {
+    opacity: 1;
+  }
+  .flow-input {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: 8px;
+    background: rgb(255 255 255 / 0.04);
+  }
+  .flow-prompt {
+    color: #a9a6b3;
+  }
+  .flow-typed {
+    display: inline-block;
+    overflow: hidden;
+    white-space: nowrap;
+    width: 0;
+    color: #fff;
+    border-right: 2px solid #fff;
+  }
+  .flow-chip {
+    margin-left: auto;
+    padding: 2px 8px;
+    border-radius: 99px;
+    background: #aabfce;
+    color: #080b0d;
+    opacity: 0;
+  }
+  .flow-rows {
+    display: grid;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .flow-rows li {
+    display: grid;
+    grid-template-columns: 11em minmax(0, 1fr) 10.5em;
+    white-space: nowrap;
+    align-items: center;
+    gap: 10px;
+    opacity: 0;
+  }
+  .flow-bar {
+    height: 3px;
+    border-radius: 2px;
+    background: rgb(255 255 255 / 0.12);
+    overflow: hidden;
+  }
+  .flow-bar i {
+    display: block;
+    height: 100%;
+    background: #aabfce;
+    scale: 0 1;
+    transform-origin: left;
+  }
+  .flow-out {
+    color: #cdcad3;
+    opacity: 0;
+  }
+  .flow-out b {
+    display: inline-block;
+    width: 1.1em;
+    color: #fff;
+  }
+  [data-outcome='rate limited'] .flow-out b {
+    color: #f2d083;
+  }
+  [data-outcome='rate limited'] .flow-bar i {
+    background: #f2d083;
+  }
+  [data-outcome='not configured'] .flow-bar i,
+  [data-outcome='empty'] .flow-bar i {
+    background: rgb(255 255 255 / 0.4);
+  }
+  .flow-graph {
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    color: #aabfce;
+  }
+  .flow-graph path {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+  }
+  .flow-graph circle {
+    fill: #0a0b0d;
+    stroke: #fff;
+    stroke-width: 1.4;
+  }
+  .flow-graph text {
+    fill: #cdcad3;
+  }
+  .flow-graph .nodes g {
+    opacity: 0;
+  }
+  .flow-note {
+    margin: 0;
+    font-size: 0.68rem;
+    color: #a9a6b3;
+  }
+
+  /* The timeline. Runs once per restart; the script loops it. */
+  [data-live='true'] .flow-typed {
+    animation: f-type 1100ms steps(11) 300ms forwards, f-caret 0s 1700ms forwards;
+  }
+  [data-live='true'] .flow-chip {
+    animation: f-in 400ms var(--ease) 1500ms forwards;
+  }
+  [data-live='true'] .flow-rows li {
+    animation: f-in 400ms var(--ease) calc(1900ms + var(--r) * 140ms) forwards;
+  }
+  [data-live='true'] .flow-bar i {
+    animation: f-bar calc(700ms + var(--r) * 260ms) var(--ease) calc(2100ms + var(--r) * 140ms) forwards;
+  }
+  [data-live='true'] .flow-out {
+    animation: f-in 300ms var(--ease) calc(2800ms + var(--r) * 400ms) forwards;
+  }
+  [data-live='true'] .flow-graph .nodes g {
+    animation: f-in 400ms var(--ease) calc(4900ms + var(--n) * 350ms) forwards;
+  }
+  [data-live='true'] .flow-graph path {
+    animation: f-draw 700ms var(--ease) forwards;
+  }
+  [data-live='true'] .flow-graph path:nth-child(1) { animation-delay: 5000ms; }
+  [data-live='true'] .flow-graph path:nth-child(2) { animation-delay: 5350ms; }
+  [data-live='true'] .flow-graph path:nth-child(3) { animation-delay: 5800ms; }
+  [data-live='true'] .flow-graph path:nth-child(4) { animation-delay: 6000ms; }
+  @keyframes f-type {
+    to {
+      width: 11ch;
+    }
+  }
+  @keyframes f-caret {
+    to {
+      border-right-color: transparent;
+    }
+  }
+  @keyframes f-in {
+    from {
+      opacity: 0;
+      translate: 0 6px;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+  @keyframes f-bar {
+    to {
+      scale: 1 1;
+    }
+  }
+  @keyframes f-draw {
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  /* Reduced motion: pressing play shows the finished state, without the run-up. */
+  :global(:root:not(.motion-ok)) [data-live='true'] .flow * {
+    animation-delay: 0s !important;
+  }
+
+  .fcard-toggle {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px 0 12px;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    border-radius: 99px;
+    background: rgb(8 9 11 / 0.88);
+    color: #fff;
+    font-size: 0.85rem;
+  }
+  .fcard-toggle:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+  .fcard-toggle svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .fcard-toggle .i-play {
+    fill: currentColor;
+  }
+  .fcard-toggle .i-pause,
+  .fcard-toggle[aria-pressed='true'] .i-play {
+    display: none;
+  }
+  .fcard-toggle[aria-pressed='true'] .i-pause {
+    display: block;
+  }
+
+  @media (max-width: 900px) {
+    .fcard {
+      grid-template-columns: 1fr;
+    }
+    .fcard-media {
+      order: -1;
+    }
+    .fcard-tilt {
+      aspect-ratio: 1 / 1.12;
+    }
+    .flow-note {
+      max-width: 16em;
+    }
+    .flow-rows li {
+      grid-template-columns: 11em minmax(0, 1fr) 8.5em;
+      gap: 6px;
+    }
+    .flow {
+      font-size: 0.64rem;
+      padding-bottom: 60px;
+    }
+    .fcard-actions .btn {
+      flex: 1 1 100%;
+    }
+  }
+</style>

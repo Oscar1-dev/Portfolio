@@ -6,6 +6,7 @@ import Hero from '../components/Hero.astro';
 import ScrollStatement from '../components/ScrollStatement.astro';
 import KushSpotlight from '../components/KushSpotlight.astro';
 import FeatureProject from '../components/FeatureProject.astro';
+import FlowCard from '../components/FlowCard.astro';
 import Experience from '../components/Experience.astro';
 import CyberSummary from '../components/CyberSummary.astro';
 import Capabilities from '../components/Capabilities.astro';
@@ -37,22 +38,15 @@ const base = import.meta.env.BASE_URL;
   </div>
 
   <section id="projects" class="sec wrap" aria-labelledby="lead-title" data-spy-section="projects">
-    <SceneMedia
-      name="projects-tray"
-      title="Parts tray"
-      fig="Fig. 02"
-      caption={`Parts tray. ${all.length} machined components, one for each project on this site.`}
-      alt="A dark tray holding fourteen different machined parts, among them a gear, a bearing, a lens and a small circuit board, each lifting slightly out of its pocket."
-      class="sec-plate"
-    />
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">02</span><span class="seam-line"></span><span class="seam-t mono">Projects</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">02 · Projects</p>
-        <h2 id="lead-title" class="sec-title" data-split data-reveal>Things I've<br /><span class="foil">built properly.</span></h2>
+                <h2 id="lead-title" class="sec-title" data-split data-reveal>Projects I can show you working</h2>
       </div>
       <a class="link-arrow" href={`${base}projects/`}>All {all.length} projects <span class="arr" aria-hidden="true">→</span></a>
     </div>
-    {lead.map((project, i) => <FeatureProject project={project} index={String(i + 1).padStart(2, '0')} flip={i % 2 === 1} />)}
+    <FlowCard project={lead[0]} />
+    {lead.slice(1).map((project, i) => <FeatureProject project={project} index={String(i + 2).padStart(2, '0')} flip={i % 2 === 0} />)}
   </section>
 
   <section id="experience" class="sec wrap" aria-labelledby="experience-title" data-spy-section="experience">
