@@ -223,7 +223,7 @@ const humanise = (key: string) => key.replace(/_/g, ' ').replace(/^\w/, (c) => c
   .case-cover img {
     width: 100%;
     border-radius: 18px;
-    border: 1px solid rgb(255 255 255 / 0.12);
+    border: 1px solid rgb(var(--fg-rgb) / 0.12);
     box-shadow: var(--shadow-deep);
   }
   .case-block {
@@ -245,7 +245,7 @@ const humanise = (key: string) => key.replace(/_/g, ' ').replace(/^\w/, (c) => c
     background: var(--glass-bg);
     -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
     backdrop-filter: blur(var(--glass-blur)) saturate(1.3);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.08);
+    box-shadow: inset 0 1px 0 rgb(var(--fg-rgb) / 0.08);
   }
   .stack {
     margin: 0;

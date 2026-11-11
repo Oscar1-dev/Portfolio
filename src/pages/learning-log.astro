@@ -31,8 +31,20 @@ for (const e of entries) {
 const periods = [...byPeriod.keys()];
 ---
 
-<Layout title="Learning Log" description="A chronological log of real project milestones, built from each project's own timeline data.">
-  <PageIntro index="05" label="Timeline" title="Learning" accent="log." scene="archive">
+<Layout title="Development journal" description="A dated development journal of real project milestones, built from each project's own timeline data.">
+  <PageIntro
+    index="04"
+    label="Journal"
+    title="Development"
+    accent="journal."
+    film={{
+      name: 'experience-rail',
+      title: 'Rail',
+      fig: 'Fig. 03',
+      caption: 'Rail. Stations along a graduated track, in the order they were reached.',
+      alt: 'A long graduated metal rail seen from a low angle with three machined blocks standing on it.',
+    }}
+  >
     <p>This page collects {entries.length} dated milestones from the timelines of {projects.length} projects. Open a project to see the context behind an entry.</p>
   </PageIntro>
 

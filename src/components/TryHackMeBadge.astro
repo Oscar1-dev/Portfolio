@@ -56,17 +56,18 @@ const { title, description, rarity, rarityPercent, image } = Astro.props;
   }
 
   .badge-epic {
-    border-color: #a855f7;
+    border-color: var(--text);
   }
   .badge-epic .badge-rarity {
-    color: #a855f7;
+    color: var(--text);
+    font-weight: 600;
   }
 
   .badge-rare {
-    border-color: #3b82f6;
+    border-color: var(--accent);
   }
   .badge-rare .badge-rarity {
-    color: #3b82f6;
+    color: var(--accent);
   }
 
   .badge-common {

@@ -1,264 +1,289 @@
 ---
-// Top navigation. Same links drive the desktop bar and the mobile menu.
+// Top navigation. The same link list drives the desktop bar, the mobile menu
+// and the command palette (data/nav.ts).
+import Mark from './Mark.astro';
+import { navLinks } from '../data/nav';
 const base = import.meta.env.BASE_URL;
-const links = [
-  { href: `${base}projects/`, label: 'Work', n: '01' },
-  { href: `${base}projects/kush/`, label: 'KUSH', n: '02' },
-  { href: `${base}#experience`, label: 'Experience', n: '03' },
-  { href: `${base}credentials/`, label: 'Security', n: '04' },
-  { href: `${base}learning-log/`, label: 'Log', n: '05' },
-  { href: `${base}about/`, label: 'About', n: '06' },
-];
+const links = navLinks(base);
 ---
 
 <header class="site-header" data-site-header transition:persist>
   <div class="site-header-inner glass" data-glass>
-    <a class="brand" href={base} aria-label="Oscar Senior, home">
-      <span class="brand-mark" aria-hidden="true">
-        <svg viewBox="0 0 32 32">
-          <path class="mark-main" d="M7 24V8l18 16V8"></path>
-          <path class="mark-cut" d="M11 12.2 21 21M21 11v5.8"></path>
-        </svg>
-      </span>
+    <a class="brand" href={base}>
+      <span class="brand-mark"><Mark size={34} animate /></span>
       <span class="brand-name">
         <b>Oscar Senior</b>
-        <span>Nops</span>
+        <span>a.k.a. Nops</span>
       </span>
+      <span class="sr-only">, home</span>
     </a>
     <nav class="nav" aria-label="Main">
-      {links.map((l) => <a data-nav href={l.href}><span class="nav-n">{l.n}</span>{l.label}</a>)}
+      <ul>
+        {links.map((l) => <li><a data-nav data-spy={l.spy} href={l.href}>{l.label}</a></li>)}
+      </ul>
     </nav>
-    <span class="header-progress" aria-hidden="true"></span>
     <div class="header-end">
-      <a class="header-gh" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer" aria-label="GitHub (opens in a new tab)">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 .5a11.5 11.5 0 0 0-3.64 22.4c.58.11.79-.25.79-.56v-2c-3.2.7-3.88-1.37-3.88-1.37-.53-1.33-1.28-1.69-1.28-1.69-1.05-.72.08-.7.08-.7 1.16.08 1.77 1.19 1.77 1.19 1.03 1.77 2.7 1.26 3.36.96.1-.75.4-1.26.73-1.55-2.55-.29-5.24-1.28-5.24-5.69 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11 11 0 0 1 5.78 0c2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.42-2.7 5.39-5.26 5.68.41.36.78 1.06.78 2.14v3.17c0 .31.21.68.8.56A11.5 11.5 0 0 0 12 .5Z"></path></svg>
-      </a>
-      <button class="menu-toggle" data-menu-toggle aria-expanded="false" aria-controls="site-menu">
+      <button class="hbtn hbtn-find" type="button" data-palette-open aria-haspopup="dialog" aria-keyshortcuts="Control+K Meta+K">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m20 20-4.2-4.2"></path></svg>
+        <span class="hbtn-text">Find</span>
+        <kbd aria-hidden="true">Ctrl K</kbd>
+        <span class="sr-only">anything on this site (opens the command palette)</span>
+      </button>
+      <button class="hbtn" type="button" data-theme-toggle aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path class="i-moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"></path>
+          <g class="i-sun"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.700l1.800-1.800"></path></g>
+        </svg>
+        <span class="sr-only">Light theme</span>
+      </button>
+      <button class="hbtn" type="button" data-motion-toggle aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <g class="i-motion"><path d="M3 12h4M3 7h7M3 17h7"></path><circle cx="16" cy="12" r="5"></circle></g>
+          <g class="i-still"><circle cx="12" cy="12" r="8"></circle><path d="M10 9v6M14 9v6"></path></g>
+        </svg>
+        <span class="sr-only">Reduce motion</span>
+      </button>
+      <button class="hbtn menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="site-menu">
         <span class="sr-only">Menu</span>
         <i></i><i></i>
       </button>
     </div>
   </div>
-  <div class="menu glass-strong" id="site-menu" data-menu data-open="false">
-    <nav aria-label="Main (mobile)">
-      {links.map((l, i) => <a data-nav href={l.href} style={`--i:${i}`}><span class="nav-n">{l.n}</span><span class="display">{l.label}</span></a>)}
+  <div class="menu" id="site-menu" data-menu data-open="false">
+    <nav aria-label="Main (menu)">
+      <ul>
+        <li><a data-nav href={base} style="--i:0"><span class="nav-n" aria-hidden="true">00</span><span class="display">Home</span></a></li>
+        {
+          links.map((l, i) => (
+            <li>
+              <a data-nav data-spy={l.spy} href={l.href} style={`--i:${i + 1}`}>
+                <span class="nav-n" aria-hidden="true">{String(i + 1).padStart(2, '0')}</span>
+                <span class="display">{l.label}</span>
+              </a>
+            </li>
+          ))
+        }
+      </ul>
     </nav>
-    <p class="meta">nopsrust@gmail.com · github.com/Oscar1-dev</p>
+    <div class="menu-prefs">
+      <button class="btn btn-outline" type="button" data-theme-toggle aria-pressed="false"><span data-label>Dark theme</span><span class="sr-only">. Switch theme</span></button>
+      <button class="btn btn-outline" type="button" data-motion-toggle aria-pressed="false"><span data-label>Full motion</span><span class="sr-only">. Switch motion mode</span></button>
+    </div>
   </div>
+  <p class="sr-only" role="status" aria-live="polite" data-prefs-live></p>
 </header>
 
 <style>
   .site-header {
     position: fixed;
-    inset: 14px 0 auto;
+    inset: 12px 0 auto;
     z-index: 60;
     display: flex;
     justify-content: center;
-    padding-inline: 14px;
+    padding-inline: 12px;
     pointer-events: none;
   }
   .site-header-inner {
     pointer-events: auto;
-    width: min(100%, 1240px);
-    height: 58px;
+    width: min(100%, 1280px);
+    min-height: 62px;
     display: flex;
     align-items: center;
-    gap: 28px;
-    padding: 0 10px 0 14px;
-    border-radius: 999px;
-    --glass-bg: rgb(16 15 22 / 0.32);
-    transition:
-      height var(--t) var(--ease),
-      width var(--t-slow) var(--ease),
-      background var(--t) var(--ease);
-  }
-  .site-header:global(.is-condensed) .site-header-inner {
-    height: 52px;
-    width: min(100%, 1120px);
-    --glass-bg: rgb(14 13 20 / 0.62);
-  }
-  /* Reading progress: a hairline along the pill's bottom edge in the
-     scene's current colours. */
-  .header-progress {
-    position: absolute;
-    left: 26px;
-    right: 26px;
-    bottom: 0;
-    height: 1.5px;
-    border-radius: 2px;
-    background: linear-gradient(90deg, rgb(var(--scene-a)), rgb(var(--scene-b)), rgb(var(--scene-c)));
-    transform-origin: left;
-    transform: scaleX(var(--page-p, 0));
-    opacity: 0.9;
-    pointer-events: none;
+    gap: clamp(12px, 2vw, 28px);
+    padding: 7px 8px 7px 14px;
+    border-radius: 18px;
+    transition: background var(--t) var(--ease), box-shadow var(--t) var(--ease);
   }
   .brand {
     display: flex;
     align-items: center;
     gap: 12px;
+    min-height: var(--tap);
+    padding-right: 6px;
+    border-radius: 12px;
   }
   .brand-mark {
-    position: relative;
-    display: grid;
-    place-items: center;
-    width: 34px;
-    height: 34px;
-    border-radius: 50%;
-    background: var(--foil);
-    background-size: 220% 100%;
-    overflow: hidden;
-    transition: background-position 1.2s var(--ease), transform 500ms var(--ease), box-shadow 500ms var(--ease);
+    color: var(--text);
+    transition: rotate 900ms var(--ease);
   }
-  .brand:hover .brand-mark {
-    background-position: 100% 0;
-    transform: rotate(-4deg) scale(1.04);
-    box-shadow: 0 0 0 1px rgb(var(--scene-c) / 0.34), 0 8px 24px rgb(0 0 0 / 0.3);
-  }
-  .brand-mark svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: var(--accent-ink);
-    stroke-width: 2.35;
-    stroke-linejoin: round;
-    stroke-linecap: round;
-  }
-  .brand-mark .mark-cut {
-    stroke-width: 1.15;
-    opacity: 0.48;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .brand:hover .brand-mark { transform: none; }
+  /* The mark has half-turn symmetry: a 180° spin lands on itself. */
+  :global(.motion-ok) .brand:hover .brand-mark,
+  :global(.motion-ok) .brand:focus-visible .brand-mark {
+    rotate: 180deg;
   }
   .brand-name {
     display: flex;
     flex-direction: column;
-    line-height: 1.15;
+    line-height: 1.2;
   }
   .brand-name b {
     font-family: var(--font-display);
-    font-variation-settings: 'wdth' 120;
+    font-variation-settings: 'wdth' 118;
     font-weight: 800;
-    font-size: 13px;
+    font-size: 0.86rem;
     letter-spacing: 0.04em;
     text-transform: uppercase;
   }
   .brand-name span {
     font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.16em;
-    text-transform: uppercase;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
     color: var(--text-3);
   }
   .nav {
+    margin-left: auto;
+  }
+  .nav ul,
+  .menu ul {
     display: flex;
     gap: 2px;
-    margin-left: auto;
+    margin: 0;
+    padding: 0;
+    list-style: none;
   }
   .nav a {
     position: relative;
     display: flex;
-    align-items: baseline;
-    gap: 6px;
-    padding: 9px 14px;
-    border-radius: 999px;
-    font-size: 14px;
+    align-items: center;
+    min-height: var(--tap);
+    padding: 0 14px;
+    border-radius: 12px;
+    font-size: 0.93rem;
     font-weight: 500;
     color: var(--text-2);
-    transition:
-      color var(--t-fast),
-      background var(--t) var(--ease);
+    transition: color var(--t-fast), background var(--t) var(--ease);
   }
   .nav a:hover {
     color: var(--text);
-    background: rgb(255 255 255 / 0.05);
+    background: rgb(var(--fg-rgb) / 0.07);
   }
-  /* The current page: a lit pill with a foil hairline. */
-  .nav a[aria-current='page'] {
-    color: var(--text);
-    background: rgb(255 255 255 / 0.09);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.12);
-  }
-  .nav a[aria-current='page']::after {
+  /* Current page or section: weight, colour and a bar, never colour alone. */
+  .nav a::after {
     content: '';
     position: absolute;
-    left: 30%;
-    right: 30%;
-    bottom: 3px;
+    left: 14px;
+    right: 14px;
+    bottom: 8px;
     height: 2px;
     border-radius: 2px;
-    background: var(--foil);
+    background: currentColor;
+    scale: 0 1;
+    transform-origin: left;
+    transition: scale var(--t) var(--ease);
   }
-  .nav-n {
-    font-family: var(--font-mono);
-    font-size: 9.5px;
-    color: var(--text-3);
+  .nav a[aria-current] {
+    color: var(--text-strong);
+    font-weight: 650;
+  }
+  .nav a[aria-current]::after {
+    scale: 1 1;
   }
   .header-end {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
   }
-  .header-gh {
-    display: grid;
-    place-items: center;
-    width: 38px;
-    height: 38px;
-    border-radius: 50%;
+  .hbtn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-width: var(--tap);
+    height: var(--tap);
+    padding: 0 12px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: transparent;
     color: var(--text-2);
-    transition:
-      color var(--t-fast),
-      background var(--t-fast);
+    font-size: 0.9rem;
+    transition: color var(--t-fast), background var(--t-fast), border-color var(--t-fast);
   }
-  .header-gh:hover {
+  .hbtn:hover {
     color: var(--text);
-    background: rgb(255 255 255 / 0.08);
+    background: rgb(var(--fg-rgb) / 0.08);
   }
-  .header-gh svg {
-    width: 19px;
-    height: 19px;
+  .hbtn svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hbtn-find {
+    border-color: var(--line-3);
+    padding-inline: 12px 8px;
+  }
+  .hbtn kbd {
+    padding: 3px 7px;
+    border: 1px solid var(--line-2);
+    border-radius: 6px;
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    color: var(--text-2);
+  }
+  /* Toggle icons show the mode you are in. */
+  .i-sun,
+  .i-still {
+    display: none;
+  }
+  [data-theme-toggle][aria-pressed='true'] .i-sun,
+  [data-motion-toggle][aria-pressed='true'] .i-still {
+    display: block;
+  }
+  [data-theme-toggle][aria-pressed='true'] .i-moon,
+  [data-motion-toggle][aria-pressed='true'] .i-motion {
+    display: none;
+  }
+  .hbtn[aria-pressed='true'] {
+    color: var(--text);
+    border-color: var(--line-3);
   }
   .menu-toggle {
     display: none;
-    position: relative;
-    width: 40px;
-    height: 40px;
-    border: 1px solid rgb(255 255 255 / 0.16);
-    border-radius: 50%;
-    background: rgb(255 255 255 / 0.05);
+    border-color: var(--line-3);
   }
   .menu-toggle i {
     position: absolute;
-    left: 12px;
-    right: 12px;
-    height: 1.6px;
+    left: 14px;
+    right: 14px;
+    height: 2px;
     background: var(--text);
-    transition:
-      transform var(--t) var(--ease),
-      top var(--t) var(--ease);
+    transition: transform var(--t) var(--ease), top var(--t) var(--ease);
   }
   .menu-toggle i:first-of-type {
-    top: 15px;
+    top: 18px;
   }
   .menu-toggle i:last-of-type {
-    top: 23px;
+    top: 27px;
   }
   .menu-toggle[aria-expanded='true'] i:first-of-type {
-    top: 19px;
+    top: 22.5px;
     transform: rotate(45deg);
   }
   .menu-toggle[aria-expanded='true'] i:last-of-type {
-    top: 19px;
+    top: 22.5px;
     transform: rotate(-45deg);
   }
   .menu {
     display: none;
   }
-  @media (max-width: 960px) {
+  @media (max-width: 1180px) {
+    .hbtn-text,
+    .hbtn kbd {
+      display: none;
+    }
+    .hbtn-find {
+      padding-inline: 12px;
+    }
+  }
+  @media (max-width: 1020px) {
     .site-header-inner {
       width: 100%;
       min-width: 0;
-      gap: 12px;
+      gap: 8px;
     }
     .nav {
       display: none;
@@ -266,8 +291,12 @@ const links = [
     .header-end {
       margin-left: auto;
     }
+    .header-end > [data-theme-toggle],
+    .header-end > [data-motion-toggle] {
+      display: none;
+    }
     .menu-toggle {
-      display: block;
+      display: inline-flex;
     }
     .menu {
       pointer-events: auto;
@@ -277,52 +306,65 @@ const links = [
       display: flex;
       flex-direction: column;
       justify-content: space-between;
-      padding: 100px var(--gutter) 34px;
-      background: rgb(8 8 12 / 0.72);
-      -webkit-backdrop-filter: blur(28px) saturate(1.4);
-      backdrop-filter: blur(28px) saturate(1.4);
-      clip-path: circle(0% at calc(100% - 40px) 40px);
+      gap: 24px;
+      padding: 104px var(--gutter) 28px;
+      overflow-y: auto;
+      background: var(--ink-0);
+      clip-path: inset(0 0 100% 0);
       visibility: hidden;
-      transition:
-        clip-path 800ms var(--ease),
-        visibility 0s linear 800ms;
+      transition: clip-path 700ms var(--ease), visibility 0s linear 700ms;
     }
     .menu[data-open='true'] {
-      clip-path: circle(150% at calc(100% - 40px) 40px);
+      clip-path: inset(0);
       visibility: visible;
-      transition:
-        clip-path 900ms var(--ease),
-        visibility 0s;
+      transition: clip-path 800ms var(--ease), visibility 0s;
     }
-    .menu nav {
-      display: flex;
+    .menu ul {
       flex-direction: column;
+      gap: 0;
     }
     .menu a {
       display: flex;
       align-items: baseline;
       gap: 14px;
+      min-height: var(--tap);
       padding: 12px 0;
-      border-bottom: 1px solid var(--line);
+      border-bottom: 1px solid var(--line-2);
       opacity: 0;
-      translate: 0 24px;
-      transition:
-        opacity 600ms var(--ease),
-        translate 800ms var(--ease);
+      translate: 0 20px;
+      transition: opacity 500ms var(--ease), translate 700ms var(--ease);
     }
     .menu[data-open='true'] a {
       opacity: 1;
       translate: none;
-      transition-delay: calc(120ms + var(--i) * 55ms);
+      transition-delay: calc(100ms + var(--i) * 45ms);
     }
     .menu a .display {
-      font-size: clamp(2.2rem, 11vw, 3.6rem);
+      font-size: clamp(1.9rem, 9vw, 3.2rem);
     }
-    .menu a[aria-current='page'] .display {
-      background: var(--foil);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
+    .nav-n {
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--text-3);
+    }
+    .menu a[aria-current] .display {
+      text-decoration: underline;
+      text-decoration-thickness: 3px;
+      text-underline-offset: 6px;
+    }
+    .menu-prefs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+    .menu-prefs .btn {
+      flex: 1 1 160px;
+      border-color: var(--line-3);
+    }
+  }
+  @media (max-width: 420px) {
+    .brand-name span {
+      display: none;
     }
   }
 </style>

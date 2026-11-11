@@ -33,7 +33,7 @@ export default defineConfig({
   prefetch: { prefetchAll: false, defaultStrategy: 'hover' },
   markdown: {
     syntaxHighlight: 'shiki',
-    shikiConfig: { theme: 'github-dark' },
+    shikiConfig: { theme: 'github-dark-default' },
     rehypePlugins: [markOfflineLinks()],
   },
 });

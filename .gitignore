@@ -28,3 +28,11 @@ pnpm-debug.log*
 
 # Separate repositories that live alongside the portfolio on this PC
 ALL PROJECTS/
+
+# Blender frame output and backups (final encodes live in public/media)
+media-src/render/
+*.blend1
+
+
+# QA output
+tests/out/

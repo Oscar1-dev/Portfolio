@@ -13,7 +13,19 @@ const statuses = [...new Set(projects.map((p) => p.data.status))];
 ---
 
 <Layout title="Projects" description={`All ${projects.length} of Oscar Senior's projects: KUSH, NOPS / Cyber Intelligence, MINDHOUSE, FEEDBACK and the full archive, each described from its own source.`}>
-  <PageIntro index="01" label="Work" title="Every" accent="project." scene="work">
+  <PageIntro
+    index="01"
+    label="Projects"
+    title="Every"
+    accent="project."
+    film={{
+      name: 'projects-tray',
+      title: 'Parts tray',
+      fig: 'Fig. 02',
+      caption: `Parts tray. ${projects.length} components, one for each project below.`,
+      alt: 'A dark tray holding fourteen different machined parts, each lifting slightly out of its pocket.',
+    }}
+  >
     <p>
       All {projects.length} projects in one place. Descriptions are based on the code and project notes I still have. If a repository
       is private or was attached to my old NopsFR GitHub account, the project page says so.
@@ -36,6 +48,7 @@ const statuses = [...new Set(projects.map((p) => p.data.status))];
       </div>
       <p class="meta" aria-live="polite" data-archive-count>{projects.length} projects</p>
     </div>
+    <h2 class="sr-only">All projects</h2>
     <ArchiveRows projects={projects} filterable />
   </section>
 </Layout>
@@ -97,7 +110,7 @@ const statuses = [...new Set(projects.map((p) => p.data.status))];
     gap: 12px 18px;
     padding: 16px 0;
     margin-bottom: 8px;
-    background: rgb(6 6 8 / 0.92);
+    background: var(--glass-bg-strong);
     backdrop-filter: blur(10px);
   }
   .search {

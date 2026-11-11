@@ -1,4 +1,5 @@
-// Scroll engine: Lenis smooth scrolling plus a tiny progress system.
+// Scroll progress for foreground content. Native scrolling only: nothing
+// here changes how the page scrolls.
 //
 // Elements with [data-progress] get a CSS custom property --p (0 → 1) every
 // frame, and CSS does the rest (transforms, opacity, clip). Two modes:
@@ -6,9 +7,8 @@
 //                         viewport, 1 when it leaves the top
 //   data-progress="pin"   for a tall container holding a position:sticky
 //                         child: 0 when it pins, 1 when it releases
-// This engine is foreground-only. The WebGL atmosphere does not subscribe to
-// it and receives no scroll position, velocity or section state.
-import Lenis from 'lenis';
+// Foreground only. Background media never subscribes to this: the rendered
+// scene loops play on their own clock (scripts/media.ts).
 
 type Mode = 'pass' | 'pin';
 interface Target {
@@ -19,7 +19,6 @@ interface Target {
   height: number;
 }
 
-let lenis: Lenis | null = null;
 let frame = 0;
 let targets: Target[] = [];
 let geometryFrame = 0;
@@ -62,13 +61,14 @@ function measure(y: number) {
   }
 }
 
-function tick(time: number) {
-  lenis?.raf(time);
-  const y = lenis ? lenis.scroll : window.scrollY;
-  const max = document.documentElement.scrollHeight - window.innerHeight;
-  document.documentElement.style.setProperty('--page-p', max > 0 ? (y / max).toFixed(4) : '0');
-  measure(y);
-  frame = requestAnimationFrame(tick);
+let queued = false;
+function onScroll() {
+  if (queued) return;
+  queued = true;
+  frame = requestAnimationFrame(() => {
+    queued = false;
+    measure(window.scrollY);
+  });
 }
 
 export function mountScroll(): void {
@@ -89,26 +89,25 @@ export function mountScroll(): void {
     return;
   }
   delete document.documentElement.dataset.static;
+  if (!targets.length) return;
   cacheGeometry();
-  lenis = new Lenis({ lerp: 0.105, smoothWheel: true, wheelMultiplier: 1, anchors: { offset: -80 } });
+  measure(window.scrollY);
+  window.addEventListener('scroll', onScroll, { passive: true });
   window.addEventListener('resize', scheduleGeometry, { passive: true });
-  geometryObserver = new ResizeObserver(scheduleGeometry);
+  geometryObserver = new ResizeObserver(() => {
+    scheduleGeometry();
+    onScroll();
+  });
   geometryObserver.observe(document.body);
-  frame = requestAnimationFrame(tick);
 }
 
 export function destroyScroll(): void {
   cancelAnimationFrame(frame);
-  lenis?.destroy();
-  lenis = null;
+  queued = false;
+  window.removeEventListener('scroll', onScroll);
   window.removeEventListener('resize', scheduleGeometry);
   geometryObserver?.disconnect();
   geometryObserver = null;
   cancelAnimationFrame(geometryFrame);
   targets = [];
-}
-
-/** Scroll to the top on page change (Lenis keeps its own position). */
-export function resetScroll(): void {
-  lenis?.scrollTo(0, { immediate: true });
 }

@@ -1,31 +1,44 @@
 ---
+// Inner-page opener. With `film`, the page's rendered scene plays beside the
+// title as a framed plate; without it the intro is type only.
+import SceneMedia from './SceneMedia.astro';
 interface Props {
   index: string;
   label: string;
   title: string;
   accent?: string;
   scene?: string;
+  film?: { name: string; title: string; fig: string; caption: string; alt: string };
 }
-const { index, label, title, accent, scene = 'page' } = Astro.props;
+const { index, label, title, accent, film } = Astro.props;
 ---
 
-<header class="intro wrap" data-scene={scene}>
-  <p class="intro-meta"><span class="mono">{index}</span><span class="meta">{label}</span></p>
-  <h1 class="display intro-title" data-split data-reveal>
-    {title}
-    {accent ? <span class="foil foil-live">{accent}</span> : null}
-  </h1>
-  <div class="intro-body lede" data-reveal>
-    <slot />
+<header class:list={['intro', 'wrap', { 'intro-film': film }]}>
+  <div class="intro-copy">
+    <p class="intro-meta"><span class="mono">{index}</span><span class="meta">{label}</span></p>
+    <h1 class="display intro-title" data-split data-reveal>
+      {title}
+      {accent ? <span class="foil foil-live">{accent}</span> : null}
+    </h1>
+    <div class="intro-body lede" data-reveal>
+      <slot />
+    </div>
   </div>
+  {film && <SceneMedia name={film.name} title={film.title} fig={film.fig} caption={film.caption} alt={film.alt} ratio="4 / 3" priority class="intro-plate" />}
 </header>
 
 <style>
   .intro {
     padding-top: calc(var(--header-h) + clamp(3rem, 8vw, 7rem));
     padding-bottom: clamp(2.5rem, 5vw, 4rem);
-    border-bottom: 1px solid var(--line);
+    border-bottom: 1px solid var(--line-2);
     margin-bottom: clamp(2rem, 4vw, 3rem);
+  }
+  .intro-film {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.82fr);
+    align-items: end;
+    gap: clamp(1.5rem, 4vw, 4rem);
   }
   .intro-meta {
     display: flex;
@@ -33,17 +46,25 @@ const { index, label, title, accent, scene = 'page' } = Astro.props;
     margin: 0 0 20px;
   }
   .intro-meta .mono {
-    font-size: 11px;
-    color: var(--sig-magenta);
+    font-size: 0.75rem;
+    color: var(--accent);
   }
   .intro-title {
     margin: 0 0 28px;
-    font-size: clamp(3rem, 9vw, 8.5rem);
+    font-size: clamp(2.8rem, 9vw, 8.5rem);
+  }
+  .intro-film .intro-title {
+    font-size: clamp(2.8rem, 6.6vw, 6.4rem);
   }
   .intro-title span {
     display: block;
   }
   .intro-body :global(p) {
     margin: 0;
+  }
+  @media (max-width: 900px) {
+    .intro-film {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

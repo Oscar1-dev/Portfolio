@@ -1,0 +1,201 @@
+---
+// A rendered Blender scene: poster image + silent looping video, with a
+// pause/play control. Sources live in public/media/ (see media-src/README.md).
+// The frame is always dark, in both themes, like a photograph on paper.
+interface Props {
+  /** File base in public/media, e.g. "security-layers". */
+  name: string;
+  /** What the picture shows, for people who can't see it. Empty = decorative. */
+  alt?: string;
+  /** Short name used in the control's label, e.g. "Layers". */
+  title: string;
+  fig?: string;
+  caption?: string;
+  /** Above the fold: load the poster eagerly. */
+  priority?: boolean;
+  /** Fill the parent instead of keeping an aspect ratio (hero). */
+  fill?: boolean;
+  ratio?: string;
+  /** CSS object-position for the crop, e.g. "70% 50%". */
+  focus?: string;
+  class?: string;
+}
+const { name, alt = '', title, fig, caption, priority = false, fill = false, ratio = '21 / 9', focus = '50% 50%', class: cls } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const file = `${base}media/${name}`;
+---
+
+<figure class:list={['scene-media', 'theme-dark', { 'scene-fill': fill }, cls]} data-scene-media data-reveal={fill ? undefined : 'plate'} data-title={title} style={`--ratio:${ratio};--focus:${focus}`}>
+  <div class="sm-frame">
+    <img
+      class="sm-poster"
+      src={`${file}.webp`}
+      srcset={`${file}-sm.webp 800w, ${file}.webp 1600w`}
+      sizes={fill ? '100vw' : '(max-width: 1400px) 100vw, 1360px'}
+      alt={alt}
+      width="1600"
+      height="900"
+      loading={priority ? 'eager' : 'lazy'}
+      fetchpriority={priority ? 'high' : 'auto'}
+      decoding={priority ? 'sync' : 'async'}
+    />
+    <video muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" disablepictureinpicture data-base={file} data-small="true"></video>
+    <span class="sm-ticks" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+    <button class="sm-toggle" type="button" data-scene-toggle aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path class="i-pause" d="M8 5v14M16 5v14"></path>
+        <path class="i-play" d="M8 5l11 7-11 7z"></path>
+      </svg>
+      <span class="sr-only" data-label>Pause animation: {title}</span>
+    </button>
+  </div>
+  {
+    (fig || caption) && (
+      <figcaption class="sm-caption">
+        {fig && <span class="mono">{fig}</span>}
+        {caption && <span>{caption}</span>}
+      </figcaption>
+    )
+  }
+</figure>
+
+<style>
+  .scene-media {
+    margin: 0;
+  }
+  .sm-frame {
+    position: relative;
+    aspect-ratio: var(--ratio);
+    overflow: hidden;
+    border-radius: var(--radius-s);
+    background: var(--plate);
+    box-shadow: 0 0 0 1px rgb(var(--fg-rgb) / 0.1);
+    isolation: isolate;
+  }
+  .scene-fill,
+  .scene-fill .sm-frame {
+    position: absolute;
+    inset: 0;
+    aspect-ratio: auto;
+    border-radius: 0;
+    box-shadow: none;
+    /* no stacking context: the pause button must sit above the page copy */
+    isolation: auto;
+  }
+  .scene-fill .sm-toggle {
+    z-index: 5;
+  }
+  .sm-poster,
+  video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: var(--focus);
+  }
+  video {
+    opacity: 0;
+    transition: opacity 900ms var(--ease);
+  }
+  .is-playing video {
+    opacity: 1;
+  }
+  /* Registration ticks in the corners: the frame reads as a plate. */
+  .sm-ticks i {
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    pointer-events: none;
+  }
+  .sm-ticks i:nth-child(1) { top: 12px; left: 12px; border-right: 0; border-bottom: 0; }
+  .sm-ticks i:nth-child(2) { top: 12px; right: 12px; border-left: 0; border-bottom: 0; }
+  .sm-ticks i:nth-child(3) { bottom: 12px; left: 12px; border-right: 0; border-top: 0; }
+  .sm-ticks i:nth-child(4) { bottom: 12px; right: 12px; border-left: 0; border-top: 0; }
+  .scene-fill .sm-ticks {
+    display: none;
+  }
+  .sm-toggle {
+    position: absolute;
+    right: 18px;
+    bottom: 18px;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    border-radius: 50%;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    background: rgb(8 9 11 / 0.72);
+    color: #fff;
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    transition: background var(--t-fast), border-color var(--t-fast), scale var(--t) var(--ease);
+  }
+  .sm-toggle:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+  .sm-toggle:hover {
+    background: rgb(8 9 11 / 0.92);
+    border-color: #fff;
+    scale: 1.06;
+  }
+  .sm-toggle svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .i-play {
+    display: none;
+    fill: currentColor;
+  }
+  .is-stopped .i-play {
+    display: block;
+  }
+  .is-stopped .i-pause {
+    display: none;
+  }
+  .sm-caption {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin-top: 12px;
+    font-size: var(--text-sm);
+    color: var(--text-2);
+  }
+  /* The caption sits on the page, so it takes the page's theme. */
+  :global([data-theme='light']) .sm-caption {
+    color: #33373d;
+  }
+  :global([data-theme='light']) .sm-caption .mono {
+    color: #2f5068;
+  }
+  .sm-caption .mono {
+    font-size: var(--text-xs);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--accent);
+    padding-top: 0.12em;
+  }
+  @media (max-width: 760px) {
+    .sm-frame {
+      aspect-ratio: 4 / 3;
+    }
+    .scene-fill .sm-frame {
+      aspect-ratio: auto;
+    }
+  }
+  @media (forced-colors: active) {
+    .sm-toggle {
+      background: ButtonFace;
+      color: ButtonText;
+      border-color: ButtonText;
+    }
+  }
+</style>

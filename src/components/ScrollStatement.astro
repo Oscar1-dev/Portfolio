@@ -9,7 +9,8 @@ const words = text.split(' ');
 <section class="statement" data-progress="pin" data-scene="statement" aria-label="How I work">
   <div class="statement-frame wrap">
     <p class="sec-index">How I work</p>
-    <p class="statement-text display" aria-label={text}>
+    <p class="statement-text display">
+      <span class="sr-only">{text}</span>
       {
         words.map((w, i) => (
           <span class:list={['sw', { hl: /building|real|understand/.test(w) }]} style={`--wi:${(i / words.length).toFixed(3)}`} aria-hidden="true">
@@ -82,7 +83,7 @@ const words = text.split(' ');
   .statement-bio {
     margin: 0;
     max-width: 56ch;
-    color: rgb(255 255 255 / 0.74);
+    color: rgb(var(--fg-rgb) / 0.74);
     line-height: 1.65;
   }
   @media (max-width: 640px) {

@@ -1,0 +1,334 @@
+---
+// Command palette: Ctrl/Cmd + K, or the "Find" button in the header.
+// A native <dialog> (focus trap, Esc and backdrop for free) holding a
+// combobox over a listbox. It complements the normal navigation; every
+// destination here is also reachable without it.
+import { getCollection } from 'astro:content';
+import { navLinks } from '../data/nav';
+import { byOrder } from '../data/links';
+const base = import.meta.env.BASE_URL;
+const projects = (await getCollection('projects')).sort(byOrder);
+
+interface Item {
+  group: string;
+  label: string;
+  hint: string;
+  href?: string;
+  action?: string;
+  external?: boolean;
+  keys: string;
+}
+const items: Item[] = [
+  { group: 'Go to', label: 'Home', hint: 'Start of the site', href: base, keys: 'home start index' },
+  ...navLinks(base).map((l) => ({ group: 'Go to', label: l.label, hint: l.hint, href: l.href, keys: `${l.label} ${l.hint}` })),
+  ...projects.map((p) => ({
+    group: 'Projects',
+    label: p.data.title,
+    hint: `${p.data.projectType} · ${p.data.year}`,
+    href: `${base}projects/${p.slug}/`,
+    keys: `${p.data.title} ${p.data.projectType} ${p.data.tagline ?? ''} ${Object.values(p.data.technologies).flat().join(' ')}`,
+  })),
+  { group: 'Preferences', label: 'Switch theme', hint: 'Dark or light', action: 'theme', keys: 'theme dark light colour color appearance' },
+  { group: 'Preferences', label: 'Switch motion mode', hint: 'Full or reduced', action: 'motion', keys: 'motion animation reduce pause accessibility video' },
+  { group: 'Contact', label: 'Email Oscar', hint: 'nopsrust@gmail.com', href: 'mailto:nopsrust@gmail.com', keys: 'email mail contact hire' },
+  { group: 'Contact', label: 'GitHub', hint: 'github.com/Oscar1-dev (opens in a new tab)', href: 'https://github.com/Oscar1-dev', external: true, keys: 'github code source repositories' },
+  { group: 'Contact', label: 'TryHackMe', hint: 'tryhackme.com/p/Oscar.Senior (opens in a new tab)', href: 'https://tryhackme.com/p/Oscar.Senior', external: true, keys: 'tryhackme thm security rooms' },
+];
+---
+
+<dialog class="palette" data-palette aria-label="Command palette" transition:persist="palette">
+  <div class="palette-box">
+    <div class="palette-field">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"></circle><path d="m20 20-4.2-4.2"></path></svg>
+      <label class="sr-only" for="palette-input">Search pages, projects and settings</label>
+      <input
+        id="palette-input"
+        type="text"
+        role="combobox"
+        aria-expanded="true"
+        aria-controls="palette-list"
+        aria-autocomplete="list"
+        autocomplete="off"
+        spellcheck="false"
+        placeholder="Search pages, projects, settings…"
+      />
+      <button class="palette-close" type="button" data-palette-close><span aria-hidden="true">Esc</span><span class="sr-only">Close</span></button>
+    </div>
+    <ul id="palette-list" role="listbox" aria-label="Results">
+      {
+        items.map((it, i) => (
+          <li role="option" id={`palette-opt-${i}`} aria-selected="false" data-keys={it.keys.toLowerCase()} data-group={it.group} data-href={it.href} data-action={it.action} data-external={it.external ? 'true' : undefined}>
+            <span class="opt-group">{it.group}</span>
+            <span class="opt-label">{it.label}</span>
+            <span class="opt-hint">{it.hint}</span>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="palette-empty" data-palette-empty hidden>Nothing matches that. Try a project name or a technology, such as "Rust".</p>
+    <p class="palette-help" aria-hidden="true"><kbd>↑</kbd><kbd>↓</kbd> move <kbd>Enter</kbd> open <kbd>Esc</kbd> close</p>
+    <p class="sr-only" role="status" aria-live="polite" data-palette-status></p>
+  </div>
+</dialog>
+
+<script>
+  import { navigate } from 'astro:transitions/client';
+  import { motion, setMotion, setTheme, theme } from '../scripts/prefs';
+
+  let wired = false;
+  const wire = () => {
+    const dialog = document.querySelector<HTMLDialogElement>('[data-palette]');
+    if (!dialog || wired) return;
+    wired = true;
+    const input = dialog.querySelector<HTMLInputElement>('input')!;
+    const options = [...dialog.querySelectorAll<HTMLLIElement>('[role="option"]')];
+    const empty = dialog.querySelector<HTMLElement>('[data-palette-empty]')!;
+    const status = dialog.querySelector<HTMLElement>('[data-palette-status]')!;
+    let active = -1;
+    let opener: HTMLElement | null = null;
+
+    const shown = () => options.filter((o) => !o.hidden);
+    const select = (el: HTMLLIElement | undefined) => {
+      options.forEach((o) => o.setAttribute('aria-selected', String(o === el)));
+      if (el) {
+        input.setAttribute('aria-activedescendant', el.id);
+        el.scrollIntoView({ block: 'nearest' });
+      } else input.removeAttribute('aria-activedescendant');
+      active = el ? shown().indexOf(el) : -1;
+    };
+    const filter = () => {
+      const words = input.value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+      let lastGroup = '';
+      for (const o of options) {
+        o.hidden = !words.every((w) => o.dataset.keys!.includes(w));
+        // Show the group name on the first visible row of each group only.
+        if (!o.hidden) {
+          o.classList.toggle('opt-first', o.dataset.group !== lastGroup);
+          lastGroup = o.dataset.group!;
+        }
+      }
+      const list = shown();
+      empty.hidden = list.length > 0;
+      status.textContent = list.length ? `${list.length} result${list.length === 1 ? '' : 's'}` : 'No results';
+      select(list[0]);
+    };
+    const run = (o: HTMLLIElement) => {
+      dialog.close();
+      if (o.dataset.action === 'theme') return setTheme(theme() === 'light' ? 'dark' : 'light');
+      if (o.dataset.action === 'motion') return setMotion(motion() === 'full' ? 'reduced' : 'full');
+      const href = o.dataset.href!;
+      if (o.dataset.external) window.open(href, '_blank', 'noopener');
+      else if (href.startsWith('mailto:')) location.href = href;
+      else navigate(href);
+    };
+    const open = () => {
+      if (dialog.open) return;
+      opener = document.activeElement as HTMLElement;
+      input.value = '';
+      filter();
+      dialog.showModal();
+      input.focus();
+    };
+
+    input.addEventListener('input', filter);
+    input.addEventListener('keydown', (e) => {
+      const list = shown();
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!list.length) return;
+        select(list[(active + (e.key === 'ArrowDown' ? 1 : -1) + list.length) % list.length]);
+      } else if (e.key === 'Home' && list.length) {
+        e.preventDefault();
+        select(list[0]);
+      } else if (e.key === 'End' && list.length) {
+        e.preventDefault();
+        select(list[list.length - 1]);
+      } else if (e.key === 'Enter' && list[active]) {
+        e.preventDefault();
+        run(list[active]);
+      }
+    });
+    dialog.addEventListener('click', (e) => {
+      const t = e.target as HTMLElement;
+      const o = t.closest<HTMLLIElement>('[role="option"]');
+      if (o) run(o);
+      else if (t === dialog || t.closest('[data-palette-close]')) dialog.close();
+    });
+    dialog.addEventListener('close', () => opener?.focus?.());
+    document.addEventListener('click', (e) => (e.target as HTMLElement).closest('[data-palette-open]') && open());
+    document.addEventListener('keydown', (e) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        dialog.open ? dialog.close() : open();
+      }
+    });
+  };
+  document.addEventListener('astro:page-load', wire);
+</script>
+
+<style>
+  .palette {
+    width: min(640px, calc(100vw - 24px));
+    max-height: min(620px, calc(100dvh - 24px));
+    margin: clamp(12px, 12vh, 120px) auto auto;
+    padding: 0;
+    border: 1px solid var(--line-3);
+    border-radius: 16px;
+    background: var(--ink-1);
+    color: var(--text);
+    box-shadow: 0 40px 120px -20px rgb(0 0 0 / 0.7);
+    overflow: hidden;
+  }
+  .palette::backdrop {
+    background: rgb(var(--bg-rgb) / 0.72);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
+  }
+  :global(.motion-ok) .palette[open] {
+    animation: palette-in 320ms var(--ease);
+  }
+  @keyframes palette-in {
+    from {
+      opacity: 0;
+      translate: 0 -12px;
+      scale: 0.98;
+    }
+  }
+  .palette-box {
+    display: flex;
+    flex-direction: column;
+    max-height: inherit;
+  }
+  .palette-field {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 8px 10px 8px 18px;
+    border-bottom: 1px solid var(--line-2);
+  }
+  .palette-field svg {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: var(--text-2);
+    stroke-width: 1.7;
+    stroke-linecap: round;
+  }
+  .palette input {
+    flex: 1;
+    min-width: 0;
+    height: var(--tap);
+    border: 0;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 1.05rem;
+    outline-offset: -2px;
+    border-radius: 8px;
+  }
+  .palette input::placeholder {
+    color: var(--text-3);
+    opacity: 1;
+  }
+  .palette-close {
+    min-width: var(--tap);
+    height: 40px;
+    border: 1px solid var(--line-3);
+    border-radius: 8px;
+    background: none;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    color: var(--text-2);
+  }
+  #palette-list {
+    margin: 0;
+    padding: 8px;
+    list-style: none;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  [role='option'] {
+    display: grid;
+    grid-template-columns: minmax(0, auto) minmax(0, 1fr);
+    align-items: baseline;
+    gap: 2px 14px;
+    min-height: var(--tap);
+    padding: 9px 12px;
+    border-radius: 10px;
+    border: 1px solid transparent;
+    cursor: pointer;
+  }
+  [role='option'][hidden] {
+    display: none;
+  }
+  .opt-group {
+    display: none;
+    grid-column: 1 / -1;
+    margin: 6px 0 4px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--text-3);
+  }
+  .opt-first .opt-group {
+    display: block;
+  }
+  .opt-label {
+    font-weight: 600;
+  }
+  .opt-hint {
+    font-size: var(--text-sm);
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  [role='option']:hover {
+    background: rgb(var(--fg-rgb) / 0.05);
+  }
+  /* Selected row: fill, outline and a marker. */
+  [role='option'][aria-selected='true'] {
+    background: rgb(var(--fg-rgb) / 0.1);
+    border-color: var(--line-3);
+  }
+  [role='option'][aria-selected='true'] .opt-label::before {
+    content: '→ ';
+    color: var(--accent);
+  }
+  .palette-empty {
+    margin: 0;
+    padding: 20px 20px 24px;
+    color: var(--text-2);
+  }
+  .palette-help {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin: 0;
+    padding: 10px 18px;
+    border-top: 1px solid var(--line-2);
+    font-size: 0.78rem;
+    color: var(--text-2);
+  }
+  .palette-help kbd {
+    padding: 2px 6px;
+    border: 1px solid var(--line-2);
+    border-radius: 5px;
+    font-family: var(--font-mono);
+    font-size: 0.72rem;
+  }
+  .palette-help kbd:nth-of-type(3),
+  .palette-help kbd:nth-of-type(4) {
+    margin-left: 10px;
+  }
+  @media (max-width: 560px) {
+    [role='option'] {
+      grid-template-columns: 1fr;
+    }
+    .opt-hint {
+      white-space: normal;
+    }
+  }
+</style>
