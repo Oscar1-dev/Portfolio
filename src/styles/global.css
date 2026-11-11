@@ -730,3 +730,8 @@ body::after {
   opacity: 0;
   translate: 14px 0;
 }
+
+/* KUSH screenshot captions fade with scroll in Full motion; when still, show them fully. */
+:root:not(.motion-ok) .kush figcaption {
+  opacity: 1 !important;
+}

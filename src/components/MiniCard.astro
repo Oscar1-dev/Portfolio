@@ -1,0 +1,419 @@
+---
+// Narrower animated card, used in pairs. Resting state is the project's real
+// screenshot; live state is a small HTML/SVG illustration of how the thing
+// works, built from the project's own write-up and labelled as an illustration.
+// Behaviour (hover, focus, in-view on touch, play button, tilt): scripts/cards.ts.
+import { assetPath } from '../data/asset-path';
+import type { Project } from '../data/links';
+interface Props {
+  project: Project;
+  kind: 'mindhouse' | 'feedback';
+}
+const { project, kind } = Astro.props;
+const { data } = project;
+const base = import.meta.env.BASE_URL;
+const href = `${base}projects/${project.slug}/`;
+const copy = {
+  mindhouse: {
+    lede: 'Five AI agents in one workspace. Jarvis coordinates and decides when to hand a question to one of four specialists, each with its own tools and memory.',
+    stack: ['React 19', 'TypeScript', 'Vite', 'Zustand'],
+    alt: 'The MINDHOUSE interface, showing its agents as rooms.',
+    img: data.cover ?? '/images/projects/mindhouse.png',
+    note: 'Illustration of a delegated question',
+  },
+  feedback: {
+    lede: 'A music and video player for your own files. It runs as a desktop app, works offline, and your phone can control it over the local network.',
+    stack: ['Rust', 'Tauri 2', 'SQLite', 'React 19'],
+    alt: 'The FEEDBACK desktop player.',
+    img: '/images/feedback-cover.png',
+    note: 'Illustration of the phone controller',
+  },
+}[kind];
+const rooms = [
+  ['Mancy', 'Manchester'],
+  ['Null', 'cybersecurity'],
+  ['Atlas', 'global events'],
+  ['Orbit', 'space'],
+];
+---
+
+<article class={`mcard mcard-${kind}`} data-flowcard data-live="false">
+  <div class="mcard-media theme-dark" data-tilt>
+    <div class="mcard-tilt">
+      <img class="mcard-shot" src={assetPath(copy.img)} alt={copy.alt} width="1600" height="900" loading="lazy" decoding="async" />
+      <div class="demo" aria-hidden="true">
+        {
+          kind === 'mindhouse' ? (
+            <div class="mh">
+              <p class="mh-msg">"Is this CVE being exploited?"</p>
+              <div class="mh-core"><b>Jarvis</b><span>coordinator</span></div>
+              <ul class="mh-rooms">
+                {rooms.map(([n, t], i) => (
+                  <li class={n === 'Null' ? 'is-picked' : ''} style={`--r:${i}`}>
+                    <b>{n}</b>
+                    <span>{t}</span>
+                  </li>
+                ))}
+              </ul>
+              <p class="mh-call">consult_specialist → Null</p>
+            </div>
+          ) : (
+            <div class="fb">
+              <div class="fb-phone">
+                <span class="fb-cap">phone</span>
+                <div class="fb-keys"><i>‹‹</i><i class="fb-tap">▶</i><i>››</i></div>
+              </div>
+              <div class="fb-link"><span /><em>local network, no internet</em></div>
+              <div class="fb-desk">
+                <span class="fb-cap">desktop app</span>
+                <div class="fb-track"><b>Now playing</b><span class="fb-bar"><i /></span></div>
+              </div>
+            </div>
+          )
+        }
+        <p class="demo-note">{copy.note}</p>
+      </div>
+    </div>
+    <button class="mcard-toggle" type="button" data-flow-toggle aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-play" d="M8 5l11 7-11 7z"></path><path class="i-pause" d="M8 5v14M16 5v14"></path></svg>
+      <span data-label>Play walk-through</span>
+    </button>
+  </div>
+  <div class="mcard-copy">
+    <p class="mcard-meta"><span class="status" data-status={data.status}>{data.status}</span><span class="meta">{data.projectType} · {data.year}</span></p>
+    <h3 class="mcard-title"><a href={href}>{data.title}</a></h3>
+    <p class="mcard-lede">{copy.lede}</p>
+    <ul class="mcard-stack" aria-label="Main technologies">{copy.stack.map((t) => <li class="tag">{t}</li>)}</ul>
+    <a class="link-arrow" href={href}>Read the {data.title} case study <span class="arr" aria-hidden="true">→</span></a>
+  </div>
+</article>
+
+<style>
+  .mcard {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding: clamp(14px, 1.8vw, 22px);
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
+    background: linear-gradient(160deg, rgb(var(--fg-rgb) / 0.045), rgb(var(--fg-rgb) / 0.012));
+    transition: border-color var(--t) var(--ease), translate var(--t) var(--ease), box-shadow var(--t) var(--ease);
+  }
+  .mcard[data-live='true'] {
+    border-color: var(--line-3);
+    translate: 0 -4px;
+    box-shadow: 0 40px 80px -50px rgb(0 0 0 / 0.8);
+  }
+  .mcard-copy {
+    padding: 0 6px 8px;
+  }
+  .mcard-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 16px;
+    margin: 0 0 10px;
+  }
+  .mcard-title {
+    margin: 0;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 108;
+    font-size: clamp(1.35rem, 2vw, 1.75rem);
+    letter-spacing: -0.02em;
+  }
+  .mcard-title a:hover {
+    text-decoration: underline;
+    text-underline-offset: 5px;
+  }
+  .mcard-lede {
+    margin: 12px 0 16px;
+    max-width: 48ch;
+    color: var(--text-2);
+    line-height: 1.6;
+  }
+  .mcard-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 18px;
+    padding: 0;
+    list-style: none;
+  }
+  .mcard-copy .link-arrow {
+    min-height: 44px;
+  }
+  .mcard-media {
+    --rx: 0deg;
+    --ry: 0deg;
+    position: relative;
+    perspective: 1200px;
+  }
+  .mcard-tilt {
+    position: relative;
+    aspect-ratio: 16 / 10;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0a0b0d;
+    color: #e9e7ee;
+    box-shadow: 0 0 0 1px rgb(255 255 255 / 0.12);
+    transform: rotateX(var(--rx)) rotateY(var(--ry));
+  }
+  .mcard-shot {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 600ms var(--ease), scale 900ms var(--ease), filter 600ms var(--ease);
+  }
+  [data-live='true'] .mcard-shot {
+    opacity: 0.16;
+    scale: 1.05;
+    filter: blur(3px);
+  }
+  .demo {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+    padding: clamp(12px, 2vw, 20px);
+    font-family: var(--font-mono);
+    font-size: clamp(0.62rem, 0.95vw, 0.78rem);
+    opacity: 0;
+    transition: opacity 400ms var(--ease);
+  }
+  [data-live='true'] .demo {
+    opacity: 1;
+  }
+  .demo-note {
+    margin: 0;
+    font-size: 0.68rem;
+    color: #a9a6b3;
+    max-width: 16em;
+  }
+  .demo b {
+    color: #fff;
+    font-weight: 600;
+  }
+  .demo span,
+  .demo em {
+    color: #cdcad3;
+    font-style: normal;
+  }
+  [data-live='true'] .demo :is(.mh-msg, .mh-core, .mh-rooms li, .mh-call, .fb-phone, .fb-desk, .fb-link) {
+    animation: m-in 450ms var(--ease) both;
+  }
+  @keyframes m-in {
+    from {
+      opacity: 0;
+      translate: 0 8px;
+    }
+  }
+
+  /* MINDHOUSE: message → coordinator → one specialist is chosen */
+  .mh {
+    display: grid;
+    align-content: center;
+    justify-items: center;
+    gap: 10px;
+  }
+  .mh-msg {
+    margin: 0;
+    padding: 6px 12px;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: 8px;
+    color: #fff;
+  }
+  .mh-core {
+    display: grid;
+    justify-items: center;
+    padding: 8px 18px;
+    border-radius: 10px;
+    background: #aabfce;
+  }
+  .mh-core b,
+  .mh-core span {
+    color: #080b0d;
+  }
+  .mh-rooms {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .mh-rooms li {
+    display: grid;
+    gap: 2px;
+    padding: 8px 6px;
+    border: 1px solid rgb(255 255 255 / 0.2);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .mh-call {
+    margin: 0;
+    color: #fff;
+  }
+  [data-live='true'] .mh-core { animation-delay: 700ms; }
+  [data-live='true'] .mh-rooms li { animation-delay: calc(1300ms + var(--r) * 120ms); }
+  [data-live='true'] .mh-call { animation-delay: 2500ms; }
+  [data-live='true'] .mh-rooms .is-picked {
+    animation: m-in 450ms var(--ease) calc(1300ms + var(--r) * 120ms) both, m-pick 600ms var(--ease) 2900ms forwards;
+  }
+  @keyframes m-pick {
+    to {
+      border-color: #fff;
+      background: rgb(255 255 255 / 0.14);
+      box-shadow: 0 0 0 2px #fff;
+    }
+  }
+
+  /* FEEDBACK: a tap on the phone travels over the LAN to the desktop player */
+  .fb {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(0, 1.3fr);
+    align-items: center;
+    gap: 10px;
+  }
+  .fb-phone,
+  .fb-desk {
+    display: grid;
+    gap: 8px;
+    padding: 12px;
+    border: 1px solid rgb(255 255 255 / 0.28);
+    border-radius: 12px;
+  }
+  .fb-cap {
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .fb-keys {
+    display: flex;
+    gap: 6px;
+  }
+  .fb-keys i {
+    display: grid;
+    place-items: center;
+    width: 2.2em;
+    height: 2.2em;
+    border: 1px solid rgb(255 255 255 / 0.3);
+    border-radius: 50%;
+    font-style: normal;
+    color: #fff;
+  }
+  .fb-link {
+    display: grid;
+    gap: 6px;
+    text-align: center;
+  }
+  .fb-link span {
+    height: 2px;
+    background: repeating-linear-gradient(90deg, #aabfce 0 6px, transparent 6px 12px);
+    transform-origin: left;
+    scale: 0 1;
+  }
+  .fb-link em {
+    font-size: 0.64rem;
+  }
+  .fb-track {
+    display: grid;
+    gap: 6px;
+  }
+  .fb-bar {
+    height: 4px;
+    border-radius: 2px;
+    background: rgb(255 255 255 / 0.16);
+    overflow: hidden;
+  }
+  .fb-bar i {
+    display: block;
+    height: 100%;
+    background: #fff;
+    scale: 0 1;
+    transform-origin: left;
+  }
+  [data-live='true'] .fb-link { animation-delay: 500ms; }
+  [data-live='true'] .fb-desk { animation-delay: 900ms; }
+  [data-live='true'] .fb-tap {
+    animation: m-tap 500ms var(--ease) 1500ms forwards;
+  }
+  [data-live='true'] .fb-link span {
+    animation: m-grow 700ms var(--ease) 1900ms forwards;
+  }
+  [data-live='true'] .fb-bar i {
+    animation: m-grow 5500ms linear 2700ms forwards;
+  }
+  @keyframes m-tap {
+    50% {
+      scale: 0.86;
+    }
+    to {
+      background: #fff;
+      color: #080b0d;
+    }
+  }
+  @keyframes m-grow {
+    to {
+      scale: 1 1;
+    }
+  }
+  :global(:root:not(.motion-ok)) [data-live='true'] .demo * {
+    animation-delay: 0s !important;
+  }
+
+  .mcard-toggle {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 44px;
+    padding: 0 16px 0 12px;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    border-radius: 99px;
+    background: rgb(8 9 11 / 0.88);
+    color: #fff;
+    font-size: 0.85rem;
+  }
+  .mcard-toggle:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+  .mcard-toggle svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .mcard-toggle .i-play {
+    fill: currentColor;
+  }
+  .mcard-toggle .i-pause,
+  .mcard-toggle[aria-pressed='true'] .i-play {
+    display: none;
+  }
+  .mcard-toggle[aria-pressed='true'] .i-pause {
+    display: block;
+  }
+  @media (max-width: 560px) {
+    .mcard-tilt {
+      aspect-ratio: 1 / 0.95;
+    }
+    .mh-rooms {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .fb {
+      grid-template-columns: 1fr;
+      justify-items: stretch;
+    }
+    .demo {
+      padding-bottom: 60px;
+    }
+  }
+</style>

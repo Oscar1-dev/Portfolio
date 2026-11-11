@@ -103,6 +103,7 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
       import { destroyScroll, mountScroll } from '../scripts/scroll-fx';
       import { mountPrefs } from '../scripts/prefs';
       import { mountMedia } from '../scripts/media';
+      import { mountCards } from '../scripts/cards';
 
       const mountMotion = () => {
         mountSplit();
@@ -117,6 +118,7 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
         mountHeader();
         mountMotion();
         mountMedia();
+        mountCards();
       });
       document.addEventListener('astro:before-swap', () => destroyScroll());
       // Switching motion mode re-settles reveals and progress-driven styles.

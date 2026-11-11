@@ -66,3 +66,20 @@ Per-project film or live preview on project pages, interactive technology map, l
 | Media sources and docs | `media-src/` (`README.md`, `blender/`, `brand/`, `encode.sh`, `render-all.sh`) |
 | Web media output | `public/media/`, `public/brand/`, `public/favicon.*`, `public/og.png` |
 | QA | `tests/qa.mjs` → `tests/out/` (git-ignored) |
+
+---
+
+## Update: direction changed to "interface-led" (approved prototype, then extended)
+
+The Blender film direction above was rejected. Renders are stopped and the films are no longer used on any page. `SceneMedia.astro`, `media.ts`, `media-src/blender/` and `public/media/` are left in the repo but unused; delete or keep as you prefer. Only the mark, favicon, icons and avatar from the brand work are still in use.
+
+Now on the home page:
+- `Hero.astro`: three real project screenshots floating in depth (links), pointer lean, pause control, closes into a stack on scroll.
+- `FlowCard.astro` (NOPS) and `MiniCard.astro` (MINDHOUSE, FEEDBACK): real screenshot at rest, HTML/SVG walk-through on hover, keyboard focus, in view on touch, or the play button. Behaviour in `src/scripts/cards.ts`. The walk-throughs are labelled illustrations.
+- KUSH keeps its existing scroll-linked screenshot sequence (`KushSpotlight.astro`).
+- `.seam` numbered rule between sections, calmer sentence-case headings, one ambient background (`global.css`).
+- Contact is a card, not a film. Inner-page intros are type only.
+
+QA: `npm run qa` passes 75/75 against the dev server (restart `npx astro dev` if styles look stale after large edits).
+
+Still open: Lighthouse / Core Web Vitals not measured; no real screen reader, Firefox, Safari or phone testing; inner pages (project detail, credentials, journal, about) only had their intro restyled; archive rows have no animated media; the three walk-throughs could be replaced by captured footage of the real apps.

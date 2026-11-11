@@ -193,64 +193,54 @@ for (const route of PAGES) {
   await ctx.close();
 }
 
-// ------------------------------------------------------------ 4. theme + motion preferences, video behaviour
+// ------------------------------------------------------------ 4. preferences, hero stage, animated cards
 {
   const { page, ctx } = await open('', { media: [{ name: 'prefers-color-scheme', value: 'dark' }] });
-  await settle(page, 2500);
-  const v0 = await page.evaluate(async () => {
-    const v = document.querySelector('.hero video');
-    const t0 = v.currentTime;
-    await new Promise((r) => setTimeout(r, 1200));
-    return { paused: v.paused, moved: v.currentTime > t0, muted: v.muted, inline: v.playsInline, loop: v.loop, hasAudioAttr: v.hasAttribute('controls'), src: v.currentSrc.split('/').pop(), posterOk: document.querySelector('.hero .sm-poster').naturalWidth > 0, theme: document.documentElement.dataset.theme, motion: document.documentElement.dataset.motion };
-  });
-  check('hero film autoplays: muted, inline, looping, poster present', !v0.paused && v0.moved && v0.muted && v0.inline && v0.loop && v0.posterOk, JSON.stringify(v0));
-  check('default with no saved choice: dark theme, full motion', v0.theme === 'dark' && v0.motion === 'full');
-  const off = await page.evaluate(() => {
-    const vids = [...document.querySelectorAll('[data-scene-media] video')];
-    return vids.map((v) => ({ loaded: !!v.dataset.loaded, paused: v.paused, top: Math.round(v.getBoundingClientRect().top) }));
-  });
-  check('off-screen films are neither loaded nor playing', off.filter((v) => v.top > 1400).every((v) => !v.loaded && v.paused), JSON.stringify(off));
-  await page.click('.hero [data-scene-toggle]');
-  await settle(page, 300);
-  const p = await page.evaluate(() => ({ paused: document.querySelector('.hero video').paused, pressed: document.querySelector('.hero [data-scene-toggle]').getAttribute('aria-pressed'), label: document.querySelector('.hero [data-scene-toggle] [data-label]').textContent }));
-  check('pause control stops the hero film and relabels itself', p.paused && p.pressed === 'true' && /^Play/.test(p.label), JSON.stringify(p));
-  // Motion toggle → reduced, persisted across reload
+  await settle(page, 1500);
+  const h = await page.evaluate(() => ({ links: document.querySelectorAll('.stage a').length, imgs: [...document.querySelectorAll('.stage img')].every((i) => i.naturalWidth > 0), paused: document.querySelector('[data-stage]').dataset.paused, theme: document.documentElement.dataset.theme, motion: document.documentElement.dataset.motion }));
+  check('hero stage: three project links with loaded screenshots, moving by default', h.links === 3 && h.imgs && h.paused === 'false', JSON.stringify(h));
+  check('default with no saved choice: dark theme, full motion', h.theme === 'dark' && h.motion === 'full');
+  await page.click('[data-stage-toggle]');
+  const p = await page.evaluate(() => ({ paused: document.querySelector('[data-stage]').dataset.paused, pressed: document.querySelector('[data-stage-toggle]').getAttribute('aria-pressed'), label: document.querySelector('[data-stage-toggle] [data-label]').textContent, anim: getComputedStyle(document.querySelector('.win a')).animationName }));
+  check('hero pause control stops the stage and relabels itself', p.paused === 'true' && p.pressed === 'true' && /^Play/.test(p.label) && p.anim === 'none', JSON.stringify(p));
+  // Animated card: the play button starts the walk-through and says so
+  const cards = await page.evaluate(() => document.querySelectorAll('[data-flowcard]').length);
+  await page.evaluate(() => document.querySelector('[data-flowcard] [data-flow-toggle]').scrollIntoView({ block: 'center' }));
+  await page.mouse.move(2, 2);
+  await page.focus('[data-flowcard] [data-flow-toggle]'); // keyboard focus starts it
+  await settle(page, 600);
+  const c = await page.evaluate(() => ({ live: document.querySelector('[data-flowcard]').dataset.live, pressed: document.querySelector('[data-flow-toggle]').getAttribute('aria-pressed'), label: document.querySelector('[data-flow-toggle] [data-label]').textContent, title: !!document.querySelector('[data-flowcard] h3 a[href]') }));
+  check('animated cards: three present, keyboard focus starts one and its button relabels, title is a real link', cards === 3 && c.live === 'true' && c.pressed === 'true' && /^Pause/.test(c.label) && c.title, JSON.stringify({ cards, ...c }));
   await page.click('.header-end [data-motion-toggle]');
   await settle(page, 300);
   await page.reload({ waitUntil: 'networkidle2' });
-  await settle(page, 1500);
-  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, ok: document.documentElement.classList.contains('motion-ok'), paused: [...document.querySelectorAll('[data-scene-media] video')].every((v) => v.paused), pressed: document.querySelector('.header-end [data-motion-toggle]').getAttribute('aria-pressed'), hidden: [...document.querySelectorAll('[data-reveal]')].filter((el) => getComputedStyle(el).opacity === '0').length }));
-  check('Reduced motion persists; no film plays; no content left hidden', r.motion === 'reduced' && !r.ok && r.paused && r.pressed === 'true' && r.hidden === 0, JSON.stringify(r));
-  await page.click('.hero [data-scene-toggle]');
-  await settle(page, 2000);
-  check('in Reduced motion a film can still be played on purpose', await page.evaluate(() => !document.querySelector('.hero video').paused));
+  await settle(page, 800);
+  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, ok: document.documentElement.classList.contains('motion-ok'), stagePaused: document.querySelector('[data-stage]').dataset.paused, live: [...document.querySelectorAll('[data-flowcard]')].some((x) => x.dataset.live === 'true'), pressed: document.querySelector('.header-end [data-motion-toggle]').getAttribute('aria-pressed'), hidden: [...document.querySelectorAll('[data-reveal]')].filter((el) => getComputedStyle(el).opacity === '0').length }));
+  check('Reduced motion persists; stage still, no card auto-plays, nothing left hidden', r.motion === 'reduced' && !r.ok && r.stagePaused === 'true' && !r.live && r.pressed === 'true' && r.hidden === 0, JSON.stringify(r));
   await page.click('.header-end [data-theme-toggle]');
   await settle(page, 300);
   await page.reload({ waitUntil: 'networkidle2' });
-  const t = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme, bg: getComputedStyle(document.body).backgroundColor, live: document.querySelector('[data-prefs-live]') !== null }));
+  const t = await page.evaluate(() => ({ theme: document.documentElement.dataset.theme, bg: getComputedStyle(document.body).backgroundColor }));
   check('Light theme persists across reload', t.theme === 'light' && t.bg === 'rgb(241, 238, 231)', JSON.stringify(t));
   await ctx.close();
 }
 {
   const { page, ctx } = await open('', { media: [{ name: 'prefers-reduced-motion', value: 'reduce' }, { name: 'prefers-color-scheme', value: 'light' }] });
-  await settle(page, 1200);
-  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, theme: document.documentElement.dataset.theme, paused: [...document.querySelectorAll('[data-scene-media] video')].every((v) => v.paused) }));
-  check('OS reduced-motion and light-scheme settings are honoured by default', r.motion === 'reduced' && r.theme === 'light' && r.paused, JSON.stringify(r));
+  await settle(page, 800);
+  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, theme: document.documentElement.dataset.theme, stage: document.querySelector('[data-stage]').dataset.paused }));
+  check('OS reduced-motion and light-scheme settings are honoured by default', r.motion === 'reduced' && r.theme === 'light' && r.stage === 'true', JSON.stringify(r));
   if (SHOTS) await page.screenshot({ path: path.join(OUT, 'os-reduced-light.png') });
   await ctx.close();
 }
 {
-  // Media failure: block every video; the posters must still carry the page.
+  // No JavaScript: the content must still be there and readable.
   const ctx = await browser.createBrowserContext();
   const page = await ctx.newPage();
+  await page.setJavaScriptEnabled(false);
   await page.setViewport({ width: 1440, height: 900 });
-  await page.setRequestInterception(true);
-  page.on('request', (q) => (/\.(webm|mp4)(\?|$)/.test(q.url()) ? q.abort() : q.continue()));
   await page.goto(BASE, { waitUntil: 'networkidle2' });
-  await settle(page, 1500);
-  const r = await page.evaluate(() => ({ poster: document.querySelector('.hero .sm-poster').naturalWidth > 0, playing: document.querySelector('.hero [data-scene-media]').classList.contains('is-playing'), h1: !!document.querySelector('h1').offsetHeight }));
-  check('with video blocked the poster and content still show', r.poster && !r.playing && r.h1, JSON.stringify(r));
-  if (SHOTS) await page.screenshot({ path: path.join(OUT, 'video-blocked.png') });
+  const r = await page.evaluate(() => ({ h1: document.querySelector('h1')?.offsetHeight > 0, hidden: [...document.querySelectorAll('[data-reveal], [data-hero-in]')].filter((el) => getComputedStyle(el).opacity === '0').length, cards: document.querySelectorAll('[data-flowcard] h3 a').length }));
+  check('without JavaScript the hero, cards and sections are visible', r.h1 && r.hidden === 0 && r.cards === 3, JSON.stringify(r));
   await ctx.close();
 }
 {
@@ -258,7 +248,7 @@ for (const route of PAGES) {
   await walk(page);
   const r = await page.evaluate(() => {
     const clips = [...document.querySelectorAll('.clip video, [data-clip] video')];
-    return { clips: clips.length, allMuted: clips.every((v) => v.muted), withSrc: clips.filter((v) => v.currentSrc || v.querySelector('source') || v.dataset.src).length };
+    return { clips: clips.length, allMuted: clips.every((v) => v.muted) };
   });
   check('About: all 33 credited clips are present and start muted', r.clips === 33 && r.allMuted, JSON.stringify(r));
   await ctx.close();

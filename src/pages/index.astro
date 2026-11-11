@@ -5,13 +5,12 @@ import Layout from '../layouts/Layout.astro';
 import Hero from '../components/Hero.astro';
 import ScrollStatement from '../components/ScrollStatement.astro';
 import KushSpotlight from '../components/KushSpotlight.astro';
-import FeatureProject from '../components/FeatureProject.astro';
 import FlowCard from '../components/FlowCard.astro';
+import MiniCard from '../components/MiniCard.astro';
 import Experience from '../components/Experience.astro';
 import CyberSummary from '../components/CyberSummary.astro';
 import Capabilities from '../components/Capabilities.astro';
 import ArchiveRows from '../components/ArchiveRows.astro';
-import SceneMedia from '../components/SceneMedia.astro';
 import Mark from '../components/Mark.astro';
 import tryhackme from '../data/tryhackme.json';
 import { byOrder } from '../data/links';
@@ -46,22 +45,17 @@ const base = import.meta.env.BASE_URL;
       <a class="link-arrow" href={`${base}projects/`}>All {all.length} projects <span class="arr" aria-hidden="true">→</span></a>
     </div>
     <FlowCard project={lead[0]} />
-    {lead.slice(1).map((project, i) => <FeatureProject project={project} index={String(i + 2).padStart(2, '0')} flip={i % 2 === 0} />)}
+    <div class="pair">
+      <MiniCard project={lead[1]} kind="mindhouse" />
+      <MiniCard project={lead[2]} kind="feedback" />
+    </div>
   </section>
 
   <section id="experience" class="sec wrap" aria-labelledby="experience-title" data-spy-section="experience">
-    <SceneMedia
-      name="experience-rail"
-      title="Rail"
-      fig="Fig. 03"
-      caption="Rail. Three stations on a graduated track: the three things I'm doing right now."
-      alt="A long graduated metal rail seen from a low angle, with three different machined blocks standing on it and the focus moving from one to the next."
-      class="sec-plate"
-    />
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">03</span><span class="seam-line"></span><span class="seam-t mono">Experience</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">03 · Experience</p>
-        <h2 id="experience-title" class="sec-title" data-split data-reveal>Where I<br /><span class="foil">work now.</span></h2>
+        <h2 id="experience-title" class="sec-title" data-split data-reveal>What I'm doing now</h2>
       </div>
       <span class="meta">Three current roles</span>
     </div>
@@ -69,18 +63,10 @@ const base = import.meta.env.BASE_URL;
   </section>
 
   <section id="security" class="sec wrap" aria-labelledby="security-title" data-spy-section="security">
-    <SceneMedia
-      name="security-layers"
-      title="Layers"
-      fig="Fig. 04"
-      caption="Layers. A probe gets through each plate only when its aperture lines up. The last plate has no aperture, so it stops there."
-      alt="A beam of light passing through holes in a row of six rotating metal discs and stopping at a seventh, solid disc, where a red ring lights up."
-      class="sec-plate"
-    />
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">04</span><span class="seam-line"></span><span class="seam-t mono">Cybersecurity</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">04 · Cybersecurity</p>
-        <h2 id="security-title" class="sec-title" data-split data-reveal>Security in<br /><span class="foil">practice.</span></h2>
+        <h2 id="security-title" class="sec-title" data-split data-reveal>Security, in practice and in code</h2>
       </div>
       <a class="link-arrow" href={`${base}credentials/`}>Security record <span class="arr" aria-hidden="true">→</span></a>
     </div>
@@ -88,10 +74,10 @@ const base = import.meta.env.BASE_URL;
   </section>
 
   <section class="sec wrap" aria-labelledby="archive-title">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">05</span><span class="seam-line"></span><span class="seam-t mono">Archive</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">05 · Archive</p>
-        <h2 id="archive-title" class="sec-title" data-split data-reveal>More things<br /><span class="foil">I've built.</span></h2>
+                <h2 id="archive-title" class="sec-title" data-split data-reveal>Everything else I've built</h2>
       </div>
       <a class="link-arrow" href={`${base}projects/`}>Browse every project <span class="arr" aria-hidden="true">→</span></a>
     </div>
@@ -99,133 +85,92 @@ const base = import.meta.env.BASE_URL;
   </section>
 
   <section class="sec wrap" aria-labelledby="stack-title">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">06</span><span class="seam-line"></span><span class="seam-t mono">Stack</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">06 · Stack</p>
-        <h2 id="stack-title" class="sec-title" data-split data-reveal>Tools I've<br /><span class="foil">actually used.</span></h2>
+                <h2 id="stack-title" class="sec-title" data-split data-reveal>Tools I've actually used</h2>
       </div>
       <span class="meta">Every line links to the project it comes from</span>
     </div>
     <Capabilities />
   </section>
 
-  <section id="contact" class="contact theme-dark" aria-labelledby="contact-title" data-spy-section="contact">
-    <SceneMedia name="contact-gate" title="Gate" fill focus="12% 60%" />
-    <div class="contact-scrim" aria-hidden="true"></div>
-    <div class="wrap contact-inner">
-      <p class="sec-index">07 · Contact</p>
-      <h2 id="contact-title" class="display contact-title" data-split data-reveal>The door's<br /><span class="foil">open.</span></h2>
-      <p class="lede contact-lede" data-reveal>
-        I'm looking for a cybersecurity or IT apprenticeship, or a junior technical role. If that's you, or you want to talk about security or
-        something I've built, email is the quickest way to reach me.
-      </p>
-      <a class="contact-mail" href="mailto:nopsrust@gmail.com" data-reveal>
-        <Mark size={40} />
-        <span>nopsrust@gmail.com</span>
-      </a>
-      <div class="contact-links" data-reveal>
-        <a class="btn btn-primary" href="mailto:nopsrust@gmail.com">Email me</a>
-        <a class="btn btn-glass" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span><span class="sr-only">(opens in a new tab)</span></a>
-        <a class="btn btn-glass" href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe <span aria-hidden="true">↗</span><span class="sr-only">(opens in a new tab)</span></a>
+  <section id="contact" class="sec wrap contact" aria-labelledby="contact-title" data-spy-section="contact">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">07</span><span class="seam-line"></span><span class="seam-t mono">Contact</span></div>
+    <div class="contact-card">
+      <div>
+        <h2 id="contact-title" class="sec-title" data-split data-reveal>Get in touch</h2>
+        <p class="lede contact-lede" data-reveal>
+          I'm looking for a cybersecurity or IT apprenticeship, or a junior technical role. Email is the quickest way to reach me, and I'm happy
+          to talk through anything on this site.
+        </p>
       </div>
-      <p class="contact-fig mono" aria-hidden="true">Fig. 05 — Gate · original render · 6 s loop</p>
+      <div class="contact-side" data-reveal>
+        <a class="contact-mail" href="mailto:nopsrust@gmail.com"><Mark size={36} /><span>nopsrust@gmail.com</span></a>
+        <div class="contact-links">
+          <a class="btn btn-primary" href="mailto:nopsrust@gmail.com">Email me</a>
+          <a class="btn btn-outline" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span><span class="sr-only">(opens in a new tab)</span></a>
+          <a class="btn btn-outline" href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe <span aria-hidden="true">↗</span><span class="sr-only">(opens in a new tab)</span></a>
+        </div>
+      </div>
     </div>
   </section>
 </Layout>
 
 <style>
-  .sec :global(.sec-plate) {
-    margin-bottom: clamp(2.5rem, 5vw, 4.5rem);
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 28px);
+    margin-top: clamp(16px, 2vw, 28px);
   }
-  .contact {
-    position: relative;
-    min-height: min(100svh, 900px);
-    display: flex;
-    align-items: flex-end;
-    overflow: hidden;
-    background: #050606;
-    color: var(--text);
-    isolation: isolate;
-  }
-  .contact-scrim {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
-    pointer-events: none;
+  .contact-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: end;
+    padding: clamp(22px, 3.4vw, 48px);
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
     background:
-      linear-gradient(90deg, rgb(5 6 6 / 0.94) 0%, rgb(5 6 6 / 0.82) 40%, rgb(5 6 6 / 0.1) 66%),
-      linear-gradient(0deg, rgb(5 6 6 / 0.85) 0%, transparent 40%);
-  }
-  .contact-inner {
-    position: relative;
-    z-index: 2;
-    padding-block: clamp(6rem, 12vw, 10rem) clamp(4rem, 8vw, 6rem);
-  }
-  .contact-title {
-    margin: 0 0 24px;
-    font-size: clamp(2.8rem, 8vw, 7.4rem);
-    color: #fff;
+      radial-gradient(60% 120% at 100% 0%, rgb(var(--scene-c) / 0.16), transparent 70%),
+      linear-gradient(140deg, rgb(var(--fg-rgb) / 0.05), rgb(var(--fg-rgb) / 0.012));
   }
   .contact-lede {
-    max-width: 50ch;
-    margin: 0 0 30px;
-    color: #e6e3ea;
+    margin: 16px 0 0;
   }
   .contact-mail {
     display: inline-flex;
     align-items: center;
-    gap: 16px;
+    gap: 14px;
     min-height: var(--tap);
-    margin-bottom: 26px;
+    margin-bottom: 20px;
     font-family: var(--font-display);
-    font-variation-settings: 'wdth' 112;
     font-weight: 700;
-    font-size: clamp(1.25rem, 3.4vw, 2.4rem);
+    font-size: clamp(1.15rem, 2.2vw, 1.7rem);
     letter-spacing: -0.02em;
-    color: #fff;
     overflow-wrap: anywhere;
   }
   .contact-mail span {
     text-decoration: underline;
     text-decoration-thickness: 2px;
-    text-underline-offset: 8px;
-    text-decoration-color: rgb(255 255 255 / 0.5);
-    transition: text-decoration-color var(--t-fast);
-  }
-  .contact-mail:hover span {
-    text-decoration-color: #fff;
-  }
-  :global(.motion-ok) .contact-mail :global(.mark) {
-    transition: rotate 900ms var(--ease);
-  }
-  :global(.motion-ok) .contact-mail:hover :global(.mark) {
-    rotate: 180deg;
+    text-underline-offset: 6px;
   }
   .contact-links {
     display: flex;
     flex-wrap: wrap;
     gap: 12px;
   }
-  .contact-fig {
-    margin: 40px 0 0;
-    font-size: 0.72rem;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #c9c6d0;
+  .contact-links .btn-outline {
+    border-color: var(--line-3);
   }
-  .contact :global(.sm-toggle) {
-    right: var(--gutter);
-    bottom: 18px;
-  }
-  @media (max-width: 760px) {
-    .contact-scrim {
-      background: linear-gradient(0deg, rgb(5 6 6 / 0.95) 0%, rgb(5 6 6 / 0.78) 55%, rgb(5 6 6 / 0.3) 100%);
+  @media (max-width: 860px) {
+    .pair,
+    .contact-card {
+      grid-template-columns: 1fr;
     }
     .contact-links .btn {
       flex: 1 1 100%;
-    }
-    .contact-fig {
-      display: none;
     }
   }
 </style>
