@@ -27,19 +27,6 @@ body {
   overflow-x: clip;
   transition: background-color 500ms var(--ease), color 500ms var(--ease);
 }
-/* Drafting-paper grain: a fixed, static texture. It never moves with scroll. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgb(var(--fg-rgb) / 0.022) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(var(--fg-rgb) / 0.022) 1px, transparent 1px);
-  background-size: 120px 120px;
-  mask-image: radial-gradient(120% 90% at 70% 0%, #000 20%, transparent 78%);
-}
 img,
 svg,
 video {
@@ -632,8 +619,7 @@ main,
     -webkit-text-fill-color: currentColor;
   }
   .glass::before,
-  .glass::after,
-  body::before {
+  .glass::after {
     display: none;
   }
   :focus-visible {
@@ -734,4 +720,170 @@ body::after {
 /* KUSH screenshot captions fade with scroll in Full motion; when still, show them fully. */
 :root:not(.motion-ok) .kush figcaption {
   opacity: 1 !important;
+}
+
+/* ------------------------------------------------------------ animated field (scripts/field.ts) */
+.field {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100vw;
+  height: 100vh;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 1200ms var(--ease);
+}
+.field[data-on='true'] {
+  opacity: 1;
+}
+
+/* ------------------------------------------------------------ reading progress */
+/* A hairline under the header that fills as you read. Driven by the browser's
+   scroll timeline, so it is foreground-only and costs no script. */
+.read-progress {
+  position: fixed;
+  inset: 0 0 auto 0;
+  z-index: 70;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent), var(--sig-red));
+  transform-origin: left;
+  scale: 0 1;
+  pointer-events: none;
+}
+@supports (animation-timeline: scroll()) {
+  .motion-ok .read-progress {
+    animation: read-progress linear both;
+    animation-timeline: scroll(root);
+  }
+  @keyframes read-progress {
+    to {
+      scale: 1 1;
+    }
+  }
+}
+
+/* ------------------------------------------------------------ pointer light (scripts/fx.ts) */
+[data-lit],
+.tile a,
+.mcard,
+.fcard,
+.contact-card,
+.badge,
+.role,
+.me-frame {
+  --lx: 50%;
+  --ly: -40%;
+  position: relative;
+}
+:is([data-lit], .tile a, .mcard, .fcard, .contact-card, .badge, .me-frame)::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(340px circle at var(--lx) var(--ly), rgb(var(--scene-c) / 0.16), transparent 60%);
+  opacity: 0;
+  transition: opacity 500ms var(--ease);
+  pointer-events: none;
+  z-index: 1;
+}
+:is([data-lit], .tile a, .mcard, .fcard, .contact-card, .badge, .me-frame):hover::after {
+  opacity: 1;
+}
+.tile a,
+.badge {
+  transition: transform 500ms var(--ease), translate var(--t) var(--ease), box-shadow var(--t) var(--ease);
+  will-change: transform;
+}
+
+/* ------------------------------------------------------------ list and link motion */
+/* Archive rows: a bar wipes in from the left and the title steps aside. */
+.arow {
+  position: relative;
+  transition: background var(--t) var(--ease);
+}
+.arow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: var(--accent);
+  scale: 1 0;
+  transform-origin: top;
+  transition: scale var(--t) var(--ease);
+}
+.arow:hover,
+.arow:focus-within {
+  background: rgb(var(--fg-rgb) / 0.035);
+}
+.arow:hover::before,
+.arow:focus-within::before {
+  scale: 1 1;
+}
+.motion-ok .arow .arow-title {
+  transition: translate var(--t) var(--ease);
+}
+.motion-ok .arow:hover .arow-title,
+.motion-ok .arow:focus-within .arow-title {
+  translate: 10px 0;
+}
+/* Tags and chips lift a touch under the pointer. */
+.motion-ok .tag {
+  transition: translate var(--t-fast) var(--ease), border-color var(--t-fast);
+}
+.motion-ok .tag:hover {
+  translate: 0 -2px;
+  border-color: var(--line-3);
+}
+/* Section titles: an underline draws in once the heading has arrived. */
+.sec-title {
+  position: relative;
+  padding-bottom: 0.28em;
+}
+.sec-title::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 2.2em;
+  height: 3px;
+  background: var(--sig-red);
+  transform-origin: left;
+}
+.motion-ok .sec-title::after {
+  transition: scale 900ms var(--ease) 500ms;
+}
+.motion-ok .sec-title[data-reveal]:not(.is-in)::after {
+  scale: 0 1;
+}
+
+/* ------------------------------------------------------------ scroll-linked foreground */
+/* Media and cards settle into place as they cross the viewport, and release as
+   they leave: reversible, native scrolling, browsers without view timelines
+   simply show them in place. */
+@supports (animation-timeline: view()) {
+  .motion-ok :is(.fcard, .mcard, .contact-card, .record, .me) {
+    animation: settle linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 55%;
+  }
+  @keyframes settle {
+    from {
+      opacity: 0.35;
+      scale: 0.955;
+      translate: 0 46px;
+    }
+  }
+  .motion-ok .rail .period {
+    animation: slide-in linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 60%;
+  }
+  @keyframes slide-in {
+    from {
+      opacity: 0.2;
+      translate: -26px 0;
+    }
+  }
 }

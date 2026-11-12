@@ -7,6 +7,7 @@ import Skills from '../components/Skills.astro';
 import Capabilities from '../components/Capabilities.astro';
 import VideoGallery from '../components/VideoGallery.astro';
 import MusicTaste from '../components/MusicTaste.astro';
+import AvatarCard from '../components/AvatarCard.astro';
 
 const projects = await getCollection('projects');
 const base = import.meta.env.BASE_URL;
@@ -84,14 +85,17 @@ const notes = [
       <span class="meta">Not the CV version</span>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
+    <div class="personal-grid">
+      <AvatarCard />
     <div class="personal-copy" data-reveal>
-      <p>I'm Nops. Nineteen, mostly running on curiosity and a fairly stubborn need to know how things actually work under the hood.</p>
-      <p>If something catches my attention, that's kind of it for me — I'll pull it apart, read too much about it at 1am, break it, fix it, and only really relax once I understand it properly rather than just knowing it works. I don't do "good enough" very well. If I can't see the reasoning behind something, I'll poke at it until I can, and I'd rather figure something out badly on my own than be handed the answer.</p>
-      <p>Most of that energy goes toward computers, Linux, security, and building things — but it's not really about the subject, it's the process. Give me a system and I want to know its edges: what breaks it, what it wasn't designed for, what happens if you do the thing you're not supposed to do. Outside of screens, it's motorcycles (a Hayabusa is the one that lives rent-free in my head), hockey, anime, and going places that actually feel like somewhere rather than a checklist. Snake Pass in the Peak District is the kind of place I mean — I'll take character over a postcard view every time. Sweden's high on the list too, partly for the place, partly because I've got a friend out there.</p>
-      <p>Music is non-negotiable. Alternative, emo, metal, post-hardcore — Avenged Sevenfold, Deftones, Slipknot, My Chemical Romance, Silverstein, that whole world, but I'll happily swing into Paramore or HIM or $uicideboy$ depending on what kind of day it is. Some of it's just good, some of it's tied to specific memories I'm weirdly protective of. My taste in general leans dark and a bit stripped back — black, charcoal, red and magenta lighting, not much clutter. I like spaces and things that feel like mine, not something screenshotted off Pinterest.</p>
-      <p>My sense of humour is probably the most "me" thing about me, and it's a bit unhinged. I find an unreasonable amount of joy in ideas that are completely pointless but committed — the kind of thing where someone asks a normal question and I answer it in the most technically-correct, least-intended way possible. Ask me to bring back a band for one final show and I'm not booking a venue, I'm teleporting them into my bedroom. I enjoy that gap between what a question means and what it actually says, and I live in it more than is probably healthy. I'll also just go along with a stupid idea way further than it deserves, purely because stopping would be boring.</p>
-      <p>I'm not one thing consistently, either. I can go quiet for a while and then not shut up the second you get me on something I care about. I get excited fast and fully, I'm sentimental about specific small stuff — Camp Bestival as a kid, push-up ice creams, songs that pull me straight back to a moment — even if I don't always say that out loud. I care a lot about the people I let in, more than I probably show day to day.</p>
-      <p>I'm not trying to be the most impressive person you've read about today. I just like understanding things, laughing at ideas that don't need to exist, and building stuff because I want to see if I can. That's genuinely most of it — the rest of this site is what I've made. This part's just me.</p>
+        <p>I'm Nops. Nineteen, mostly running on curiosity and a fairly stubborn need to know how things actually work under the hood.</p>
+        <p>If something catches my attention, that's kind of it for me — I'll pull it apart, read too much about it at 1am, break it, fix it, and only really relax once I understand it properly rather than just knowing it works. I don't do "good enough" very well. If I can't see the reasoning behind something, I'll poke at it until I can, and I'd rather figure something out badly on my own than be handed the answer.</p>
+        <p>Most of that energy goes toward computers, Linux, security, and building things — but it's not really about the subject, it's the process. Give me a system and I want to know its edges: what breaks it, what it wasn't designed for, what happens if you do the thing you're not supposed to do. Outside of screens, it's motorcycles (a Hayabusa is the one that lives rent-free in my head), hockey, anime, and going places that actually feel like somewhere rather than a checklist. Snake Pass in the Peak District is the kind of place I mean — I'll take character over a postcard view every time. Sweden's high on the list too, partly for the place, partly because I've got a friend out there.</p>
+        <p>Music is non-negotiable. Alternative, emo, metal, post-hardcore — Avenged Sevenfold, Deftones, Slipknot, My Chemical Romance, Silverstein, that whole world, but I'll happily swing into Paramore or HIM or $uicideboy$ depending on what kind of day it is. Some of it's just good, some of it's tied to specific memories I'm weirdly protective of. My taste in general leans dark and a bit stripped back — black, charcoal, red and magenta lighting, not much clutter. I like spaces and things that feel like mine, not something screenshotted off Pinterest.</p>
+        <p>My sense of humour is probably the most "me" thing about me, and it's a bit unhinged. I find an unreasonable amount of joy in ideas that are completely pointless but committed — the kind of thing where someone asks a normal question and I answer it in the most technically-correct, least-intended way possible. Ask me to bring back a band for one final show and I'm not booking a venue, I'm teleporting them into my bedroom. I enjoy that gap between what a question means and what it actually says, and I live in it more than is probably healthy. I'll also just go along with a stupid idea way further than it deserves, purely because stopping would be boring.</p>
+        <p>I'm not one thing consistently, either. I can go quiet for a while and then not shut up the second you get me on something I care about. I get excited fast and fully, I'm sentimental about specific small stuff — Camp Bestival as a kid, push-up ice creams, songs that pull me straight back to a moment — even if I don't always say that out loud. I care a lot about the people I let in, more than I probably show day to day.</p>
+        <p>I'm not trying to be the most impressive person you've read about today. I just like understanding things, laughing at ideas that don't need to exist, and building stuff because I want to see if I can. That's genuinely most of it — the rest of this site is what I've made. This part's just me.</p>
+      </div>
     </div>
 
     <div class="inspired">
@@ -197,6 +201,24 @@ const notes = [
     }
   }
 
+  .personal-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 340px) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: start;
+  }
+  .personal-grid :global(.me) {
+    position: sticky;
+    top: calc(var(--header-h) + 24px);
+  }
+  @media (max-width: 860px) {
+    .personal-grid {
+      grid-template-columns: 1fr;
+    }
+    .personal-grid :global(.me) {
+      position: static;
+    }
+  }
   .personal-copy {
     display: flex;
     flex-direction: column;

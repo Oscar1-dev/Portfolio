@@ -88,6 +88,8 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
   </head>
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
+    <canvas class="field" data-field aria-hidden="true" transition:persist="field"></canvas>
+    <div class="read-progress" aria-hidden="true"></div>
     <SiteHeader />
     <main id="main" tabindex="-1">
       <slot />
@@ -104,6 +106,8 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
       import { mountPrefs } from '../scripts/prefs';
       import { mountMedia } from '../scripts/media';
       import { mountCards } from '../scripts/cards';
+      import { mountField } from '../scripts/field';
+      import { mountFx } from '../scripts/fx';
 
       const mountMotion = () => {
         mountSplit();
@@ -119,6 +123,8 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
         mountMotion();
         mountMedia();
         mountCards();
+        mountField();
+        mountFx();
       });
       document.addEventListener('astro:before-swap', () => destroyScroll());
       // Switching motion mode re-settles reveals and progress-driven styles.
