@@ -83,7 +83,7 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
     aspect-ratio: 16 / 10;
     overflow: hidden;
     border-radius: 18px;
-    border: 1px solid rgb(255 255 255 / 0.1);
+    border: 1px solid rgb(var(--fg-rgb) / 0.1);
     background: var(--ink-2);
     box-shadow: var(--shadow-deep);
     transform: rotateX(calc((0.5 - var(--p)) * 18deg)) translateY(calc((0.5 - var(--p)) * 60px));
@@ -141,7 +141,7 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
     inset: auto 28px 22px;
     font-size: clamp(2.4rem, 6vw, 5.4rem);
     color: transparent;
-    -webkit-text-stroke: 1px rgb(255 255 255 / 0.3);
+    -webkit-text-stroke: 1px rgb(var(--fg-rgb) / 0.3);
     overflow-wrap: anywhere;
   }
   .feature-scan {
@@ -175,7 +175,7 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
     z-index: -1;
     font-size: clamp(6rem, 14vw, 13rem);
     color: transparent;
-    -webkit-text-stroke: 1px rgb(255 255 255 / 0.12);
+    -webkit-text-stroke: 1px rgb(var(--fg-rgb) / 0.12);
     translate: 0 calc((0.5 - var(--p)) * 120px);
   }
   .feature.flip .feature-index {
@@ -230,7 +230,7 @@ const stack = Object.values(data.technologies).flat().slice(0, 6);
     list-style: none;
   }
   .feature-stack .tag {
-    background: rgb(255 255 255 / 0.04);
+    background: rgb(var(--fg-rgb) / 0.04);
   }
   .feature-actions {
     display: flex;

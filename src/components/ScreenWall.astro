@@ -1,0 +1,123 @@
+---
+// A wall of real project screens for the Projects page: every project that has
+// an image, as a windowed tile that links to its page. Tiles lift on hover and
+// focus; they arrive in a stagger. Image-less projects are in the list below.
+import { assetPath } from '../data/asset-path';
+import type { Project } from '../data/links';
+interface Props {
+  projects: Project[];
+}
+const base = import.meta.env.BASE_URL;
+// 820px-wide copies of the four screenshots (public/images/thumbs), sized for these tiles.
+const extra: Record<string, string> = Object.fromEntries(['kush', 'nops-cyber-intelligence', 'mindhouse', 'feedback'].map((k) => [k, `/images/thumbs/${k}.webp`]));
+const tiles = Astro.props.projects
+  .map((p) => ({ p, img: extra[p.slug] ?? p.data.cover ?? p.data.logo, logo: !p.data.cover && !extra[p.slug] }))
+  .filter((t) => t.img);
+---
+
+<ul class="wall" aria-label="Projects with screenshots">
+  {
+    tiles.map(({ p, img, logo }, i) => (
+      <li class:list={['tile', { wide: !logo && (i === 0 || i === 3), logo }]} data-reveal={i > 2 ? '' : undefined} style={`--reveal-delay:${i * 70}ms`}>
+        <a href={`${base}projects/${p.slug}/`}>
+          <span class="tile-bar" aria-hidden="true"><i /><i /><i /></span>
+          <img src={assetPath(img!)} alt="" loading={i < 3 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} decoding="async" width="1600" height="1000" />
+          <span class="tile-cap">
+            <b>{p.data.title}</b>
+            <span>{p.data.projectType} · {p.data.year}</span>
+          </span>
+        </a>
+      </li>
+    ))
+  }
+</ul>
+
+<style>
+  .wall {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: clamp(12px, 1.6vw, 22px);
+    margin: 0 0 clamp(2.5rem, 5vw, 4rem);
+    padding: 0;
+    list-style: none;
+  }
+  .tile.wide {
+    grid-column: span 2;
+  }
+  .tile a {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #0b0c0e;
+    box-shadow: 0 0 0 1px var(--line-2);
+    transition: translate var(--t) var(--ease), box-shadow var(--t) var(--ease);
+  }
+  .tile a:hover,
+  .tile a:focus-visible {
+    translate: 0 -6px;
+    box-shadow: 0 0 0 2px var(--line-3), 0 30px 60px -30px rgb(0 0 0 / 0.7), 0 0 60px -12px rgb(var(--scene-c) / 0.35);
+  }
+  .tile-bar {
+    display: flex;
+    gap: 5px;
+    padding: 8px 10px;
+    background: #15161a;
+  }
+  .tile-bar i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.25);
+  }
+  .tile img {
+    flex: none;
+    width: 100%;
+    height: clamp(130px, 15vw, 210px);
+    object-fit: cover;
+    object-position: 50% 0;
+    transition: scale 900ms var(--ease);
+  }
+  .tile.logo img {
+    object-fit: contain;
+    padding: 18px;
+    background: #111216;
+  }
+  .tile a:hover img {
+    scale: 1.04;
+  }
+  .tile-cap {
+    display: grid;
+    gap: 2px;
+    padding: 12px 14px 14px;
+    background: #0b0c0e;
+    position: relative;
+  }
+  .tile-cap b {
+    color: #fff;
+    font-family: var(--font-display);
+    font-size: 1rem;
+  }
+  .tile-cap span {
+    font-size: 0.8rem;
+    color: #cdcad3;
+  }
+  @media (max-width: 900px) {
+    .wall {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (max-width: 520px) {
+    .wall {
+      grid-template-columns: 1fr;
+    }
+    .tile.wide {
+      grid-column: auto;
+    }
+    .tile img {
+      height: 170px;
+    }
+  }
+</style>

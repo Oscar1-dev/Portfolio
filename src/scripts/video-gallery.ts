@@ -84,7 +84,7 @@ export function mountVideoGallery(): void {
   if (!clips.length) return;
 
   const byElement = new Map(clips.map((c) => [c.root as Element, c]));
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const reduced = !document.documentElement.classList.contains('motion-ok');
 
   let soundOn = false;
   let volume = DEFAULT_VOLUME;

@@ -9,7 +9,8 @@ const words = text.split(' ');
 <section class="statement" data-progress="pin" data-scene="statement" aria-label="How I work">
   <div class="statement-frame wrap">
     <p class="sec-index">How I work</p>
-    <p class="statement-text display" aria-label={text}>
+    <p class="statement-text display">
+      <span class="sr-only">{text}</span>
       {
         words.map((w, i) => (
           <span class:list={['sw', { hl: /building|real|understand/.test(w) }]} style={`--wi:${(i / words.length).toFixed(3)}`} aria-hidden="true">
@@ -34,7 +35,7 @@ const words = text.split(' ');
     --p: 1;
   }
   :global(.motion-ok) .statement {
-    height: 190vh;
+    height: 150vh;
     --p: 0;
   }
   .statement-frame {
@@ -54,14 +55,18 @@ const words = text.split(' ');
   }
   .statement-text {
     margin: 0;
-    max-width: 18ch;
-    font-size: clamp(2.4rem, 6.4vw, 6.6rem);
-    line-height: 0.98;
-    letter-spacing: -0.035em;
+    max-width: 26ch;
+    font-size: clamp(1.6rem, 3.6vw, 3.2rem);
+    line-height: 1.14;
+    letter-spacing: -0.02em;
+    text-transform: none;
+    font-variation-settings: 'wdth' 106;
+    font-weight: 700;
   }
   /* Each word brightens as scroll progress passes its position in the line. */
   .sw {
-    opacity: clamp(0.12, calc((var(--p) * 1.18 - var(--wi)) * 9), 1);
+    /* unlit words stay readable: 3:1 or better at this size in both themes */
+    opacity: clamp(0.5, calc((var(--p) * 1.18 - var(--wi)) * 9), 1);
     transition: opacity 120ms linear;
   }
   .sw.hl {
@@ -82,7 +87,7 @@ const words = text.split(' ');
   .statement-bio {
     margin: 0;
     max-width: 56ch;
-    color: rgb(255 255 255 / 0.74);
+    color: rgb(var(--fg-rgb) / 0.74);
     line-height: 1.65;
   }
   @media (max-width: 640px) {

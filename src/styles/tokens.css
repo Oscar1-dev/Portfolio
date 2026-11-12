@@ -1,11 +1,18 @@
 /* ==========================================================================
-   ANALYSIS SURFACE — design tokens for Oscar Senior's portfolio.
-   Carbon, phosphor and cold steel: an editorial security/reverse-engineering
-   system rather than a neon "hacker" theme. Technical colour is used as a
-   status signal; the content remains the brightest thing on the page.
+   TEARDOWN — design tokens for Oscar Senior's portfolio.
+   Graphite, machined steel and warm white. Colour is a status signal, never
+   decoration: cold blue-grey for emphasis, one muted red for diagnostics.
+
+   Two themes share every token name:
+     dark  (default)  :root, [data-theme='dark'], .theme-dark
+     light            [data-theme='light']
+   `.theme-dark` re-applies the dark set to a subtree, used for text that sits
+   on rendered media, which is dark in both themes.
    ========================================================================== */
 
-:root {
+:root,
+[data-theme='dark'],
+.theme-dark {
   /* Inks: each step slightly lighter, never a coloured panel. */
   --ink-0: #050606;
   --ink-1: #0b0b0f;
@@ -13,34 +20,99 @@
   --ink-3: #18181f;
   --ink-4: #23232c;
 
-  --line: rgb(255 255 255 / 0.07);
-  --line-2: rgb(255 255 255 / 0.13);
-  --line-3: rgb(255 255 255 / 0.24);
+  /* Foreground as a channel triple, for translucent strokes and washes. */
+  --fg-rgb: 255 255 255;
+  --bg-rgb: 5 6 6;
+  --text-strong: #ffffff;
+
+  --line: rgb(var(--fg-rgb) / 0.09);
+  --line-2: rgb(var(--fg-rgb) / 0.16);
+  /* Control boundaries: at least 3:1 against the page. */
+  --line-3: rgb(var(--fg-rgb) / 0.42);
 
   --text: #f2f0ee;
   --text-2: #cdcad3;
-  --text-3: #95919f;
+  --text-3: #9d99a7;
 
-  /* Restrained signal spectrum. Red is reserved for warnings elsewhere. */
-  --sig-red: #b96d68;
+  --sig-red: #d0817b;
   --sig-magenta: #d8d5ce;
-  --sig-violet: #8198aa;
+  --sig-violet: #8fa6b8;
   --sig-ice: #aabfce;
   --sig-pearl: #ece8df;
-  --foil: linear-gradient(100deg, #ece8df 0%, #aebbc3 38%, #8198aa 68%, #d8d5ce 100%);
+  --foil: linear-gradient(100deg, #ece8df 0%, #aebbc3 38%, #8fa6b8 68%, #d8d5ce 100%);
   --foil-soft: linear-gradient(100deg, rgb(236 232 223 / 0.9), rgb(174 187 195 / 0.9) 44%, rgb(129 152 170 / 0.9));
   --accent: #aabfce;
-  /* Live scene colours (space-separated RGB), written by scene.ts as the
-     3D scene blends between sections. These are the resting values. */
+  --focus: #cfe3f2;
   --scene-a: 67 76 84;
   --scene-b: 174 187 195;
-  --scene-c: 129 152 170;
+  --scene-c: 143 166 184;
   --accent-ink: #080b0d;
 
   --ok: #8fe3b9;
   --warn: #f2d083;
-  --bad: #ff8f8f;
+  --bad: #ff9a9a;
 
+  --glass-bg: rgb(10 11 13 / 0.66);
+  --glass-bg-strong: rgb(8 9 11 / 0.86);
+  --glass-line: rgb(var(--fg-rgb) / 0.1);
+  --shadow-deep: 0 50px 100px -50px rgb(0 0 0 / 0.95);
+  --plate: #08090b; /* the mount behind rendered media */
+
+  color-scheme: dark;
+}
+
+[data-theme='light'] {
+  /* Warm drafting paper with graphite ink; steel-blue for emphasis. */
+  --ink-0: #f1eee7;
+  --ink-1: #ebe7de;
+  --ink-2: #e5e0d5;
+  --ink-3: #dbd5c8;
+  --ink-4: #cbc4b5;
+
+  --fg-rgb: 21 23 26;
+  --bg-rgb: 241 238 231;
+  --text-strong: #0c0d0f;
+
+  --line: rgb(21 23 26 / 0.13);
+  --line-2: rgb(21 23 26 / 0.24);
+  --line-3: rgb(21 23 26 / 0.56);
+
+  --text: #15171a;
+  --text-2: #33373d;
+  --text-3: #555a63;
+
+  --sig-red: #9b3129;
+  --sig-magenta: #2b2e34;
+  --sig-violet: #3f5b72;
+  --sig-ice: #2f5068;
+  --sig-pearl: #15171a;
+  --foil: linear-gradient(100deg, #15171a 0%, #2f5068 40%, #4a6379 70%, #2b2e34 100%);
+  --foil-soft: linear-gradient(100deg, rgb(21 23 26 / 0.9), rgb(47 80 104 / 0.9) 44%, rgb(74 99 121 / 0.9));
+  --accent: #2f5068;
+  --focus: #173a55;
+  --scene-a: 176 181 184;
+  --scene-b: 47 80 104;
+  --scene-c: 63 91 114;
+  --accent-ink: #f6f3ec;
+
+  --ok: #17694a;
+  --warn: #7a5600;
+  --bad: #a3231b;
+
+  --glass-bg: rgb(250 248 243 / 0.78);
+  --glass-bg-strong: rgb(250 248 243 / 0.94);
+  --glass-line: rgb(21 23 26 / 0.14);
+  --shadow-deep: 0 40px 80px -50px rgb(40 34 20 / 0.45);
+  --plate: #0b0c0e;
+
+  color-scheme: light;
+}
+
+/* Aliases are repeated on every theme scope so they resolve against that
+   scope's colours, not the page's. */
+:root,
+[data-theme],
+.theme-dark {
   /* KUSH's own pastel foil, used only inside the KUSH case study. */
   --kush-holo: linear-gradient(100deg, #f6c3ea 0%, #cbbcff 22%, #b4e3ff 44%, #c4f6de 64%, #f4eec0 82%, #f6c3ea 100%);
 
@@ -49,8 +121,8 @@
   --font-body: 'Inter Variable', 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-mono: 'IBM Plex Mono', ui-monospace, 'Cascadia Code', monospace;
 
-  --text-xs: 0.72rem;
-  --text-sm: 0.85rem;
+  --text-xs: 0.78rem;
+  --text-sm: 0.875rem;
   --text-base: 1rem;
   --text-lg: 1.15rem;
   --text-xl: 1.4rem;
@@ -71,9 +143,10 @@
 
   --gutter: clamp(20px, 4.5vw, 72px);
   --content-max: 1360px;
-  --header-h: 68px;
+  --header-h: 76px;
   --radius-s: 4px;
   --radius: 10px;
+  --tap: 48px; /* comfortable target size */
 
   /* Motion: one curve everywhere. */
   --ease: cubic-bezier(0.16, 1, 0.3, 1);
@@ -90,15 +163,8 @@
   --z-dropdown: 40;
   --z-modal: 80;
 
-  /* Glass: frosted surfaces over the 3D environment. */
-  --glass-bg: rgb(8 12 11 / 0.56);
-  --glass-bg-strong: rgb(8 13 11 / 0.74);
-  --glass-line: rgb(255 255 255 / 0.09);
-  --glass-blur: 30px;
-  --glass-radius: 26px;
-  --shadow-deep: 0 50px 100px -50px rgb(0 0 0 / 0.95);
-
-  color-scheme: dark;
+  --glass-blur: 26px;
+  --glass-radius: 22px;
 
   /* ---- Legacy names used by components carried over from v1 ---- */
   --color-bg: var(--ink-0);
@@ -115,15 +181,37 @@
   --color-accent-secondary: var(--sig-violet);
   --color-accent-magenta: var(--sig-magenta);
   --color-accent-danger: var(--sig-red);
-  --color-accent-gold: #f2d083;
+  --color-accent-gold: var(--warn);
   --color-accent-green: var(--ok);
   --color-accent-blue: var(--sig-ice);
   --color-accent-tag: var(--sig-violet);
   --color-tier-core: var(--sig-magenta);
   --color-tier-learning: var(--sig-violet);
   --color-tier-foundation: var(--sig-ice);
-  --page-accent: #aabfce;
-  --page-accent-2: #8198aa;
-  --page-accent-3: #ece8df;
+  --page-accent: var(--accent);
+  --page-accent-2: var(--sig-violet);
+  --page-accent-3: var(--sig-pearl);
   --sidebar-width: 0px;
+}
+
+/* People who ask for more contrast get firmer text and edges. */
+@media (prefers-contrast: more) {
+  :root,
+  [data-theme='dark'],
+  .theme-dark {
+    --text-2: #e9e7ee;
+    --text-3: #cfccd8;
+    --line: rgb(var(--fg-rgb) / 0.3);
+    --line-2: rgb(var(--fg-rgb) / 0.5);
+    --line-3: rgb(var(--fg-rgb) / 0.8);
+    --glass-bg: rgb(6 7 8 / 0.94);
+  }
+  [data-theme='light'] {
+    --text-2: #15171a;
+    --text-3: #2b2e34;
+    --line: rgb(21 23 26 / 0.4);
+    --line-2: rgb(21 23 26 / 0.6);
+    --line-3: rgb(21 23 26 / 0.85);
+    --glass-bg: rgb(250 248 243 / 0.97);
+  }
 }

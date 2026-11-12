@@ -2,14 +2,16 @@
 // src/pages/index.astro
 import { getCollection } from 'astro:content';
 import Layout from '../layouts/Layout.astro';
-import SignalHero from '../components/SignalHero.astro';
+import Hero from '../components/Hero.astro';
 import ScrollStatement from '../components/ScrollStatement.astro';
 import KushSpotlight from '../components/KushSpotlight.astro';
-import FeatureProject from '../components/FeatureProject.astro';
+import FlowCard from '../components/FlowCard.astro';
+import MiniCard from '../components/MiniCard.astro';
 import Experience from '../components/Experience.astro';
 import CyberSummary from '../components/CyberSummary.astro';
 import Capabilities from '../components/Capabilities.astro';
 import ArchiveRows from '../components/ArchiveRows.astro';
+import Mark from '../components/Mark.astro';
 import tryhackme from '../data/tryhackme.json';
 import { byOrder } from '../data/links';
 
@@ -26,7 +28,7 @@ const base = import.meta.env.BASE_URL;
   title="Home"
   description="Oscar Senior (Nops): software engineer and cybersecurity practitioner. Founder and developer of KUSH, Chief Security Officer at Velnqo, builder of NOPS / Cyber Intelligence."
 >
-  <SignalHero projectCount={all.length} rooms={tryhackme.stats.totalRoomsCompleted} badges={tryhackme.stats.totalBadges} />
+  <Hero projectCount={all.length} rooms={tryhackme.stats.totalRoomsCompleted} />
 
   <ScrollStatement />
 
@@ -34,113 +36,141 @@ const base = import.meta.env.BASE_URL;
     <KushSpotlight project={kush} />
   </div>
 
-  <section class="sec wrap" aria-labelledby="lead-title" data-scene="work">
+  <section id="projects" class="sec wrap" aria-labelledby="lead-title" data-spy-section="projects">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">02</span><span class="seam-line"></span><span class="seam-t mono">Projects</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">02 · Selected work</p>
-        <h2 id="lead-title" class="sec-title" data-split data-reveal>Projects I've<br /><span class="foil">worked through.</span></h2>
+                <h2 id="lead-title" class="sec-title" data-split data-reveal>Projects I can show you working</h2>
       </div>
-      <a class="link-arrow" href={`${base}projects/`}>Every project ({all.length}) <span class="arr" aria-hidden="true">→</span></a>
-      <span class="sec-rule" aria-hidden="true"></span>
+      <a class="link-arrow" href={`${base}projects/`}>All {all.length} projects <span class="arr" aria-hidden="true">→</span></a>
     </div>
-    {lead.map((project, i) => <FeatureProject project={project} index={String(i + 1).padStart(2, '0')} flip={i % 2 === 1} />)}
+    <FlowCard project={lead[0]} />
+    <div class="pair">
+      <MiniCard project={lead[1]} kind="mindhouse" />
+      <MiniCard project={lead[2]} kind="feedback" />
+    </div>
   </section>
 
-  <section id="experience" class="sec wrap" aria-labelledby="experience-title" data-scene="experience">
+  <section id="experience" class="sec wrap" aria-labelledby="experience-title" data-spy-section="experience">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">03</span><span class="seam-line"></span><span class="seam-t mono">Experience</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">03 · Experience</p>
-        <h2 id="experience-title" class="sec-title" data-split data-reveal>Where I<br /><span class="foil">work now.</span></h2>
+        <h2 id="experience-title" class="sec-title" data-split data-reveal>What I'm doing now</h2>
       </div>
-      <span class="meta">Current roles</span>
-      <span class="sec-rule" aria-hidden="true"></span>
+      <span class="meta">Three current roles</span>
     </div>
     <Experience />
   </section>
 
-  <section id="security" class="sec wrap" aria-labelledby="security-title" data-scene="security">
+  <section id="security" class="sec wrap" aria-labelledby="security-title" data-spy-section="security">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">04</span><span class="seam-line"></span><span class="seam-t mono">Cybersecurity</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">04 · Cybersecurity</p>
-        <h2 id="security-title" class="sec-title" data-split data-reveal>Security in<br /><span class="foil">practice.</span></h2>
+        <h2 id="security-title" class="sec-title" data-split data-reveal>Security, in practice and in code</h2>
       </div>
       <a class="link-arrow" href={`${base}credentials/`}>Security record <span class="arr" aria-hidden="true">→</span></a>
-      <span class="sec-rule" aria-hidden="true"></span>
     </div>
     <CyberSummary />
   </section>
 
-  <section class="sec wrap" aria-labelledby="archive-title" data-scene="archive">
+  <section class="sec wrap" aria-labelledby="archive-title">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">05</span><span class="seam-line"></span><span class="seam-t mono">Archive</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">05 · Archive</p>
-        <h2 id="archive-title" class="sec-title" data-split data-reveal>More things<br /><span class="foil">I've built.</span></h2>
+                <h2 id="archive-title" class="sec-title" data-split data-reveal>Everything else I've built</h2>
       </div>
       <a class="link-arrow" href={`${base}projects/`}>Browse every project <span class="arr" aria-hidden="true">→</span></a>
-      <span class="sec-rule" aria-hidden="true"></span>
     </div>
     <ArchiveRows projects={rest} />
   </section>
 
-  <section class="sec wrap" aria-labelledby="stack-title" data-scene="stack">
+  <section class="sec wrap" aria-labelledby="stack-title">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">06</span><span class="seam-line"></span><span class="seam-t mono">Stack</span></div>
     <div class="sec-head">
       <div>
-        <p class="sec-index">06 · Stack</p>
-        <h2 id="stack-title" class="sec-title" data-split data-reveal>Tools I've<br /><span class="foil">used in projects.</span></h2>
+                <h2 id="stack-title" class="sec-title" data-split data-reveal>Tools I've actually used</h2>
       </div>
       <span class="meta">Every line links to the project it comes from</span>
-      <span class="sec-rule" aria-hidden="true"></span>
     </div>
     <Capabilities />
   </section>
 
-  <section id="contact" class="sec wrap contact" aria-labelledby="contact-title" data-scene="contact">
-    <p class="sec-index">07 · Contact</p>
-    <h2 id="contact-title" class="display contact-title">
-      <a href="mailto:nopsrust@gmail.com">nopsrust<wbr /><span class="foil">@gmail.com</span></a>
-    </h2>
-    <div class="contact-row glass" data-glass>
-      <p class="lede">If you want to talk about a junior role, security work or a software project, email is the quickest way to reach me. My code is on GitHub and my security practice is on TryHackMe.</p>
-      <div class="contact-links">
-        <a class="btn btn-primary" href="mailto:nopsrust@gmail.com">Email me</a>
-        <a class="btn btn-glass" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub ↗</a>
-        <a class="btn btn-glass" href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe ↗</a>
+  <section id="contact" class="sec wrap contact" aria-labelledby="contact-title" data-spy-section="contact">
+    <div class="seam" data-reveal aria-hidden="true"><span class="seam-n mono">07</span><span class="seam-line"></span><span class="seam-t mono">Contact</span></div>
+    <div class="contact-card">
+      <div>
+        <h2 id="contact-title" class="sec-title" data-split data-reveal>Get in touch</h2>
+        <p class="lede contact-lede" data-reveal>
+          I'm looking for a cybersecurity or IT apprenticeship, or a junior technical role. Email is the quickest way to reach me, and I'm happy
+          to talk through anything on this site.
+        </p>
+      </div>
+      <div class="contact-side" data-reveal>
+        <a class="contact-mail" href="mailto:nopsrust@gmail.com"><Mark size={36} /><span>nopsrust@gmail.com</span></a>
+        <div class="contact-links">
+          <a class="btn btn-primary" href="mailto:nopsrust@gmail.com">Email me</a>
+          <a class="btn btn-outline" href="https://github.com/Oscar1-dev" target="_blank" rel="noopener noreferrer">GitHub <span aria-hidden="true">↗</span><span class="sr-only">(opens in a new tab)</span></a>
+          <a class="btn btn-outline" href="https://tryhackme.com/p/Oscar.Senior" target="_blank" rel="noopener noreferrer">TryHackMe <span aria-hidden="true">↗</span><span class="sr-only">(opens in a new tab)</span></a>
+        </div>
       </div>
     </div>
   </section>
 </Layout>
 
 <style>
-  .contact-title {
-    margin: 0 0 32px;
-    font-size: clamp(2rem, 6.6vw, 6.4rem);
-    text-transform: none;
-    letter-spacing: -0.04em;
+  .pair {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(16px, 2vw, 28px);
+    margin-top: clamp(16px, 2vw, 28px);
   }
-  .contact-title a {
-    transition: opacity var(--t);
+  .contact-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: clamp(1.5rem, 4vw, 4rem);
+    align-items: end;
+    padding: clamp(22px, 3.4vw, 48px);
+    border: 1px solid var(--line-2);
+    border-radius: 18px;
+    background:
+      radial-gradient(60% 120% at 100% 0%, rgb(var(--scene-c) / 0.16), transparent 70%),
+      linear-gradient(140deg, rgb(var(--fg-rgb) / 0.05), rgb(var(--fg-rgb) / 0.012));
   }
-  .contact-title a:hover {
-    opacity: 0.85;
+  .contact-lede {
+    margin: 16px 0 0;
   }
-  .contact {
-    padding-bottom: clamp(5rem, 10vw, 9rem);
-  }
-  .contact-row {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+  .contact-mail {
+    display: inline-flex;
     align-items: center;
-    gap: 24px;
-    padding: clamp(22px, 3vw, 36px);
+    gap: 14px;
+    min-height: var(--tap);
+    margin-bottom: 20px;
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(1.15rem, 2.2vw, 1.7rem);
+    letter-spacing: -0.02em;
+    overflow-wrap: anywhere;
   }
-
-  .contact-row .lede {
-    margin: 0;
+  .contact-mail span {
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 6px;
   }
   .contact-links {
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 12px;
+  }
+  .contact-links .btn-outline {
+    border-color: var(--line-3);
+  }
+  @media (max-width: 860px) {
+    .pair,
+    .contact-card {
+      grid-template-columns: 1fr;
+    }
+    .contact-links .btn {
+      flex: 1 1 100%;
+    }
   }
 </style>

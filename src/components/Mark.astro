@@ -1,0 +1,52 @@
+---
+// The Oscar Senior / Nops mark: a machined disc with two slots cut in from
+// opposite edges. What is left reads as an N, and the same shape upside down.
+// `animate` plays the cut once on load (Full motion only).
+interface Props {
+  size?: number;
+  animate?: boolean;
+  class?: string;
+}
+const { size = 32, animate = false, class: cls } = Astro.props;
+const id = `mk${Math.random().toString(36).slice(2, 8)}`;
+---
+
+<svg class:list={['mark', { 'mark-animate': animate }, cls]} viewBox="0 0 64 64" width={size} height={size} aria-hidden="true" focusable="false">
+  <defs>
+    <mask id={id}>
+      <circle cx="32" cy="32" r="28" fill="#fff"></circle>
+      <g class="mark-slots" transform="rotate(-18 32 32)" fill="#000">
+        <rect class="slot slot-a" x="20.5" y="22" width="6.5" height="50"></rect>
+        <rect class="slot slot-b" x="37" y="-8" width="6.5" height="50"></rect>
+      </g>
+    </mask>
+  </defs>
+  <rect width="64" height="64" fill="currentColor" mask={`url(#${id})`}></rect>
+</svg>
+
+<style>
+  .mark {
+    display: block;
+    flex: none;
+  }
+  .slot {
+    transform-box: fill-box;
+  }
+  .slot-a {
+    transform-origin: 50% 100%;
+  }
+  .slot-b {
+    transform-origin: 50% 0%;
+  }
+  :global(.motion-ok) .mark-animate .slot {
+    animation: mark-cut 1100ms var(--ease) 350ms both;
+  }
+  :global(.motion-ok) .mark-animate .slot-b {
+    animation-delay: 520ms;
+  }
+  @keyframes mark-cut {
+    from {
+      transform: scaleY(0);
+    }
+  }
+</style>

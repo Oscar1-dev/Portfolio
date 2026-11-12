@@ -1,0 +1,143 @@
+---
+// The 3D stand-in for Oscar: a MakeHuman-based character rendered in Blender
+// (media-src/blender/avatar_human.py). A generic face, deliberately not a likeness. Poster first; a short silent loop (slow head turn, one blink)
+// plays while visible in Full motion. Pause button always available.
+const base = import.meta.env.BASE_URL;
+const file = `${base}brand/avatar`;
+---
+
+<figure class="me" data-avatar>
+  <div class="me-frame">
+    <img src={`${file}-me.webp`} alt="A 3D-rendered young man standing in for Oscar: black cuffed beanie with a small red patch and a black hoodie, lit in red and magenta in front of a sprayed wall." width="640" height="640" loading="lazy" decoding="async" />
+    <video muted loop playsinline preload="none" aria-hidden="true" tabindex="-1" disablepictureinpicture data-src={`${file}-loop`}></video>
+    <button class="me-toggle" type="button" aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-pause" d="M8 5v14M16 5v14"></path><path class="i-play" d="M8 5l11 7-11 7z"></path></svg>
+      <span class="sr-only" data-label>Pause animation</span>
+    </button>
+  </div>
+  <figcaption>
+    <b>Not a photo, but not a robot either.</b> This is a 3D stand-in I'd rather show than my actual face. The beanie is accurate.
+  </figcaption>
+</figure>
+
+<script>
+  let stop: (() => void) | null = null;
+  document.addEventListener('astro:page-load', () => {
+    stop?.();
+    stop = null;
+    const root = document.querySelector<HTMLElement>('[data-avatar]');
+    if (!root) return;
+    const video = root.querySelector('video')!;
+    const btn = root.querySelector('button')!;
+    const label = btn.querySelector('[data-label]')!;
+    let visible = false;
+    let wanted: boolean | null = null;
+    const motionOk = () => document.documentElement.classList.contains('motion-ok');
+    const update = () => {
+      const on = wanted ?? motionOk();
+      if (on && visible) {
+        if (!video.dataset.loaded) {
+          video.dataset.loaded = 'true';
+          for (const [ext, type] of [['webm', 'video/webm'], ['mp4', 'video/mp4']]) {
+            const s = document.createElement('source');
+            s.src = `${video.dataset.src}.${ext}`;
+            s.type = type;
+            video.append(s);
+          }
+          video.load();
+        }
+        video.play().catch(() => root.classList.remove('is-playing'));
+      } else video.pause();
+      if (!on) root.classList.remove('is-playing');
+      btn.setAttribute('aria-pressed', String(!on));
+      label.textContent = on ? 'Pause animation' : 'Play animation';
+    };
+    const io = new IntersectionObserver(([e]) => ((visible = e.isIntersecting), update()), { threshold: 0.2 });
+    io.observe(root);
+    const playing = () => root.classList.add('is-playing');
+    const click = () => ((wanted = !(wanted ?? motionOk())), update());
+    const mode = () => ((wanted = null), update());
+    video.addEventListener('playing', playing);
+    btn.addEventListener('click', click);
+    document.addEventListener('prefs:motion', mode);
+    stop = () => {
+      io.disconnect();
+      document.removeEventListener('prefs:motion', mode);
+    };
+  });
+</script>
+
+<style>
+  .me {
+    margin: 0;
+    max-width: 380px;
+  }
+  .me-frame {
+    position: relative;
+    aspect-ratio: 1;
+    border-radius: 18px;
+    overflow: hidden;
+    background: #0b1a20;
+    box-shadow: 0 0 0 1px var(--line-2), 0 30px 60px -30px rgb(0 0 0 / 0.6), 0 0 80px -20px rgb(var(--scene-c) / 0.4);
+  }
+  .me-frame img,
+  .me-frame video {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .me-frame video {
+    opacity: 0;
+    transition: opacity 600ms var(--ease);
+  }
+  .is-playing video {
+    opacity: 1;
+  }
+  .me-toggle {
+    position: absolute;
+    right: 10px;
+    bottom: 10px;
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border: 1px solid rgb(255 255 255 / 0.5);
+    border-radius: 50%;
+    background: rgb(8 9 11 / 0.8);
+    color: #fff;
+  }
+  .me-toggle:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+  .me-toggle svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .me-toggle .i-play {
+    display: none;
+    fill: currentColor;
+  }
+  .me-toggle[aria-pressed='true'] .i-play {
+    display: block;
+  }
+  .me-toggle[aria-pressed='true'] .i-pause {
+    display: none;
+  }
+  figcaption {
+    margin-top: 12px;
+    font-size: var(--text-sm);
+    line-height: 1.55;
+    color: var(--text-2);
+  }
+  figcaption b {
+    color: var(--text);
+  }
+</style>

@@ -1,0 +1,522 @@
+---
+// Home hero: a live 3D ring of four real project screens, built in the page
+// (CSS 3D), so it is sharp at any size and can react to input.
+//   scroll   the hero pins for a stretch; scrolling turns the ring from one
+//            project to the next, moves the copy and re-colours the glow
+//   pointer  the whole ring leans a few degrees towards the cursor (eased)
+//   idle     the ring sways slowly on its own; the pause button stops that
+// Every panel is a link, and the same four links sit under the copy.
+// Reduced motion / no JS: no pinning, no sway; the ring rests on the first project.
+import { assetPath } from '../data/asset-path';
+interface Props {
+  projectCount: number;
+  rooms: number;
+}
+const { projectCount, rooms } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const panels = [
+  { slug: 'nops-cyber-intelligence', name: 'NOPS / Cyber Intelligence', line: 'Threat-intelligence workspace', img: '/images/projects/nops-investigations.webp', w: 2000, h: 1023, c: '70 140 255' },
+  { slug: 'kush', name: 'KUSH', line: 'My software business', img: '/images/projects/kush-home.webp', w: 1600, h: 1000, c: '190 120 255' },
+  { slug: 'mindhouse', name: 'MINDHOUSE', line: 'Five AI agents, one workspace', img: '/images/projects/mindhouse.webp', w: 1280, h: 720, c: '255 60 150' },
+  { slug: 'feedback', name: 'FEEDBACK', line: 'Local-first music player', img: '/images/feedback-cover.webp', w: 1920, h: 1080, c: '255 70 60' },
+];
+---
+
+<section class="hero theme-dark" aria-labelledby="hero-name" data-progress="pin" data-hero>
+  <div class="hero-pin">
+    <div class="orbit" data-orbit>
+      <div class="orbit-lean">
+        <div class="orbit-sway">
+          <ul class="ring" aria-label="Four of my projects">
+            {
+              panels.map((p, i) => (
+                <li class="panel" style={`--i:${i};--c:${p.c}`}>
+                  <a href={`${base}projects/${p.slug}/`}>
+                    <span class="panel-title">{p.name}</span>
+                    <span class="panel-frame">
+                      <span class="panel-bar" aria-hidden="true"><i /><i /><i /></span>
+                      <img src={assetPath(p.img)} alt="" width={p.w} height={p.h} loading={i === 0 ? 'eager' : 'lazy'} fetchpriority={i === 0 ? 'high' : 'auto'} decoding="async" />
+                    </span>
+                    <span class="panel-line">{p.line}</span>
+                  </a>
+                </li>
+              ))
+            }
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-scrim" aria-hidden="true"></div>
+
+    <div class="wrap hero-inner">
+      <div class="hero-copy">
+        <p class="hero-kicker mono" data-hero-in style="--d:0"><span>Oscar Senior</span><span class="sep" aria-hidden="true"></span><span>Security &amp; software</span></p>
+        <h1 id="hero-name" class="hero-title">
+          <span class="hero-line" style="--d:1"><span>I pull software apart</span></span>
+          <span class="hero-line" style="--d:2"><span>to learn how it works,</span></span>
+          <span class="hero-line" style="--d:3"><span class="foil">then build my own.</span></span>
+        </h1>
+        <p class="hero-lede" data-hero-in style="--d:5">
+          Final-year cybersecurity and IT student at DISC. I'm building <a href={`${base}projects/kush/`}>KUSH</a>, I'm Chief Security Officer at
+          Velnqo, and I've finished {rooms} rooms on TryHackMe.
+        </p>
+        <div class="hero-actions" data-hero-in style="--d:6">
+          <a class="btn btn-primary" href={`${base}projects/`}>
+            Browse {projectCount} projects
+            <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+          </a>
+          <a class="btn btn-glass" href={`${base}credentials/`}>Security work</a>
+        </div>
+      </div>
+      <nav class="ticker" aria-label="Projects on the ring" data-hero-in style="--d:7">
+        <ol>
+          {panels.map((p, i) => <li style={`--i:${i}`}><a href={`${base}projects/${p.slug}/`}><span class="mono" aria-hidden="true">0{i + 1}</span>{p.name}</a></li>)}
+        </ol>
+        <p class="ticker-hint mono" aria-hidden="true">Scroll to turn</p>
+      </nav>
+    </div>
+
+    <button class="orbit-toggle" type="button" data-orbit-toggle aria-pressed="false">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-pause" d="M8 5v14M16 5v14"></path><path class="i-play" d="M8 5l11 7-11 7z"></path></svg>
+      <span class="sr-only" data-label>Pause the ring's movement</span>
+    </button>
+  </div>
+</section>
+
+<script>
+  let stop: (() => void) | null = null;
+  document.addEventListener('astro:page-load', () => {
+    stop?.();
+    stop = null;
+    const orbit = document.querySelector<HTMLElement>('[data-orbit]');
+    const toggle = document.querySelector<HTMLButtonElement>('[data-orbit-toggle]');
+    if (!orbit || !toggle) return;
+    const motionOk = () => document.documentElement.classList.contains('motion-ok');
+    const set = (paused: boolean) => {
+      orbit.dataset.paused = String(paused);
+      toggle.setAttribute('aria-pressed', String(paused));
+      toggle.querySelector('[data-label]')!.textContent = paused ? "Play the ring's movement" : "Pause the ring's movement";
+    };
+    set(!motionOk());
+    const onToggle = () => set(orbit.dataset.paused !== 'true');
+    const onMode = () => set(!motionOk());
+    toggle.addEventListener('click', onToggle);
+    document.addEventListener('prefs:motion', onMode);
+
+    let raf = 0, tx = 0, ty = 0, x = 0, y = 0;
+    const tick = () => {
+      x += (tx - x) * 0.06;
+      y += (ty - y) * 0.06;
+      orbit.style.setProperty('--px', x.toFixed(4));
+      orbit.style.setProperty('--py', y.toFixed(4));
+      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.001 ? requestAnimationFrame(tick) : 0;
+    };
+    const onMove = (e: PointerEvent) => {
+      if (orbit.dataset.paused === 'true' || e.pointerType !== 'mouse') return;
+      tx = e.clientX / innerWidth - 0.5;
+      ty = e.clientY / innerHeight - 0.5;
+      if (!raf) raf = requestAnimationFrame(tick);
+    };
+    window.addEventListener('pointermove', onMove, { passive: true });
+    stop = () => {
+      window.removeEventListener('pointermove', onMove);
+      toggle.removeEventListener('click', onToggle);
+      document.removeEventListener('prefs:motion', onMode);
+      cancelAnimationFrame(raf);
+    };
+  });
+</script>
+
+<style>
+  .hero {
+    --p: 0; /* 0 → 1 across the pinned stretch (scripts/scroll-fx.ts) */
+    --w: min(48vw, 760px); /* panel width */
+    --r: calc(var(--w) * 0.62); /* ring radius */
+    position: relative;
+    /* no background of its own: the page's single backdrop shows through */
+    color: var(--text);
+  }
+  :global([data-theme='light']) .hero {
+    background: #050606;
+  }
+  :global(.motion-ok) .hero {
+    height: 300vh;
+  }
+  :global(:root:not(.motion-ok)) .hero {
+    --p: 0 !important;
+  }
+  .hero-pin {
+    position: relative;
+    height: 100svh;
+    min-height: 620px;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  :global(.motion-ok) .hero-pin {
+    position: sticky;
+    top: 0;
+  }
+
+  /* ---- the ring ---- */
+  .orbit {
+    --px: 0;
+    --py: 0;
+    position: absolute;
+    left: 70%;
+    top: 52%;
+    width: var(--w);
+    translate: -50% -50%;
+    perspective: 1500px;
+    z-index: 1;
+  }
+  .orbit-lean,
+  .orbit-sway,
+  .ring {
+    transform-style: preserve-3d;
+  }
+  .orbit-lean {
+    transform: rotateX(calc(4deg - var(--py) * 7deg)) rotateY(calc(var(--px) * 12deg));
+  }
+  :global(.motion-ok) .orbit:not([data-paused='true']) .orbit-sway {
+    animation: sway 9s ease-in-out infinite alternate;
+  }
+  @keyframes sway {
+    from {
+      transform: rotateY(-5deg) translateY(-8px);
+    }
+    to {
+      transform: rotateY(5deg) translateY(8px);
+    }
+  }
+  .ring {
+    position: relative;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    aspect-ratio: 16 / 10;
+    /* scroll turns the ring through three quarter-turns: one project per stop */
+    transform: translateZ(calc(var(--r) * -1)) rotateY(calc(var(--p) * -270deg));
+  }
+  .panel {
+    position: absolute;
+    inset: 0;
+    transform: rotateY(calc(var(--i) * 90deg)) translateZ(var(--r));
+    backface-visibility: hidden;
+  }
+  .panel a {
+    display: block;
+    color: #fff;
+  }
+  .panel-title {
+    display: block;
+    margin-bottom: 0.5em;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 110;
+    font-weight: 800;
+    font-size: clamp(1.1rem, 2.6vw, 2.4rem);
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    text-shadow: 0 0 40px rgb(var(--c) / 0.8);
+  }
+  .panel-frame {
+    display: block;
+    border-radius: clamp(8px, 1vw, 16px);
+    overflow: hidden;
+    background: #0b0c0e;
+    box-shadow:
+      0 0 0 1px rgb(255 255 255 / 0.22),
+      0 0 0 6px rgb(12 13 16 / 0.9),
+      0 0 120px 10px rgb(var(--c) / 0.55),
+      0 60px 120px -30px rgb(0 0 0 / 0.9);
+    transition: box-shadow var(--t) var(--ease);
+  }
+  .panel a:hover .panel-frame,
+  .panel a:focus-visible .panel-frame {
+    box-shadow:
+      0 0 0 2px #fff,
+      0 0 0 6px rgb(12 13 16 / 0.9),
+      0 0 160px 20px rgb(var(--c) / 0.8),
+      0 60px 120px -30px rgb(0 0 0 / 0.9);
+  }
+  .panel-bar {
+    display: flex;
+    gap: 6px;
+    padding: 9px 12px;
+    background: #15161a;
+  }
+  .panel-bar i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgb(255 255 255 / 0.25);
+  }
+  .panel img {
+    display: block;
+    width: 100%;
+    height: auto;
+  }
+  .panel-line {
+    display: block;
+    margin-top: 0.9em;
+    font-size: clamp(0.8rem, 1.1vw, 1.05rem);
+    color: #d5d2db;
+  }
+
+  /* scrim: keeps the copy readable whatever is behind it */
+  .hero-scrim {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background:
+      linear-gradient(90deg, rgb(5 6 6 / 0.94) 0%, rgb(5 6 6 / 0.8) 26%, rgb(5 6 6 / 0) 46%),
+      linear-gradient(0deg, rgb(5 6 6 / 0.9) 0%, transparent 22%),
+      linear-gradient(180deg, rgb(5 6 6 / 0.8) 0%, transparent 18%);
+  }
+  .hero-inner {
+    position: relative;
+    z-index: 3;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-top: var(--header-h);
+    pointer-events: none;
+  }
+  .hero-inner :is(a, button) {
+    pointer-events: auto;
+  }
+  /* the copy lifts and thins out as the ring takes over */
+  .hero-copy {
+    translate: 0 calc(var(--p) * -60px);
+    opacity: calc(1 - var(--p) * 0.55);
+  }
+  .hero-kicker {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 12px;
+    margin: 0 0 18px;
+    font-size: 0.8rem;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: #cdcad3;
+  }
+  .hero-kicker .sep {
+    width: 28px;
+    height: 1px;
+    background: var(--sig-red);
+  }
+  .hero-title {
+    margin: 0;
+    max-width: 19ch;
+    font-family: var(--font-display);
+    font-variation-settings: 'wdth' 108;
+    font-weight: 750;
+    font-size: clamp(1.8rem, 2.7vw, 2.9rem);
+    line-height: 1.06;
+    letter-spacing: -0.025em;
+    color: #fff;
+  }
+  .hero-line {
+    display: block;
+    overflow: clip;
+    overflow-clip-margin: 0.14em;
+    padding-bottom: 0.06em;
+  }
+  .hero-line > span {
+    display: inline-block;
+  }
+  .hero-lede {
+    max-width: 38ch;
+    margin: 20px 0 0;
+    font-size: clamp(1rem, 1.15vw, 1.1rem);
+    line-height: 1.6;
+    color: #e6e3ea;
+  }
+  .hero-lede a {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 26px;
+  }
+
+  /* ticker: the project on the ring right now is lit; the rest wait */
+  .ticker {
+    margin-top: 34px;
+  }
+  .ticker ol {
+    display: grid;
+    gap: 2px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    width: fit-content;
+  }
+  .ticker li {
+    --d: calc(var(--p) * 3 - var(--i));
+    --near: clamp(0, calc(1 - max(var(--d), calc(var(--d) * -1)) * 1.6), 1);
+    opacity: calc(0.45 + var(--near) * 0.55);
+    translate: calc(var(--near) * 14px) 0;
+  }
+  .ticker a {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 12px;
+    min-height: 40px;
+    padding: 4px 10px 4px 0;
+    color: #fff;
+    font-weight: 600;
+    border-left: 2px solid rgb(255 255 255 / calc(0.15 + var(--near) * 0.85));
+    padding-left: 12px;
+  }
+  .ticker a:hover {
+    text-decoration: underline;
+    text-underline-offset: 5px;
+  }
+  .ticker .mono {
+    font-size: 0.72rem;
+    color: #b9b6c0;
+  }
+  .ticker-hint {
+    margin: 14px 0 0;
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #b9b6c0;
+    opacity: calc(1 - var(--p) * 6);
+  }
+  :global(:root:not(.motion-ok)) .ticker-hint {
+    display: none;
+  }
+
+  .orbit-toggle {
+    position: absolute;
+    right: var(--gutter);
+    bottom: 20px;
+    z-index: 4;
+    display: grid;
+    place-items: center;
+    width: var(--tap);
+    height: var(--tap);
+    border: 1px solid rgb(255 255 255 / 0.5);
+    border-radius: 50%;
+    background: rgb(8 9 11 / 0.72);
+    color: #fff;
+  }
+  .orbit-toggle:focus-visible {
+    outline: 3px solid #fff;
+    outline-offset: 3px;
+  }
+  .orbit-toggle svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .orbit-toggle .i-play {
+    display: none;
+    fill: currentColor;
+  }
+  .orbit-toggle[aria-pressed='true'] .i-play {
+    display: block;
+  }
+  .orbit-toggle[aria-pressed='true'] .i-pause {
+    display: none;
+  }
+
+  :global(.motion-ok) .hero-line > span {
+    animation: hero-rise 1100ms var(--ease) both;
+    animation-delay: calc(120ms + var(--d) * 90ms);
+  }
+  :global(.motion-ok) [data-hero-in] {
+    animation: hero-in 1000ms var(--ease) both;
+    animation-delay: calc(160ms + var(--d) * 90ms);
+  }
+  :global(.motion-ok) .orbit {
+    animation: orbit-in 1600ms var(--ease) both;
+  }
+  @keyframes hero-rise {
+    from {
+      translate: 0 110%;
+    }
+  }
+  @keyframes hero-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes orbit-in {
+    from {
+      opacity: 0;
+      scale: 0.86;
+    }
+  }
+
+  /* Phones: the ring takes the top of the screen, the copy sits under it. */
+  @media (max-width: 860px) {
+    .hero {
+      --w: 76vw;
+    }
+    :global(.motion-ok) .hero {
+      height: 260vh;
+    }
+    .hero-pin {
+      min-height: 640px;
+    }
+    .orbit {
+      left: 50%;
+      top: 25%;
+    }
+    .hero-scrim {
+      background:
+        linear-gradient(180deg, rgb(5 6 6 / 0.75) 0, transparent 12%),
+        linear-gradient(180deg, transparent 40%, #050606 52%);
+    }
+    .hero-inner {
+      justify-content: flex-end;
+      padding-bottom: 28px;
+    }
+    .hero-copy {
+      translate: none;
+      opacity: 1;
+    }
+    .hero-lede {
+      display: none;
+    }
+    .hero-actions .btn {
+      flex: 1 1 100%;
+    }
+    .ticker {
+      margin-top: 18px;
+    }
+    .ticker ol {
+      grid-template-columns: 1fr 1fr;
+      width: auto;
+    }
+    .ticker-hint {
+      display: none;
+    }
+    .orbit-toggle {
+      top: calc(50% - 70px);
+      bottom: auto;
+    }
+  }
+  @media (forced-colors: active) {
+    .hero-scrim {
+      display: none;
+    }
+    .panel-frame {
+      border: 1px solid CanvasText;
+    }
+  }
+</style>
