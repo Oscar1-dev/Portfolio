@@ -60,15 +60,19 @@ const items: [string, number, number, number, number][] = [
     translate: calc(var(--ptr-x, 0) * var(--shift)) calc(var(--ptr-y, 0) * var(--shift));
     transition: translate 900ms var(--ease);
   }
-  .logos-0 { --shift: -10px; --travel: -18vh; opacity: 0.1; filter: blur(3px); }
-  .logos-1 { --shift: -24px; --travel: -60vh; opacity: 0.16; filter: blur(1px); }
-  .logos-2 { --shift: -46px; --travel: -115vh; opacity: 0.22; }
+  .logos-0 { --shift: -10px; --travel: -18vh; opacity: 0.2; filter: blur(2px); }
+  .logos-1 { --shift: -24px; --travel: -60vh; opacity: 0.3; filter: blur(0.6px); }
+  .logos-2 { --shift: -46px; --travel: -115vh; opacity: 0.4; }
   .logo {
     position: absolute;
+    /* a cool tint rather than pure white, so white text over a logo stays distinct */
+    fill: rgb(170 195 255);
+  }
+  [data-theme='light'] .logo {
     fill: rgb(var(--fg-rgb));
   }
   [data-theme='light'] .logos {
-    opacity: 0.1;
+    opacity: 0.16;
   }
   .motion-ok .logo {
     animation: logo-float calc(11s + var(--n) * 1.7s) ease-in-out calc(var(--n) * -2.3s) infinite alternate;
