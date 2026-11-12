@@ -1,0 +1,101 @@
+---
+// The site's single background. Two things in it:
+//   1. drifting colour fields (styles in global.css, ".backdrop")
+//   2. the logos of technologies the projects on this site are built with,
+//      floating at three depths. Each bobs and turns slowly by itself; as the
+//      page scrolls the three depths slide at different speeds; they also
+//      shift a little with the pointer. Logos come from the simple-icons set.
+// Purely decorative: hidden from assistive technology, static in Reduced motion.
+import * as icons from 'simple-icons';
+const pick = (k: string) => (icons as Record<string, { path: string; title: string }>)[k];
+// [icon, left %, top % of a 220vh-tall field, size px, depth 0 far … 2 near]
+const items: [string, number, number, number, number][] = [
+  ['siRust', 8, 6, 120, 2],
+  ['siTypescript', 86, 10, 90, 1],
+  ['siReact', 70, 30, 150, 2],
+  ['siTauri', 18, 34, 80, 0],
+  ['siNextdotjs', 90, 46, 110, 1],
+  ['siPostgresql', 6, 54, 140, 2],
+  ['siDiscord', 46, 16, 70, 0],
+  ['siLinux', 80, 68, 130, 2],
+  ['siDocker', 30, 74, 90, 1],
+  ['siAstro', 58, 58, 70, 0],
+  ['siNodedotjs', 12, 88, 110, 1],
+  ['siPrisma', 66, 90, 84, 0],
+  ['siSqlite', 38, 46, 96, 1],
+  ['siStripe', 94, 86, 70, 0],
+  ['siVite', 50, 96, 120, 2],
+  ['siFastify', 26, 14, 64, 0],
+  ['siMongodb', 74, 4, 60, 0],
+  ['siTailwindcss', 4, 24, 76, 1],
+];
+---
+
+<div class="backdrop" aria-hidden="true" transition:persist="backdrop">
+  <div class="backdrop-drift"><i></i><i></i><i></i><i></i></div>
+  {
+    [0, 1, 2].map((depth) => (
+      <div class={`logos logos-${depth}`}>
+        {items
+          .filter((it) => it[4] === depth)
+          .map(([k, x, y, size], i) => (
+            <svg class="logo" viewBox="0 0 24 24" width={size} height={size} style={`left:${x}%;top:${y}%;--n:${i + depth * 3}`}>
+              <path d={pick(k).path} />
+            </svg>
+          ))}
+      </div>
+    ))
+  }
+  <b></b>
+</div>
+
+<style is:global>
+  .logos {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: 220vh;
+    /* pointer shift, scaled by depth (set on <html> by scripts/fx.ts) */
+    translate: calc(var(--ptr-x, 0) * var(--shift)) calc(var(--ptr-y, 0) * var(--shift));
+    transition: translate 900ms var(--ease);
+  }
+  .logos-0 { --shift: -10px; --travel: -18vh; opacity: 0.1; filter: blur(3px); }
+  .logos-1 { --shift: -24px; --travel: -60vh; opacity: 0.16; filter: blur(1px); }
+  .logos-2 { --shift: -46px; --travel: -115vh; opacity: 0.22; }
+  .logo {
+    position: absolute;
+    fill: rgb(var(--fg-rgb));
+  }
+  [data-theme='light'] .logos {
+    opacity: 0.1;
+  }
+  .motion-ok .logo {
+    animation: logo-float calc(11s + var(--n) * 1.7s) ease-in-out calc(var(--n) * -2.3s) infinite alternate;
+  }
+  @keyframes logo-float {
+    from {
+      transform: translateY(-18px) rotate(-7deg);
+    }
+    to {
+      transform: translateY(18px) rotate(7deg);
+    }
+  }
+  /* scroll: nearer logos travel further, so the depths separate as you move */
+  @supports (animation-timeline: scroll()) {
+    .motion-ok .logos {
+      animation: logos-travel linear both;
+      animation-timeline: scroll(root);
+    }
+    @keyframes logos-travel {
+      to {
+        transform: translateY(var(--travel));
+      }
+    }
+  }
+  @media (max-width: 700px) {
+    .logo {
+      scale: 0.6;
+    }
+  }
+</style>

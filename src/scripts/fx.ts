@@ -21,6 +21,13 @@ export function mountFx(): void {
       const t = e.target as HTMLElement;
       if (!t.closest) return;
 
+      // whole-page pointer position (−0.5 … 0.5), used by the backdrop's logo layers
+      if (ok()) {
+        const root = document.documentElement.style;
+        root.setProperty('--ptr-x', (e.clientX / innerWidth - 0.5).toFixed(3));
+        root.setProperty('--ptr-y', (e.clientY / innerHeight - 0.5).toFixed(3));
+      }
+
       const lit = t.closest<HTMLElement>(LIT);
       if (lit) {
         const r = lit.getBoundingClientRect();

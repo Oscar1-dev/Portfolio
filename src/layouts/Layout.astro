@@ -9,6 +9,7 @@ import { ClientRouter } from 'astro:transitions';
 import SiteHeader from '../components/SiteHeader.astro';
 import SiteFooter from '../components/SiteFooter.astro';
 import CommandPalette from '../components/CommandPalette.astro';
+import Backdrop from '../components/Backdrop.astro';
 
 interface Props {
   title: string;
@@ -89,7 +90,7 @@ const imageUrl = new URL(`${base}${image}`.replace(/\/{2,}/g, '/'), Astro.site);
   <body>
     <a class="skip-link" href="#main">Skip to content</a>
     <div class="read-progress" aria-hidden="true"></div>
-    <div class="backdrop" aria-hidden="true" transition:persist="backdrop"><div class="backdrop-drift"><i></i><i></i><i></i><i></i></div><b></b></div>
+    <Backdrop />
     <SiteHeader />
     <main id="main" tabindex="-1">
       <slot />
