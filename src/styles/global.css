@@ -722,21 +722,6 @@ body::after {
   opacity: 1 !important;
 }
 
-/* ------------------------------------------------------------ animated field (scripts/field.ts) */
-.field {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  width: 100vw;
-  height: 100vh;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 1200ms var(--ease);
-}
-.field[data-on='true'] {
-  opacity: 1;
-}
-
 /* ------------------------------------------------------------ reading progress */
 /* A hairline under the header that fills as you read. Driven by the browser's
    scroll timeline, so it is foreground-only and costs no script. */
