@@ -1,160 +1,94 @@
 ---
-// Home hero. Copy on the left; on the right a stage of real project screens
-// floating in depth. Each screen is a link to its project. The stage drifts on
-// its own (CSS, seamless), leans a little towards the pointer, and closes up
-// into a stack as the hero scrolls away (foreground only, reversible).
-import { assetPath } from '../data/asset-path';
+// Home hero. The "Orbit" film (media-src/blender/hero_film.py) fills the frame:
+// four real project screens as lit panels, one lap of the camera, 12 s loop.
+// Copy sits on a scrim at the left; the film keeps its subject right of centre.
+// The four projects in the film are also plain links under the copy, so nothing
+// in the film is the only way to reach them. Dark token set in both themes.
+import SceneMedia from './SceneMedia.astro';
 interface Props {
   projectCount: number;
   rooms: number;
 }
 const { projectCount, rooms } = Astro.props;
 const base = import.meta.env.BASE_URL;
-const screens = [
-  { slug: 'mindhouse', name: 'MINDHOUSE', what: 'multi-agent AI platform', img: '/images/projects/mindhouse.webp', w: 1280, h: 720 },
-  { slug: 'kush', name: 'KUSH', what: 'my software business', img: '/images/projects/kush-home.webp', w: 1600, h: 1000 },
-  { slug: 'nops-cyber-intelligence', name: 'NOPS / Cyber Intelligence', what: 'threat-intelligence workspace', img: '/images/projects/nops-investigations.webp', w: 2000, h: 1023 },
+const inFilm = [
+  { slug: 'nops-cyber-intelligence', name: 'NOPS / Cyber Intelligence' },
+  { slug: 'kush', name: 'KUSH' },
+  { slug: 'mindhouse', name: 'MINDHOUSE' },
+  { slug: 'feedback', name: 'FEEDBACK' },
 ];
 ---
 
-<section class="hero" aria-labelledby="hero-name" data-progress="pass" data-hero>
-  <div class="hero-glow" aria-hidden="true"></div>
-  <div class="wrap hero-grid">
-    <div class="hero-copy">
-      <p class="hero-kicker mono" data-hero-in style="--d:0"><span>Oscar Senior</span><span class="sep" aria-hidden="true"></span><span>Nops</span></p>
-      <h1 id="hero-name" class="hero-title">
-        <span class="hero-line" style="--d:1"><span>I pull software apart</span></span>
-        <span class="hero-line" style="--d:2"><span>to learn how it works,</span></span>
-        <span class="hero-line" style="--d:3"><span class="foil">then build my own.</span></span>
-      </h1>
-      <p class="hero-lede" data-hero-in style="--d:5">
-        Final-year cybersecurity and IT student at DISC. I'm building <a href={`${base}projects/kush/`}>KUSH</a>, I'm Chief Security Officer at
-        Velnqo, and I've finished {rooms} rooms on TryHackMe.
-      </p>
-      <div class="hero-actions" data-hero-in style="--d:6">
-        <a class="btn btn-primary" href={`${base}projects/`}>
-          Browse {projectCount} projects
-          <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
-        </a>
-        <a class="btn btn-outline" href={`${base}credentials/`}>Security work</a>
-      </div>
-    </div>
+<section class="hero theme-dark" aria-labelledby="hero-name">
+  <SceneMedia name="hero-film" title="Orbit, the opening film" fill priority focus="66% 50%" />
+  <div class="hero-scrim" aria-hidden="true"></div>
 
-    <div class="stage-wrap" data-hero-in style="--d:4">
-      <ul class="stage" data-stage aria-label="Three of my projects">
-        {
-          screens.map((s, i) => (
-            <li class={`win win-${i}`} style={`--i:${i}`}>
-              <a href={`${base}projects/${s.slug}/`}>
-                <span class="win-bar" aria-hidden="true"><i /><i /><i /><b>{s.name}</b></span>
-                <img src={assetPath(s.img)} alt="" width={s.w} height={s.h} style={`aspect-ratio:${s.w}/${s.h}`} loading="eager" fetchpriority={i === 2 ? 'high' : 'auto'} decoding="async" />
-                <span class="win-label"><b>{s.name}</b><span class="sr-only">, </span><span>{s.what}</span></span>
-              </a>
-            </li>
-          ))
-        }
-      </ul>
-      <button class="stage-toggle" type="button" data-stage-toggle aria-pressed="false">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="i-pause" d="M8 5v14M16 5v14"></path><path class="i-play" d="M8 5l11 7-11 7z"></path></svg>
-        <span class="sr-only" data-label>Pause the moving screens</span>
-      </button>
+  <div class="wrap hero-inner">
+    <p class="hero-kicker mono" data-hero-in style="--d:0"><span>Oscar Senior</span><span class="sep" aria-hidden="true"></span><span>Security &amp; software</span></p>
+    <h1 id="hero-name" class="hero-title">
+      <span class="hero-line" style="--d:1"><span>I pull software apart</span></span>
+      <span class="hero-line" style="--d:2"><span>to learn how it works,</span></span>
+      <span class="hero-line" style="--d:3"><span class="foil">then build my own.</span></span>
+    </h1>
+    <p class="hero-lede" data-hero-in style="--d:5">
+      Final-year cybersecurity and IT student at DISC. I'm building <a href={`${base}projects/kush/`}>KUSH</a>, I'm Chief Security Officer at
+      Velnqo, and I've finished {rooms} rooms on TryHackMe.
+    </p>
+    <div class="hero-actions" data-hero-in style="--d:6">
+      <a class="btn btn-primary" href={`${base}projects/`}>
+        Browse {projectCount} projects
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>
+      </a>
+      <a class="btn btn-glass" href={`${base}credentials/`}>Security work</a>
     </div>
+    <nav class="hero-film-links" aria-label="Projects shown in the film" data-hero-in style="--d:7">
+      <span class="mono" aria-hidden="true">On screen</span>
+      <ul>
+        {inFilm.map((p) => <li><a href={`${base}projects/${p.slug}/`}>{p.name}</a></li>)}
+      </ul>
+    </nav>
   </div>
 </section>
 
-<script>
-  // Pointer lean (eased, small) and the pause control. Nothing here is needed
-  // to reach content: the screens are plain links.
-  let stop: (() => void) | null = null;
-  document.addEventListener('astro:page-load', () => {
-    stop?.();
-    stop = null;
-    const stage = document.querySelector<HTMLElement>('[data-stage]');
-    const toggle = document.querySelector<HTMLButtonElement>('[data-stage-toggle]');
-    if (!stage || !toggle) return;
-    const set = (paused: boolean) => {
-      stage.dataset.paused = String(paused);
-      toggle.setAttribute('aria-pressed', String(paused));
-      toggle.querySelector('[data-label]')!.textContent = paused ? 'Play the moving screens' : 'Pause the moving screens';
-    };
-    const motionOk = () => document.documentElement.classList.contains('motion-ok');
-    set(!motionOk());
-    const onToggle = () => set(stage.dataset.paused !== 'true');
-    toggle.addEventListener('click', onToggle);
-    const onMode = () => set(!motionOk());
-    document.addEventListener('prefs:motion', onMode);
-
-    let raf = 0;
-    let tx = 0;
-    let ty = 0;
-    let x = 0;
-    let y = 0;
-    const tick = () => {
-      x += (tx - x) * 0.07;
-      y += (ty - y) * 0.07;
-      stage.style.setProperty('--px', x.toFixed(4));
-      stage.style.setProperty('--py', y.toFixed(4));
-      raf = Math.abs(tx - x) + Math.abs(ty - y) > 0.001 ? requestAnimationFrame(tick) : 0;
-    };
-    const onMove = (e: PointerEvent) => {
-      if (stage.dataset.paused === 'true' || e.pointerType !== 'mouse') return;
-      tx = e.clientX / innerWidth - 0.5;
-      ty = e.clientY / innerHeight - 0.5;
-      if (!raf) raf = requestAnimationFrame(tick);
-    };
-    window.addEventListener('pointermove', onMove, { passive: true });
-    stop = () => {
-      window.removeEventListener('pointermove', onMove);
-      toggle.removeEventListener('click', onToggle);
-      document.removeEventListener('prefs:motion', onMode);
-      cancelAnimationFrame(raf);
-    };
-  });
-</script>
-
 <style>
   .hero {
-    --p: 0.5;
-    /* 0 at the top of the page, 1 once the hero has scrolled away */
-    --s: clamp(0, calc((var(--p) - 0.54) * 2.6), 1);
     position: relative;
-    padding: calc(var(--header-h) + clamp(2.5rem, 7vh, 5rem)) 0 clamp(3rem, 8vh, 6rem);
-    overflow: clip;
+    min-height: max(100svh, 660px);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    overflow: hidden;
+    background: #050606;
+    color: var(--text);
+    isolation: isolate;
   }
-  .hero-glow {
+  /* Guarantees contrast for the copy over every frame of the film. */
+  .hero-scrim {
     position: absolute;
-    inset: -10% -10% 0;
-    z-index: -1;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
     background:
-      radial-gradient(46% 56% at 70% 46%, rgb(var(--scene-c) / 0.42), transparent 70%),
-      radial-gradient(30% 36% at 86% 78%, rgb(208 129 123 / 0.1), transparent 70%);
-    filter: blur(20px);
+      linear-gradient(90deg, rgb(5 6 6 / 0.93) 0%, rgb(5 6 6 / 0.78) 30%, rgb(5 6 6 / 0.12) 58%, transparent 75%),
+      linear-gradient(0deg, rgb(5 6 6 / 0.9) 0%, transparent 26%),
+      linear-gradient(180deg, rgb(5 6 6 / 0.75) 0%, transparent 20%);
   }
-  :global(.motion-ok) .hero-glow {
-    animation: glow-drift 16s ease-in-out infinite alternate;
-  }
-  @keyframes glow-drift {
-    to {
-      translate: -3% 2%;
-      scale: 1.06;
-    }
-  }
-  .hero-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-    align-items: center;
-    gap: clamp(2rem, 4vw, 4rem);
-    min-height: min(74svh, 720px);
+  .hero-inner {
+    position: relative;
+    z-index: 2;
+    padding-top: calc(var(--header-h) + 32px);
+    padding-bottom: 72px;
   }
   .hero-kicker {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: 12px;
+    gap: 6px 12px;
     margin: 0 0 20px;
     font-size: 0.8rem;
     letter-spacing: 0.16em;
     text-transform: uppercase;
-    color: var(--text-2);
+    color: #cdcad3;
   }
   .hero-kicker .sep {
     width: 28px;
@@ -163,13 +97,14 @@ const screens = [
   }
   .hero-title {
     margin: 0;
+    max-width: 15ch;
     font-family: var(--font-display);
     font-variation-settings: 'wdth' 108;
     font-weight: 750;
-    font-size: clamp(1.9rem, 3.2vw, 3.1rem);
+    font-size: clamp(2rem, 3.6vw, 3.5rem);
     line-height: 1.06;
     letter-spacing: -0.025em;
-    color: var(--text-strong);
+    color: #fff;
   }
   .hero-line {
     display: block;
@@ -181,11 +116,16 @@ const screens = [
     display: inline-block;
   }
   .hero-lede {
-    max-width: 44ch;
+    max-width: 42ch;
     margin: 22px 0 0;
     font-size: clamp(1rem, 1.2vw, 1.13rem);
     line-height: 1.6;
-    color: var(--text-2);
+    color: #e6e3ea;
+  }
+  .hero-lede a {
+    color: #fff;
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
   .hero-actions {
     display: flex;
@@ -193,162 +133,47 @@ const screens = [
     gap: 12px;
     margin-top: 28px;
   }
-  .hero-actions .btn-outline {
-    border-color: var(--line-3);
+  .hero-film-links {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px 16px;
+    margin-top: 30px;
+    font-size: 0.9rem;
   }
-
-  /* ---- the stage ---- */
-  .stage-wrap {
-    position: relative;
-    perspective: 1500px;
-    perspective-origin: 40% 40%;
+  .hero-film-links .mono {
+    font-size: 0.72rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #b9b6c0;
   }
-  .stage {
-    --px: 0;
-    --py: 0;
-    position: relative;
-    aspect-ratio: 10 / 8;
+  .hero-film-links ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 4px;
     margin: 0;
     padding: 0;
     list-style: none;
-    transform-style: preserve-3d;
-    /* lean: resting angle + pointer, flattening as the hero scrolls away */
-    transform: rotateY(calc((-17deg + var(--px) * 7deg) * (1 - var(--s)))) rotateX(calc((7deg - var(--py) * 5deg) * (1 - var(--s))));
   }
-  .win {
-    position: absolute;
-    width: 74%;
-    transform-style: preserve-3d;
-    /* scroll closes the fan: every screen travels towards the centre */
-    translate: calc(var(--fx) * (1 - var(--s))) calc(var(--fy) * (1 - var(--s))) calc(var(--fz) * (1 - var(--s)));
-    left: 13%;
-    top: 16%;
-  }
-  .win-0 { --fx: -20%; --fy: -34%; --fz: -170px; }
-  .win-1 { --fx: 20%; --fy: 34%; --fz: -80px; }
-  .win-2 { --fx: -3%; --fy: 0%; --fz: 70px; }
-  .win a {
-    position: relative;
-    display: block;
-    border-radius: 10px;
-    overflow: hidden;
-    background: #0b0c0e;
-    box-shadow:
-      0 0 0 1px rgb(var(--fg-rgb) / 0.3),
-      0 40px 80px -30px rgb(0 0 0 / 0.75),
-      0 0 90px -6px rgb(var(--scene-c) / 0.5);
-    transition: box-shadow var(--t) var(--ease), scale var(--t) var(--ease);
-  }
-  :global(.motion-ok) .stage:not([data-paused='true']) .win a {
-    animation: win-float 9s ease-in-out infinite alternate;
-    animation-delay: calc(var(--i) * -3s);
-  }
-  @keyframes win-float {
-    from {
-      translate: 0 -9px;
-    }
-    to {
-      translate: 0 9px;
-    }
-  }
-  .win a:hover,
-  .win a:focus-visible {
-    scale: 1.025;
-    box-shadow:
-      0 0 0 2px var(--focus),
-      0 50px 90px -30px rgb(0 0 0 / 0.8),
-      0 0 80px -6px rgb(var(--scene-c) / 0.4);
-  }
-  .win-bar {
-    display: flex;
+  .hero-film-links a {
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    height: 26px;
+    min-height: 44px;
     padding: 0 10px;
-    background: #15161a;
-    border-bottom: 1px solid rgb(255 255 255 / 0.08);
-  }
-  .win-bar i {
-    width: 7px;
-    height: 7px;
-    border-radius: 50%;
-    background: rgb(255 255 255 / 0.22);
-  }
-  .win-bar b {
-    margin-left: 8px;
-    font-family: var(--font-mono);
-    font-size: 0.66rem;
-    font-weight: 400;
-    letter-spacing: 0.08em;
-    color: #b9b6c0;
-  }
-  .win img {
-    display: block;
-    width: 100%;
-    height: auto;
-    filter: brightness(1.12) contrast(1.04);
-  }
-  .win-label {
-    position: absolute;
-    left: 10px;
-    bottom: 10px;
-    display: flex;
-    gap: 8px;
-    align-items: baseline;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: rgb(8 9 11 / 0.9);
-    font-size: 0.8rem;
-    color: #cdcad3;
-    opacity: 0;
-    translate: 0 6px;
-    transition: opacity var(--t) var(--ease), translate var(--t) var(--ease);
-  }
-  .win-label b {
+    border-radius: 8px;
     color: #fff;
-    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: rgb(255 255 255 / 0.4);
+    text-underline-offset: 5px;
+    transition: background var(--t-fast), text-decoration-color var(--t-fast);
   }
-  .win a:hover .win-label,
-  .win a:focus-visible .win-label,
-  .win-2 .win-label {
-    opacity: 1;
-    translate: none;
+  .hero-film-links a:hover {
+    background: rgb(255 255 255 / 0.1);
+    text-decoration-color: #fff;
   }
-  .stage-toggle {
-    position: absolute;
-    right: 0;
-    bottom: -8px;
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border: 1px solid var(--line-3);
-    border-radius: 50%;
-    background: var(--ink-1);
-    color: var(--text);
-  }
-  .stage-toggle svg {
-    width: 16px;
-    height: 16px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 2.2;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-  }
-  .stage-toggle .i-play {
-    display: none;
-    fill: currentColor;
-  }
-  .stage-toggle[aria-pressed='true'] .i-play {
-    display: block;
-  }
-  .stage-toggle[aria-pressed='true'] .i-pause {
-    display: none;
-  }
-  /* Reduced motion / paused: no lean, no scroll travel. A still composition. */
-  :global(:root:not(.motion-ok)) .hero {
-    --s: 0;
+  .hero :global(.sm-toggle) {
+    right: var(--gutter);
+    bottom: 20px;
   }
 
   :global(.motion-ok) .hero-line > span {
@@ -371,36 +196,37 @@ const screens = [
     }
   }
 
-  @media (max-width: 900px) {
-    .hero-grid {
-      grid-template-columns: 1fr;
+  /* Phones: the film gets the top of the screen to itself, the copy sits below it. */
+  @media (max-width: 860px) {
+    .hero {
+      justify-content: flex-end;
       min-height: 0;
     }
-    .stage {
-      aspect-ratio: 10 / 7.4;
-      transform: rotateY(calc(-10deg * (1 - var(--s)))) rotateX(calc(5deg * (1 - var(--s))));
+    .hero :global(.scene-fill) {
+      bottom: auto;
+      height: 46svh;
     }
-    .win {
-      width: 80%;
-      left: 10%;
+    .hero-scrim {
+      background:
+        linear-gradient(180deg, rgb(5 6 6 / 0.7) 0, transparent 14svh),
+        linear-gradient(180deg, transparent 30svh, #050606 46svh);
     }
-    .win-0 { --fx: -10%; --fy: -22%; --fz: -120px; }
-    .win-1 { --fx: 10%; --fy: 24%; --fz: -50px; }
+    .hero-inner {
+      padding-top: 40svh;
+      padding-bottom: 40px;
+    }
+    .hero :global(.sm-toggle) {
+      top: calc(46svh - 64px);
+      bottom: auto;
+    }
     .hero-actions .btn {
       flex: 1 1 100%;
     }
-    .win-label {
-      opacity: 1;
-      translate: none;
-      font-size: 0.72rem;
-    }
-    .win-label span:last-child {
-      display: none;
-    }
   }
   @media (forced-colors: active) {
-    .win a {
-      border: 1px solid CanvasText;
+    .hero-scrim {
+      background: Canvas;
+      opacity: 0.85;
     }
   }
 </style>

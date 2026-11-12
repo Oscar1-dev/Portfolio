@@ -197,12 +197,18 @@ for (const route of PAGES) {
 {
   const { page, ctx } = await open('', { media: [{ name: 'prefers-color-scheme', value: 'dark' }] });
   await settle(page, 1500);
-  const h = await page.evaluate(() => ({ links: document.querySelectorAll('.stage a').length, imgs: [...document.querySelectorAll('.stage img')].every((i) => i.naturalWidth > 0), paused: document.querySelector('[data-stage]').dataset.paused, theme: document.documentElement.dataset.theme, motion: document.documentElement.dataset.motion }));
-  check('hero stage: three project links with loaded screenshots, moving by default', h.links === 3 && h.imgs && h.paused === 'false', JSON.stringify(h));
+  const h = await page.evaluate(async () => {
+    const v = document.querySelector('.hero video');
+    const t0 = v.currentTime;
+    await new Promise((r) => setTimeout(r, 1200));
+    return { links: document.querySelectorAll('.hero-film-links a').length, poster: document.querySelector('.hero .sm-poster').naturalWidth > 0, paused: v.paused, moved: v.currentTime > t0, muted: v.muted, inline: v.playsInline, loop: v.loop, theme: document.documentElement.dataset.theme, motion: document.documentElement.dataset.motion };
+  });
+  check('hero film autoplays muted, inline, looping; poster and four project links present', h.links === 4 && h.poster && !h.paused && h.moved && h.muted && h.inline && h.loop, JSON.stringify(h));
   check('default with no saved choice: dark theme, full motion', h.theme === 'dark' && h.motion === 'full');
-  await page.click('[data-stage-toggle]');
-  const p = await page.evaluate(() => ({ paused: document.querySelector('[data-stage]').dataset.paused, pressed: document.querySelector('[data-stage-toggle]').getAttribute('aria-pressed'), label: document.querySelector('[data-stage-toggle] [data-label]').textContent, anim: getComputedStyle(document.querySelector('.win a')).animationName }));
-  check('hero pause control stops the stage and relabels itself', p.paused === 'true' && p.pressed === 'true' && /^Play/.test(p.label) && p.anim === 'none', JSON.stringify(p));
+  await page.click('.hero [data-scene-toggle]');
+  await settle(page, 300);
+  const p = await page.evaluate(() => ({ paused: document.querySelector('.hero video').paused, pressed: document.querySelector('.hero [data-scene-toggle]').getAttribute('aria-pressed'), label: document.querySelector('.hero [data-scene-toggle] [data-label]').textContent }));
+  check('hero pause control stops the film and relabels itself', p.paused && p.pressed === 'true' && /^Play/.test(p.label), JSON.stringify(p));
   // Animated card: the play button starts the walk-through and says so
   const cards = await page.evaluate(() => document.querySelectorAll('[data-flowcard]').length);
   await page.evaluate(() => document.querySelector('[data-flowcard] [data-flow-toggle]').scrollIntoView({ block: 'center' }));
@@ -215,7 +221,7 @@ for (const route of PAGES) {
   await settle(page, 300);
   await page.reload({ waitUntil: 'networkidle2' });
   await settle(page, 800);
-  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, ok: document.documentElement.classList.contains('motion-ok'), stagePaused: document.querySelector('[data-stage]').dataset.paused, live: [...document.querySelectorAll('[data-flowcard]')].some((x) => x.dataset.live === 'true'), pressed: document.querySelector('.header-end [data-motion-toggle]').getAttribute('aria-pressed'), hidden: [...document.querySelectorAll('[data-reveal]')].filter((el) => getComputedStyle(el).opacity === '0').length }));
+  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, ok: document.documentElement.classList.contains('motion-ok'), stagePaused: String(document.querySelector('.hero video').paused), live: [...document.querySelectorAll('[data-flowcard]')].some((x) => x.dataset.live === 'true'), pressed: document.querySelector('.header-end [data-motion-toggle]').getAttribute('aria-pressed'), hidden: [...document.querySelectorAll('[data-reveal]')].filter((el) => getComputedStyle(el).opacity === '0').length }));
   check('Reduced motion persists; stage still, no card auto-plays, nothing left hidden', r.motion === 'reduced' && !r.ok && r.stagePaused === 'true' && !r.live && r.pressed === 'true' && r.hidden === 0, JSON.stringify(r));
   await page.click('.header-end [data-theme-toggle]');
   await settle(page, 300);
@@ -227,7 +233,7 @@ for (const route of PAGES) {
 {
   const { page, ctx } = await open('', { media: [{ name: 'prefers-reduced-motion', value: 'reduce' }, { name: 'prefers-color-scheme', value: 'light' }] });
   await settle(page, 800);
-  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, theme: document.documentElement.dataset.theme, stage: document.querySelector('[data-stage]').dataset.paused }));
+  const r = await page.evaluate(() => ({ motion: document.documentElement.dataset.motion, theme: document.documentElement.dataset.theme, stage: String(document.querySelector('.hero video').paused) }));
   check('OS reduced-motion and light-scheme settings are honoured by default', r.motion === 'reduced' && r.theme === 'light' && r.stage === 'true', JSON.stringify(r));
   if (SHOTS) await page.screenshot({ path: path.join(OUT, 'os-reduced-light.png') });
   await ctx.close();
