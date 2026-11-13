@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageIntro from '../components/PageIntro.astro';
+---
+<Layout title="Daily Quotes" description="One thought for today. A fresh daily quote from API Ninjas.">
+  <PageIntro index="06" label="A daily pause" title="One thought." accent="Each day."><p>A little perspective, one day at a time. Today's selection replaces yesterday's.</p></PageIntro>
+  <section class="wrap quote-section" aria-labelledby="quote-heading" data-daily-quote>
+    <h2 id="quote-heading" class="meta">Today's quote</h2>
+    <p role="status" data-quote-status>Loading today's quote…</p>
+    <figure hidden data-quote-result><blockquote data-quote-text></blockquote><figcaption><span data-quote-author></span><cite data-quote-work></cite></figcaption></figure>
+    <p class="meta">Selected daily by <a href="https://api-ninjas.com/api/quotes" target="_blank" rel="noopener noreferrer">API Ninjas ↗<span class="sr-only"> (opens in a new tab)</span></a>. The provider controls the daily rollover.</p>
+    <noscript>Enable JavaScript to load today's quote.</noscript>
+  </section>
+  <script>
+    let stop: (() => void) | undefined;
+    document.addEventListener('astro:page-load', () => {
+      stop?.(); const root = document.querySelector('[data-daily-quote]'); if (!root) return;
+      const status = root.querySelector<HTMLElement>('[data-quote-status]')!; const result = root.querySelector<HTMLElement>('[data-quote-result]')!;
+      const controller = new AbortController(); let timer: ReturnType<typeof setTimeout>;
+      const load = async () => {
+        if (controller.signal.aborted) return;
+        try {
+          const response = await fetch('/api/daily-quote/', { signal: AbortSignal.any([controller.signal, AbortSignal.timeout(10000)]) });
+          const data = response.ok ? await response.json() : null;
+          if (controller.signal.aborted) return;
+          if (data?.status !== 'ok' || typeof data.quote !== 'string' || typeof data.author !== 'string') { result.hidden = true; status.textContent = data?.status === 'not_configured' ? 'Daily quotes are not connected yet. Check back soon.' : 'Today’s quote is temporarily unavailable.'; }
+          else { root.querySelector('[data-quote-text]')!.textContent = data.quote; root.querySelector('[data-quote-author]')!.textContent = data.author; root.querySelector('[data-quote-work]')!.textContent = data.work || ''; result.hidden = false; status.textContent = ''; }
+        } catch { if (!controller.signal.aborted) { result.hidden = true; status.textContent = 'Today’s quote is temporarily unavailable.'; } }
+        finally { if (!controller.signal.aborted) timer = setTimeout(load, 300000); }
+      };
+      const visible = () => { if (!document.hidden) { clearTimeout(timer); void load(); } };
+      document.addEventListener('visibilitychange', visible);
+      stop = () => { controller.abort(); clearTimeout(timer); document.removeEventListener('visibilitychange', visible); };
+      document.addEventListener('astro:before-swap', stop, { once: true }); void load();
+    });
+  </script>
+</Layout>
+<style>
+  .quote-section { padding: clamp(24px, 5vw, 64px); margin-bottom: 80px; background: var(--ink-1); border: 1px solid var(--line-2); border-radius: 16px; }
+  figure { margin: 32px 0; }
+  blockquote { margin: 0 0 24px; font-size: clamp(1.5rem, 3.2vw, 2.8rem); line-height: 1.4; text-wrap: balance; overflow-wrap: anywhere; }
+  figcaption { color: var(--text-2); }
+  cite { display: block; margin-top: 8px; }
+  a { display: inline-flex; min-height: 44px; align-items: center; }
+</style>

@@ -9,20 +9,25 @@
 import { clips } from '../data/inspiration';
 
 const base = import.meta.env.BASE_URL;
-// Numbered in reading order: down the left column, then the right.
-const ordered = [0, 1].flatMap((c) => clips.filter((clip) => clip.column === c));
-const numbered = ordered.map((clip, i) => ({ ...clip, n: String(i + 1).padStart(2, '0') }));
-const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
+// Two clips per row, always a matched pair: two landscape clips or two portrait
+// clips, alternating, so every row lines up. Numbered in that reading order.
+const wideOf = (c: (typeof clips)[number]) => c.width > c.height * 1.15;
+const land = clips.filter(wideOf);
+const port = clips.filter((c) => !wideOf(c));
+const paired: typeof clips = [];
+while (land.length || port.length) {
+  paired.push(...land.splice(0, 2));
+  paired.push(...port.splice(0, 2));
+}
+const numbered = paired.map((clip, i) => ({ ...clip, n: String(i + 1).padStart(2, '0'), wide: wideOf(clip) }));
 ---
 
 <div class="gallery" data-gallery>
   {
-    columns.map((col, c) => (
-      <div class:list={['gallery-col', { 'gallery-col--offset': c === 1 }]}>
-        {col.map((clip) => {
-          const label = `${clip.title} by @${clip.creator}`;
+    numbered.map((clip) => {
+          const label = clip.creator ? `${clip.title} by @${clip.creator}` : clip.title;
           return (
-            <figure class="clip" data-clip data-state="idle" data-label={label} style={`--ar: ${clip.width} / ${clip.height}; --ar-n: ${clip.width / clip.height};`} data-reveal>
+            <figure class:list={['clip', { 'clip--wide': clip.wide }]} data-clip data-state="idle" data-label={label} style={`--ar: ${clip.width} / ${clip.height}; --ar-n: ${clip.width / clip.height};`} data-reveal>
               <div class="clip-frame">
                 <video
                   class="clip-video"
@@ -57,19 +62,17 @@ const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
                     <svg class="icon i-sound" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z" /><path d="M16 9a4.5 4.5 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11" /></svg>
                     <span class="clip-sound-text" data-sound-text>Sound off</span><span class="sr-only">, {label}</span>
                   </button>
-                  <input class="clip-volume" data-volume type="range" min="0" max="1" step="0.05" value="0.8" aria-label={`Volume for ${label}`} />
+                  <input class="clip-volume" data-volume type="range" min="0" max="1" step="0.01" value="0.7" aria-label={`Volume for ${label}`} />
                 </div>
                 <div class="clip-meta">
                   <p class="clip-title"><span class="clip-n">{clip.n}</span>{clip.title}</p>
-                  <p class="clip-credit">@{clip.creator} <span aria-hidden="true">·</span> {clip.platform ?? 'TikTok'}</p>
+                  <p class="clip-credit">{clip.creator ? `@${clip.creator}` : 'Creator not shown'} <span aria-hidden="true">·</span> {clip.platform ?? 'TikTok'}</p>
                 </div>
                 <p class="clip-status" data-status aria-hidden="true">Paused</p>
               </figcaption>
             </figure>
           );
-        })}
-      </div>
-    ))
+    })
   }
 </div>
 
@@ -83,36 +86,37 @@ const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
   .gallery {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(1.25rem, 3vw, 2.5rem);
+    gap: clamp(2.75rem, 5vw, 4.5rem) clamp(1.5rem, 3.5vw, 3.5rem);
     align-items: start;
   }
-
-  .gallery-col {
-    display: flex;
-    flex-direction: column;
-    gap: clamp(1.75rem, 4vw, 3.25rem);
-    min-width: 0;
+  /* Every tile in a row is the same size: landscape tiles are 16:9, portrait
+     tiles 9:16, whatever the clip's own shape. The clip sits whole inside its
+     frame (no cropping). Portrait tiles never grow taller than the screen. */
+  .clip .clip-frame {
+    aspect-ratio: 16 / 9;
   }
-
-  .gallery-col--offset {
-    margin-top: clamp(2rem, 7vw, 6rem);
+  .clip:not(.clip--wide) .clip-frame {
+    aspect-ratio: 9 / 16;
   }
-
-  @media (max-width: 720px) {
+  .clip:not(.clip--wide) {
+    width: min(100%, 24rem, calc(76vh * 9 / 16));
+    width: min(100%, 24rem, calc(76svh * 9 / 16));
+    justify-self: center;
+  }
+  .clip .clip-video {
+    object-fit: contain;
+  }
+  @media (max-width: 700px) {
     .gallery {
       grid-template-columns: minmax(0, 1fr);
-    }
-    .gallery-col--offset {
-      margin-top: 0;
     }
   }
 
   .clip {
     margin: 0;
     /* Tall clips are capped so a whole portrait video fits on screen. */
-    width: min(100%, calc(78vh * var(--ar-n)));
-    width: min(100%, calc(78svh * var(--ar-n)));
-    margin-inline: auto;
+    width: 100%;
+    min-width: 0;
   }
 
   .clip-frame {
@@ -325,9 +329,11 @@ const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
   }
 
   .clip-volume {
-    flex: 0 1 6.5rem;
-    min-width: 2.5rem;
-    height: 2.5rem;
+    /* wider track for finer control; padding gives the thin native track a 28px hit area */
+    flex: 0 1 9rem;
+    min-width: 3.5rem;
+    box-sizing: content-box;
+    padding-block: 6px;
     margin: 0;
     accent-color: var(--page-accent);
     background: transparent;
@@ -407,6 +413,25 @@ const columns = [0, 1].map((c) => numbered.filter((clip) => clip.column === c));
     font-size: 11px;
     color: var(--color-text-tertiary);
     overflow-wrap: anywhere;
+  }
+
+  /* Narrow (portrait) tiles: the controls keep the row, the status text goes,
+     and the title and credit stack so nothing overlaps. */
+  .clip:not(.clip--wide) .clip-bar {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      'controls'
+      'meta';
+  }
+  .clip:not(.clip--wide) .clip-status {
+    display: none;
+  }
+  .clip:not(.clip--wide) .clip-meta {
+    display: grid;
+    gap: 2px;
+  }
+  .clip:not(.clip--wide) .clip-sound-text {
+    display: none;
   }
 
   @media (max-width: 380px) {

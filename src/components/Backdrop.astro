@@ -8,7 +8,9 @@
 // Purely decorative: hidden from assistive technology, static in Reduced motion.
 import * as icons from 'simple-icons';
 const pick = (k: string) => (icons as Record<string, { path: string; title: string }>)[k];
-// [icon, left %, top % of a 220vh-tall field, size px, depth 0 far … 2 near]
+// Existing icon inventory is preserved; shared grid slots below keep every
+// depth aligned without collisions during pointer or scroll animation.
+// [icon, legacy x, legacy y, intrinsic size, depth]
 const items: [string, number, number, number, number][] = [
   ['siRust', 8, 6, 120, 2],
   ['siTypescript', 86, 10, 90, 1],
@@ -37,7 +39,53 @@ const items: [string, number, number, number, number][] = [
   ['csharp', 82, 54, 90, 1],
   ['siCplusplus', 34, 26, 84, 0],
   ['siJavascript', 62, 74, 90, 2],
+  ['siGit', 0, 0, 76, 0],
+  ['siPython', 0, 0, 76, 0],
+  ['siExpress', 0, 0, 76, 0],
+  ['siRedis', 0, 0, 76, 0],
+  ['siKalilinux', 0, 0, 76, 0],
+  ['siDiscourse', 0, 0, 76, 0],
+  ['siGithub', 0, 0, 76, 0],
+  ['siGitlab', 0, 0, 76, 1],
+  ['siGo', 0, 0, 76, 2],
+  ['siPhp', 0, 0, 76, 0],
+  ['siLaravel', 0, 0, 76, 1],
+  ['siDjango', 0, 0, 76, 2],
+  ['siFlask', 0, 0, 76, 0],
+  ['siSupabase', 0, 0, 76, 1],
+  ['siFirebase', 0, 0, 76, 2],
+  ['siNginx', 0, 0, 76, 0],
+  ['siDebian', 0, 0, 76, 1],
+  ['siUbuntu', 0, 0, 76, 2],
+  ['siArchlinux', 0, 0, 76, 0],
+  ['siWireshark', 0, 0, 76, 1],
+  ['siBurpsuite', 0, 0, 76, 2],
+  ['siOwasp', 0, 0, 76, 0],
+  ['siStackoverflow', 0, 0, 76, 1],
+  ['siDevdotto', 0, 0, 76, 2],
+  ['siOpenjdk', 0, 0, 76, 0],
 ];
+// Stable irregular layouts with reserved space for motion at each breakpoint.
+function scatter(width: number, height: number, gap: number) {
+  let seed = 7481;
+  const random = () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; };
+  const points: { x: number; y: number }[] = [];
+  for (let i = 0; i < items.length; i++) {
+    for (let attempt = 0; attempt < 10000; attempt++) {
+      const point = { x: 0.07 + random() * 0.86, y: 0.035 + random() * 0.93 };
+      if (points.every(p => Math.hypot((p.x - point.x) * width, (p.y - point.y) * height) > gap)) { points.push(point); break; }
+    }
+  }
+  if (points.length !== items.length) throw new Error('Not enough room for backdrop icons');
+  return points;
+}
+const desktop = scatter(1024, 1400, 120);
+const mobile = scatter(320, 1400, 62);
+const position = (key: string) => {
+  const i = items.findIndex(item => item[0] === key);
+  return `--x:${desktop[i].x * 100}%;--y:${desktop[i].y * 100}%;--mobile-x:${mobile[i].x * 100}%;--mobile-y:${mobile[i].y * 100}%;--n:${i}`;
+};
+
 ---
 
 <div class="backdrop" aria-hidden="true" transition:persist="backdrop">
@@ -49,8 +97,8 @@ const items: [string, number, number, number, number][] = [
       <div class={`logos logos-${depth}`}>
         {items
           .filter((it) => it[4] === depth)
-          .map(([k, x, y, size], i) => (
-            <svg class="logo" viewBox="0 0 24 24" width={size} height={size} style={`left:${x}%;top:${y}%;--n:${i + depth * 3}`}>
+          .map(([k, , , size]) => (
+            <svg class="logo" viewBox="0 0 24 24" width={size} height={size} data-logo={k} style={position(k)}>
               {k === 'csharp' ? (
                 // C# has no entry in the icon set: a hexagon badge with the name, drawn here
                 <>
@@ -78,11 +126,16 @@ const items: [string, number, number, number, number][] = [
     translate: calc(var(--ptr-x, 0) * var(--shift)) calc(var(--ptr-y, 0) * var(--shift));
     transition: translate 900ms var(--ease);
   }
-  .logos-0 { --shift: -10px; --travel: -18vh; opacity: 0.3; }
-  .logos-1 { --shift: -24px; --travel: -60vh; opacity: 0.44; }
-  .logos-2 { --shift: -46px; --travel: -115vh; opacity: 0.6; }
+  .logos-0 { --shift: -10px; --travel: -60vh; opacity: 0.38; }
+  .logos-1 { --shift: -10px; --travel: -60vh; opacity: 0.48; }
+  .logos-2 { --shift: -10px; --travel: -60vh; opacity: 0.58; }
   .logo {
     position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: clamp(36px, 5vw, 76px);
+    height: clamp(36px, 5vw, 76px);
+    translate: -50% -50%;
     fill: #fff;
     color: #fff;
   }
@@ -91,17 +144,17 @@ const items: [string, number, number, number, number][] = [
     color: rgb(var(--fg-rgb));
   }
   [data-theme='light'] .logos {
-    opacity: 0.2;
+    opacity: 0.10;
   }
   .motion-ok .logo {
     animation: logo-float calc(11s + var(--n) * 1.7s) ease-in-out calc(var(--n) * -2.3s) infinite alternate;
   }
   @keyframes logo-float {
     from {
-      transform: translateY(-18px) rotate(-7deg);
+      transform: translateY(-5px) rotate(-4deg);
     }
     to {
-      transform: translateY(18px) rotate(7deg);
+      transform: translateY(5px) rotate(4deg);
     }
   }
   /* scroll: nearer logos travel further, so the depths separate as you move */
@@ -118,7 +171,10 @@ const items: [string, number, number, number, number][] = [
   }
   @media (max-width: 700px) {
     .logo {
-      scale: 0.6;
+      left: var(--mobile-x);
+      top: var(--mobile-y);
+      width: 34px;
+      height: 34px;
     }
   }
 </style>

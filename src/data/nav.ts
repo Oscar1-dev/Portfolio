@@ -10,10 +10,12 @@ export interface NavLink {
 }
 
 export const navLinks = (base: string): NavLink[] => [
+  { href: `${base}about/`, label: 'About', hint: 'Who I am, off the clock included' },
   { href: `${base}projects/`, label: 'Projects', hint: 'Every project, searchable by technology', spy: 'projects' },
-  { href: `${base}credentials/`, label: 'Cybersecurity', hint: 'Security practice and TryHackMe record', spy: 'security' },
   { href: `${base}#experience`, label: 'Experience', hint: 'Current roles and study', spy: 'experience' },
   { href: `${base}learning-log/`, label: 'Journal', hint: 'Development journal: dated project milestones' },
-  { href: `${base}about/`, label: 'About', hint: 'Who I am, off the clock included' },
+  { href: `${base}credentials/`, label: 'Cybersecurity', hint: 'Security practice and TryHackMe record', spy: 'security' },
+  { href: `${base}quotes/`, label: 'Quotes', hint: 'One fresh thought each day' },
+  { href: `${base}apis/`, label: 'APIs', hint: 'Search the public API catalogue' },
   { href: `${base}#contact`, label: 'Contact', hint: 'Email, GitHub and TryHackMe', spy: 'contact' },
 ];

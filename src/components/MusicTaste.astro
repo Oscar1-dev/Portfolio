@@ -1,279 +1,69 @@
 ---
-// src/components/MusicTaste.astro
-// "On repeat" — Oscar's Spotify playlists. Names, artwork and track details
-// come from Spotify's public oEmbed/embed data (no API keys); artwork is
-// served from Spotify's CDN and every item links back to Spotify. The only
-// player is Spotify's official embed, compact and lazy-loaded.
-//
-// Tracks are the first six (one per artist) from the featured playlist, in
-// playlist order.
-const spotify = 'https://open.spotify.com';
-const img = 'https://image-cdn-ak.spotifycdn.com/image/';
-
-const featured = {
-  id: '1v9R0H94ZKMEFqGGIbMP0P',
-  name: '( •̀ ω •́ )✧',
-  art: `${img}ab67706c0000da84d4e8a7775be92b1dde8b8944`,
-  count: 51,
-};
-
-const tracks = [
-  { id: '6Rvi7T8vQkkIYQcp1DWm3u', title: 'vintage vuitton', artist: 'earfzilla', art: 'ab67616d00001e0212d3b2c865fe98d50162f097' },
-  { id: '5SBw1xk6yYIUTXbIj9xXHj', title: 'Benny Boy', artist: 'Pink Boy', art: 'ab67616d00001e025e078228e662dd0aab016b7d' },
-  { id: '0XPqA1xDFstAQyoVdYead5', title: 'when we were sober', artist: 'comehelpglo', art: 'ab67616d00001e020bb214c1800ec1e4e497cf75' },
-  { id: '2hI66u1P8bKLhlrz8fjdrh', title: 'We Get Paper', artist: 'Tommy Fleece', art: 'ab67616d00001e021529b9fc42e80c565909c4a7' },
-  { id: '5Q3jWNZzsCSB6SWf2njghn', title: 'Stars', artist: 'Liam Mc Cay', art: 'ab67616d00001e0270579ea55a4ad10393fc3bf0' },
-  { id: '6dFgcqb9cskvM7FuHxdQh5', title: 'corpse bride', artist: 'osk', art: 'ab67616d00001e02e2851a0ee492b6b4bc487623' },
-];
-
-const more = [
-  { id: '6z8AK7S6eJ2sPQTugnwy1i', name: 'ֲֶֶֶֶֹֻת', art: 'ab67706c0000da8437c9cb2c4cd1ff9eb2d53613' },
-  { id: '4V2lI46rlgETmv4AX0lSbq', name: '🪽', art: 'ab67706c0000da84cbea39a0735fa2c10c76313e' },
-  { id: '35Wmp8GKmbfnhurwavM9qC', name: 'ֱמי', art: 'ab67706c0000da84fd4b16061e7e8a2e27af2aa5' },
-];
+import { siSpotify } from 'simple-icons';
+const playlists = ['37UM9wxbOSNKMcbNmCQbeI', '2L81QkDl0dH8NEihcrtz9Z', '1Ikwne5uReBFXHnvIIF8YN'];
 ---
-
-<div class="music">
-  <div class="music-head" data-reveal>
-    <h3>On repeat</h3>
-    <p>What's actually in my ears — straight from my Spotify.</p>
+<section class="music" aria-labelledby="music-title" data-spotify>
+  <header class="music-head">
+    <p class="meta">Soundtrack · Spotify</p>
+    <h3 id="music-title">On repeat</h3>
+    <p>My playlists, recent listening and the music I keep coming back to.</p>
+    <a href="https://open.spotify.com/user/3135pu6uanknbgqv6i6zdgzssci4" target="_blank" rel="noopener noreferrer" class="music-profile"><svg viewBox="0 0 24 24" width="24" height="24" aria-hidden="true"><path d={siSpotify.path} /></svg> My Spotify profile <span class="sr-only">(opens in a new tab)</span> ↗</a>
+  </header>
+  <div class="listening-panel" aria-busy="true" data-listening>
+    <p class="meta">Listening now</p>
+    <p role="status" data-listening-status>Checking Spotify…</p>
+    <div data-current class="current-track"></div>
+    <noscript>Live listening needs JavaScript. You can still open my playlists below.</noscript>
   </div>
-
-  <div class="music-grid">
-    <article class="feature" data-reveal>
-      <div class="feature-top">
-        <img src={featured.art} alt="" width="300" height="300" loading="lazy" decoding="async" />
-        <div class="feature-info">
-          <p class="meta">Featured playlist · {featured.count} tracks</p>
-          <p class="feature-name">{featured.name}</p>
-          <a class="btn btn-primary" href={`${spotify}/playlist/${featured.id}`} target="_blank" rel="noopener noreferrer">
-            Open in Spotify <span class="visually-hidden">(opens in a new tab)</span>
-          </a>
+  <div class="playlist-grid">
+    {playlists.map((id, i) => (
+      <article class="playlist-card">
+        <h4>Playlist {String(i + 1).padStart(2, '0')}</h4>
+        <div class="embed-shell" data-embed-shell>
+          <p class="embed-loading" data-embed-status>Spotify player loads when in view.</p>
+          <iframe title={`Spotify playlist ${i + 1} from Oscar's new account`} src={`https://open.spotify.com/embed/playlist/${id}?theme=0`} width="100%" height="352" loading="lazy" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
         </div>
-      </div>
-      <iframe
-        class="feature-player"
-        title="Spotify player: featured playlist"
-        src={`${spotify}/embed/playlist/${featured.id}?utm_source=generator&theme=0`}
-        width="100%"
-        height="152"
-        loading="lazy"
-        allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"></iframe>
-    </article>
-
-    <ul class="tracks" role="list" data-reveal>
-      {
-        tracks.map((t) => (
-          <li>
-            <a class="track" href={`${spotify}/track/${t.id}`} target="_blank" rel="noopener noreferrer">
-              <img src={img + t.art} alt="" width="300" height="300" loading="lazy" decoding="async" />
-              <span class="track-title">{t.title}</span>
-              <span class="track-artist">{t.artist}</span>
-              <span class="visually-hidden">— listen on Spotify (opens in a new tab)</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+        <a href={`https://open.spotify.com/playlist/${id}`} target="_blank" rel="noopener noreferrer">Open playlist {i + 1} on Spotify ↗<span class="sr-only"> (opens in a new tab)</span></a>
+      </article>
+    ))}
   </div>
-
-  <div class="more" data-reveal>
-    <p class="meta">More playlists</p>
-    <ul class="more-list" role="list">
-      {
-        more.map((p) => (
-          <li>
-            <a class="more-item" href={`${spotify}/playlist/${p.id}`} target="_blank" rel="noopener noreferrer">
-              <img src={img + p.art} alt="" width="300" height="300" loading="lazy" decoding="async" />
-              <span class="more-name">{p.name}</span>
-              <span class="visually-hidden">— playlist on Spotify (opens in a new tab)</span>
-            </a>
-          </li>
-        ))
-      }
-    </ul>
+  <div class="history-grid">
+    <section aria-labelledby="recent-heading"><h4 id="recent-heading">Recently played</h4><p class="music-note">A recent snapshot, not a lifetime listening history.</p><p data-recent-empty>Waiting for listening data.</p><ol data-recent class="music-items"></ol></section>
+    <section aria-labelledby="top-heading"><h4 id="top-heading">Recent favourites</h4><p class="music-note">Top tracks and artists over roughly the last four weeks, when available.</p><p data-top-empty>Waiting for listening data.</p><h5>Tracks</h5><ol data-top-tracks class="music-items"></ol><h5>Artists</h5><ul data-top-artists class="music-items"></ul></section>
   </div>
-</div>
-
+  <p class="music-note">Music and artwork supplied by Spotify. Playback is provided by the official players above or opens in Spotify. Live listening may be delayed.</p>
+</section>
+<script>
+  import { mountSpotify } from '../scripts/spotify';
+  document.addEventListener('astro:page-load', mountSpotify);
+</script>
 <style>
-  .music {
-    margin-top: clamp(3rem, 7vw, 5.5rem);
-    padding-top: clamp(2rem, 4vw, 3rem);
-    border-top: 1px solid var(--color-border);
-  }
-
-  .music-head {
-    margin-bottom: clamp(1.75rem, 3.5vw, 2.75rem);
-  }
-
-  .music-head h3 {
-    margin: 0 0 var(--space-3);
-    font-size: var(--text-2xl);
-    letter-spacing: -0.015em;
-  }
-
-  .music-head p {
-    margin: 0;
-    color: var(--color-text-secondary);
-    line-height: 1.7;
-  }
-
-  .music-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.15fr);
-    gap: clamp(1.25rem, 3vw, 2.5rem);
-    align-items: start;
-  }
-
-  @media (max-width: 860px) {
-    .music-grid {
-      grid-template-columns: minmax(0, 1fr);
-    }
-  }
-
-  img {
-    display: block;
-    width: 100%;
-    height: auto;
-    aspect-ratio: 1;
-    object-fit: cover;
-    background: var(--color-bg-raised);
-  }
-
-  /* ---- Featured playlist ---- */
-  .feature {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-    padding: var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: 0.75rem;
-    background:
-      radial-gradient(120% 90% at 0% 0%, color-mix(in srgb, var(--page-accent) 9%, transparent), transparent 60%),
-      var(--color-bg-raised);
-  }
-
-  .feature-top {
-    display: grid;
-    grid-template-columns: clamp(96px, 34%, 168px) minmax(0, 1fr);
-    gap: var(--space-4);
-    align-items: end;
-  }
-
-  .feature-top img {
-    border-radius: 0.5rem;
-    box-shadow: 0 18px 40px -22px color-mix(in srgb, var(--page-accent) 55%, transparent);
-  }
-
-  .feature-info {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: var(--space-2);
-    min-width: 0;
-  }
-
-  .feature-name {
-    margin: 0 0 var(--space-2);
-    font-family: var(--font-display);
-    font-size: var(--text-2xl);
-    line-height: 1.2;
-    overflow-wrap: anywhere;
-  }
-
-  .feature-player {
-    display: block;
-    border: 0;
-    border-radius: 12px;
-    background: var(--color-bg);
-  }
-
-  /* ---- Track cards ---- */
-  .tracks {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  @media (max-width: 480px) {
-    .tracks {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-  }
-
-  .track,
-  .more-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    color: inherit;
-    text-decoration: none;
-  }
-
-  .track img,
-  .more-item img {
-    margin-bottom: var(--space-2);
-    border-radius: 0.5rem;
-    border: 1px solid var(--color-border);
-    transition: translate var(--transition-slow), border-color var(--transition-safe), box-shadow var(--transition-safe);
-  }
-
-  .track:hover img,
-  .more-item:hover img {
-    translate: 0 -3px;
-    border-color: color-mix(in srgb, var(--page-accent) 55%, var(--color-border));
-    box-shadow: 0 16px 30px -20px color-mix(in srgb, var(--page-accent) 60%, transparent);
-  }
-
-  .track:hover,
-  .more-item:hover {
-    color: inherit;
-  }
-
-  .track-title,
-  .more-name {
-    font-size: var(--text-sm);
-    color: var(--color-text-primary);
-    overflow-wrap: anywhere;
-    transition: color var(--transition-safe);
-  }
-
-  .track:hover .track-title,
-  .more-item:hover .more-name {
-    color: var(--page-accent);
-  }
-
-  .track-artist {
-    font-family: var(--font-mono);
-    font-size: 11px;
-    color: var(--color-text-tertiary);
-  }
-
-  /* ---- More playlists ---- */
-  .more {
-    margin-top: clamp(1.75rem, 3.5vw, 2.5rem);
-  }
-
-  .more .meta {
-    margin: 0 0 var(--space-3);
-  }
-
-  .more-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(120px, 160px));
-    gap: var(--space-4);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .track:hover img,
-    .more-item:hover img {
-      translate: none;
-    }
-  }
+  .music { margin-top: clamp(3rem, 7vw, 5.5rem); padding-top: clamp(2rem, 4vw, 3rem); border-top: 1px solid var(--line); }
+  .music-head { margin-bottom: 1.75rem; }
+  h3 { font-size: var(--text-2xl); margin: 0 0 12px; }
+  h4 { font-size: var(--text-lg); margin: 0 0 12px; }
+  h5 { font-size: var(--text-base); margin: 20px 0 12px; }
+  p { color: var(--text-2); }
+  .music-profile { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; }
+  .music-profile svg { fill: currentColor; flex-shrink: 0; }
+  .listening-panel, .playlist-card, .history-grid > section { min-width: 0; padding: clamp(16px, 2vw, 24px); background: var(--ink-1); border: 1px solid var(--line-2); border-radius: 12px; }
+  .listening-panel { margin-bottom: 24px; }
+  .listening-panel[aria-busy='true'] { min-height: 160px; background: linear-gradient(120deg, var(--ink-1), var(--ink-3), var(--ink-1)); }
+  .playlist-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+  .playlist-card a { display: inline-flex; align-items: center; min-height: 44px; margin-top: 10px; font-size: var(--text-sm); }
+  .embed-shell { position: relative; min-height: 352px; background: #121212; border-radius: 12px; }
+  iframe { position: relative; display: block; border: 0; border-radius: 12px; max-width: 100%; }
+  .embed-loading { position: absolute; inset: 20px; margin: 0; color: #eee; font-size: .875rem; }
+  .history-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; margin-top: 24px; }
+  .music-note { font-size: var(--text-sm); color: var(--text-2); line-height: 1.6; }
+  .music-items { padding: 0; margin: 0; list-style: none; }
+  .music :global(.music-row) { display: flex; align-items: center; gap: 14px; padding: 14px 0; border-bottom: 1px solid var(--line); min-width: 0; }
+  .music :global(.music-row:last-child) { border-bottom: 0; }
+  .music :global(.music-art) { width: 64px; height: 64px; flex: 0 0 64px; object-fit: contain; border-radius: 4px; }
+  .music :global(.music-detail) { min-width: 0; overflow-wrap: anywhere; }
+  .music :global(.music-detail a) { display: inline-flex; align-items: center; min-height: 44px; font-weight: 600; line-height: 1.4; }
+  .music :global(.music-detail p), .music :global(.music-detail time) { margin: 4px 0; color: var(--text-2); font-size: var(--text-sm); }
+  .music :global(progress) { display: block; width: 100%; max-width: 400px; height: 6px; margin-top: 14px; accent-color: var(--text); }
+  @media(max-width: 1050px) { .playlist-grid { grid-template-columns: 1fr; } }
+  @media(max-width: 640px) { .history-grid { grid-template-columns: 1fr; } }
 </style>

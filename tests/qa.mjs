@@ -262,7 +262,7 @@ for (const route of PAGES) {
     const clips = [...document.querySelectorAll('.clip video, [data-clip] video')];
     return { clips: clips.length, allMuted: clips.every((v) => v.muted) };
   });
-  check('About: all 33 credited clips are present and start muted', r.clips === 33 && r.allMuted, JSON.stringify(r));
+  check('About: all 43 clips are present and start muted', r.clips === 43 && r.allMuted, JSON.stringify(r));
   await ctx.close();
 }
 

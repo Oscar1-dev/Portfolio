@@ -38,6 +38,11 @@ export const clips: Clip[] = [
   { slug: 'skrillex-2', title: 'Skrillex edit', creator: 'tcmadethis8', width: 1024, height: 576, column: 0 },
   { slug: 'linkin-park-3', title: 'Linkin Park live', creator: 'biskuttiger252', width: 1024, height: 576, column: 0 },
   { slug: 'fire-edit-cars-2', title: 'BMW E36', creator: 's13char', width: 576, height: 1024, column: 0 },
+  { slug: 'adventure-time-edit', title: 'Adventure Time edit', creator: 'ten14438', width: 576, height: 720, column: 0 },
+  { slug: 'arcane-edit-2', title: 'Arcane edit', creator: 'jinxloosecannonyt', width: 1352, height: 576, column: 0 },
+  { slug: 'murr-on-stage', title: 'Murr on stage', creator: 'jamesmurrayjokers', width: 576, height: 1024, column: 0 },
+  { slug: 'night-drive', title: 'Night drive', creator: 'flyingfrozen', width: 576, height: 1024, column: 0 },
+  { slug: 'road-racing-aerial', title: 'Road racing from above', creator: 'apple.user2887886', width: 1024, height: 576, column: 0 },
   // Right column
   { slug: 'motogp-edit', title: 'MotoGP edit', creator: 'kammler.gonsoulin', width: 576, height: 1024, column: 1 },
   { slug: 'drums', title: 'Drumming', creator: 'bennybellson', width: 654, height: 360, column: 1 },
@@ -55,4 +60,10 @@ export const clips: Clip[] = [
   { slug: 'skrillex', title: 'Skrillex live', creator: 'ntkllr', width: 766, height: 576, column: 1 },
   { slug: 'drift', title: 'FPV drift', creator: 'stan.fpv', width: 768, height: 576, column: 1 },
   { slug: 'fire-edit-cars-3', title: 'Drift show edit', creator: 'makuovv', platform: 'on-video credit', width: 1080, height: 1920, column: 1 },
+  { slug: 'ruby-lane', title: 'Ruby Lane', creator: 'ruby_lane.ex', width: 576, height: 1024, column: 1 },
+  // No watermark or credit on this file: creator left empty until the source is known.
+  { slug: 'car-meet', title: 'Car meet', creator: '', platform: 'source not credited', width: 1920, height: 1080, column: 1 },
+  { slug: 'impractical-jokers', title: 'Impractical Jokers', creator: 'sals.flat.feet', width: 1050, height: 576, column: 1 },
+  { slug: 'nissan-s13', title: 'Nissan S13', creator: 's13machi', width: 576, height: 1024, column: 1 },
+  { slug: 'snowy-village', title: 'Snowy village animation', creator: '.stardustfilms', width: 1024, height: 576, column: 1 },
 ];

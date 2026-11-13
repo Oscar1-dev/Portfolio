@@ -1,0 +1,45 @@
+---
+import Layout from '../layouts/Layout.astro';
+import PageIntro from '../components/PageIntro.astro';
+import catalogue from '../data/public-apis.json';
+const categories = [...new Set(catalogue.entries.map(e => e.category))].sort();
+---
+<Layout title="Public API List" description="Search a complete snapshot of the community-maintained Public API Lists catalogue.">
+  <PageIntro index="07" label="Developer resources" title="Public APIs." accent="Worth exploring."><p>A searchable copy of the Public API Lists catalogue. Publicly accessible does not always mean free or keyless—check each provider's terms.</p></PageIntro>
+  <section class="wrap api-directory" data-api-directory aria-labelledby="directory-title">
+    <h2 id="directory-title">Explore {catalogue.entries.length} APIs</h2>
+    <p>Source: <a href="https://github.com/public-api-lists/public-api-lists" target="_blank" rel="noopener noreferrer">public-api-lists/public-api-lists ↗<span class="sr-only"> (opens in a new tab)</span></a> · Snapshot: <time datetime={catalogue.retrieved}>{catalogue.retrieved}</time> · MIT license. Entries are community supplied; availability is not guaranteed.</p>
+    <div class="directory-filters"><label>Search APIs<input data-api-search type="search" placeholder="Name, description or category" /></label><label>Category<select data-api-category><option value="">All categories</option>{categories.map(c => <option value={c}>{c}</option>)}</select></label><label>Authentication<select data-api-auth><option value="">Any authentication</option><option value="none">No authentication listed</option><option value="required">Authentication required</option></select></label></div>
+    <p role="status" data-api-count>{catalogue.entries.length} APIs</p>
+    <ul class="directory-list" role="list">
+      {catalogue.entries.map(e => <li data-api-entry data-search={`${e.name} ${e.description} ${e.category}`.toLowerCase()} data-category={e.category} data-auth={e.auth.toLowerCase() === 'no' ? 'none' : 'required'}><article><div><h3><a href={e.url} target="_blank" rel="noopener noreferrer">{e.name} ↗<span class="sr-only"> (opens in a new tab)</span></a></h3><p>{e.description}</p></div><dl><div><dt>Category</dt><dd>{e.category}</dd></div><div><dt>Auth</dt><dd>{e.auth}</dd></div><div><dt>HTTPS</dt><dd>{e.https ? 'Yes' : 'No'}</dd></div><div><dt>CORS</dt><dd>{e.cors}</dd></div></dl></article></li>)}
+    </ul>
+    <button class="btn btn-outline" data-api-more type="button" hidden>Show 50 more</button>
+    <noscript>All catalogue entries are shown. Enable JavaScript to filter them.</noscript>
+  </section>
+  <script>
+    document.addEventListener('astro:page-load', () => {
+      const root = document.querySelector('[data-api-directory]'); if (!root) return;
+      const search = root.querySelector<HTMLInputElement>('[data-api-search]')!; const category = root.querySelector<HTMLSelectElement>('[data-api-category]')!; const auth = root.querySelector<HTMLSelectElement>('[data-api-auth]')!;
+      const items = [...root.querySelectorAll<HTMLElement>('[data-api-entry]')]; const more = root.querySelector<HTMLButtonElement>('[data-api-more]')!; const count = root.querySelector('[data-api-count]')!; let limit = 50;
+      function render() { const query = search.value.trim().toLowerCase(); let matches = 0; for (const item of items) { const match = (!query || item.dataset.search!.includes(query)) && (!category.value || item.dataset.category === category.value) && (!auth.value || item.dataset.auth === auth.value); item.hidden = !match || ++matches > limit; } count.textContent = matches ? `Showing ${Math.min(matches,limit)} of ${matches} matching APIs` : 'No APIs match these filters.'; more.hidden = matches <= limit; }
+      for (const input of [search,category,auth]) input.addEventListener('input', () => { limit = 50; render(); }); more.addEventListener('click', () => { limit += 50; render(); }); render();
+    });
+  </script>
+</Layout>
+<style>
+  .api-directory { padding-bottom: 80px; }
+  .directory-filters { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 20px; padding: 24px 0; }
+  label { display: flex; flex-direction: column; gap: 10px; font-size: var(--text-sm); }
+  input,select { width: 100%; min-width: 0; min-height: 48px; padding: 10px 14px; color: var(--text); background: var(--ink-1); border: 1px solid var(--line-3); border-radius: 8px; font: inherit; }
+  .directory-list { padding: 0; margin: 0 0 24px; list-style: none; }
+  article { display: grid; grid-template-columns: 1.3fr 1fr; gap: 24px; padding: 24px; margin-bottom: 14px; background: var(--ink-1); border: 1px solid var(--line-2); border-radius: 12px; }
+  h3 { margin: 0; font-size: var(--text-lg); }
+  p { color: var(--text-2); overflow-wrap: anywhere; }
+  dl { display: grid; grid-template-columns: 1.3fr 1fr .7fr .7fr; gap: 14px; margin: 0; font-size: var(--text-sm); }
+  dt { color: var(--text-3); margin-bottom: 8px; } dd { margin: 0; overflow-wrap: anywhere; }
+  a { display: inline-flex; align-items: center; min-height: 44px; overflow-wrap: anywhere; }
+  [hidden] { display: none; }
+  @media(max-width: 900px) { article { grid-template-columns: 1fr; } .directory-filters { grid-template-columns: 1fr; } }
+  @media(max-width: 450px) { dl { grid-template-columns: 1fr 1fr; } }
+</style>

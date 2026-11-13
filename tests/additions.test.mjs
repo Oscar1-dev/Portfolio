@@ -1,0 +1,9 @@
+import test from 'node:test';import assert from 'node:assert/strict';
+import {clips} from '../src/data/inspiration.ts';
+import fs from'node:fs';import {execFileSync} from'node:child_process';
+import {createDailyQuote} from '../server/daily-quote.mjs';
+import catalogue from '../src/data/public-apis.json' with {type:'json'};
+test('every local clip has its video and poster on disk',()=>{assert.equal(clips.length,43);assert.equal(new Set(clips.map(c=>c.slug)).size,43);for(const clip of clips){assert.ok(fs.existsSync(`public/videos/${clip.slug}.mp4`),clip.slug);assert.ok(fs.existsSync(`public/videos/posters/${clip.slug}.jpg`),clip.slug);}});
+test('daily quote stable within day and refreshed on next date, no key leakage',async()=>{let now=Date.parse('2026-11-12T23:59:00Z'),calls=0;const read=createDailyQuote({API_NINJAS_KEY:'private-test-key'},async()=>{calls++;return Response.json([{quote:`Test quote ${calls}`,author:'Fixture'}])},()=>now);const first=await read();assert.equal((await read()).quote,first.quote);assert.equal(calls,1);assert.ok(!JSON.stringify(first).includes('private-test-key'));now+=120000;assert.notEqual((await read()).date,first.date);assert.equal(calls,2);});
+test('quotes handle missing key, permission denial, rate limits, invalid data',async()=>{assert.equal((await createDailyQuote({})()).status,'not_configured');for(const [http,status]of[[403,'authorization_required'],[429,'rate_limited'],[500,'unavailable']])assert.equal((await createDailyQuote({API_NINJAS_KEY:'test'},async()=>new Response(null,{status:http}))()).status,status);assert.equal((await createDailyQuote({API_NINJAS_KEY:'test'},async()=>Response.json({wrong:true}))()).status,'unavailable');});
+test('catalogue contains all source entries and safe outbound links',()=>{assert.equal(catalogue.entries.length,837);for(const e of catalogue.entries){assert.ok(['http:','https:'].includes(new URL(e.url).protocol));assert.ok(e.name);}});

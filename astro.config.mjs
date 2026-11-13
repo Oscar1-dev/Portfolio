@@ -1,5 +1,6 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import spotifyDev from './server/spotify-dev.mjs';
 
 /**
  * Vercel is the primary host (served from the domain root). The old GitHub
@@ -27,6 +28,7 @@ function markOfflineLinks() {
 }
 
 export default defineConfig({
+  integrations: [spotifyDev()],
   site: onVercel && vercelHost ? `https://${vercelHost}` : 'https://oscar1-dev.github.io',
   base: onVercel ? '/' : '/Portfolio',
   trailingSlash: 'always',
