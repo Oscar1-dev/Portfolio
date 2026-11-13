@@ -129,7 +129,7 @@ const position = (key: string) => {
   .logos-0 { --shift: -10px; --travel: -60vh; opacity: 0.38; }
   .logos-1 { --shift: -10px; --travel: -60vh; opacity: 0.48; }
   .logos-2 { --shift: -10px; --travel: -60vh; opacity: 0.58; }
-  .logo {
+  .backdrop .logo {
     position: absolute;
     left: var(--x);
     top: var(--y);
@@ -139,14 +139,14 @@ const position = (key: string) => {
     fill: #fff;
     color: #fff;
   }
-  [data-theme='light'] .logo {
+  [data-theme='light'] .backdrop .logo {
     fill: rgb(var(--fg-rgb));
     color: rgb(var(--fg-rgb));
   }
   [data-theme='light'] .logos {
     opacity: 0.10;
   }
-  .motion-ok .logo {
+  .motion-ok .backdrop .logo {
     animation: logo-float calc(11s + var(--n) * 1.7s) ease-in-out calc(var(--n) * -2.3s) infinite alternate;
   }
   @keyframes logo-float {
