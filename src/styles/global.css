@@ -674,28 +674,28 @@ a.meta,
   top: 14%;
   width: 46%;
   height: 46%;
-  background: radial-gradient(closest-side, rgb(46 92 255 / 0.85), transparent);
+  background: radial-gradient(closest-side, rgb(var(--backdrop-blue) / 0.85), transparent);
 }
 .backdrop i:nth-child(2) {
   left: 12%;
   top: 40%;
   width: 40%;
   height: 44%;
-  background: radial-gradient(closest-side, rgb(140 70 255 / 0.7), transparent);
+  background: radial-gradient(closest-side, rgb(var(--backdrop-violet) / 0.78), transparent);
 }
 .backdrop i:nth-child(3) {
   left: 48%;
   top: 52%;
   width: 44%;
   height: 40%;
-  background: radial-gradient(closest-side, rgb(255 40 130 / 0.6), transparent);
+  background: radial-gradient(closest-side, rgb(var(--backdrop-rose) / 0.70), transparent);
 }
 .backdrop i:nth-child(4) {
   left: 20%;
   top: 8%;
   width: 30%;
   height: 34%;
-  background: radial-gradient(closest-side, rgb(255 60 50 / 0.5), transparent);
+  background: radial-gradient(closest-side, rgb(var(--backdrop-warm) / 0.30), transparent);
 }
 /* grain + a soft vignette so the colour never sits flat or fights the text */
 .backdrop b {
@@ -742,32 +742,7 @@ a.meta,
     transform: translate(-30%, -26%) scale(1.3);
   }
 }
-/* Scroll drives it: the field turns, slides and shifts hue as you move down
-   the page, so every section sits in different light. Reverses on the way up. */
-@supports (animation-timeline: scroll()) {
-  .motion-ok .backdrop-drift {
-    animation: backdrop-turn linear both;
-    animation-timeline: scroll(root);
-  }
-  @keyframes backdrop-turn {
-    25% {
-      transform: rotate(70deg) translate(-8%, 6%) scale(1.1);
-      filter: hue-rotate(40deg);
-    }
-    50% {
-      transform: rotate(150deg) translate(6%, -8%) scale(1.25);
-      filter: hue-rotate(-50deg);
-    }
-    75% {
-      transform: rotate(240deg) translate(-6%, -4%) scale(1.1);
-      filter: hue-rotate(90deg);
-    }
-    to {
-      transform: rotate(330deg) scale(1.2);
-      filter: hue-rotate(20deg);
-    }
-  }
-}
+/* Keep one stable colour field while the decorative logos travel. */
 @media (forced-colors: active) {
   .backdrop {
     display: none;
@@ -981,3 +956,8 @@ a.meta,
     }
   }
 }
+
+/* Long contact addresses and grid children must fit narrow viewports. */
+.contact-list, .contact-list li, .personal-copy { min-width: 0; }
+.contact-list a { overflow-wrap: anywhere; }
+h1, h2, h3 { text-wrap: balance; }

@@ -29,7 +29,11 @@ const ENTER = 0.6;
 const EXIT = 0.3;
 const SETTLE_MS = 160;
 const SWITCH_MARGIN = 0.2; // of viewport height
-const DEFAULT_VOLUME = 0.8;
+// `volume` below is the slider position (0–1). Loudness is not linear in gain,
+// so the slider is mapped through a curve: equal steps sound like equal steps,
+// instead of everything happening in the bottom fifth of the track.
+const DEFAULT_VOLUME = 0.7;
+const gain = (position: number) => Math.pow(Math.min(1, Math.max(0, position)), 2.4);
 
 type State = 'idle' | 'loading' | 'playing' | 'paused' | 'blocked' | 'error';
 
@@ -149,7 +153,7 @@ export function mountVideoGallery(): void {
     const mine = ++token;
     const stale = () => mine !== token || active !== c || document.hidden;
     load(c);
-    c.video.volume = volume;
+    c.video.volume = gain(volume);
     c.video.muted = !soundOn;
     setState(c, 'loading');
 
@@ -323,7 +327,7 @@ export function mountVideoGallery(): void {
       clips.forEach((o) => o.root.removeAttribute('data-sound-blocked'));
       if (turningOn) {
         if (volume === 0) volume = DEFAULT_VOLUME;
-        v.volume = volume;
+        v.volume = gain(volume);
         v.muted = false; // inside the click, so the browser allows it
         if (v.paused && !c.manualPaused) {
           activate(c);
@@ -341,7 +345,7 @@ export function mountVideoGallery(): void {
       volume = Number(c.volume.value);
       soundOn = volume > 0;
       clips.forEach((o) => {
-        o.video.volume = volume;
+        o.video.volume = gain(volume);
         if (!soundOn) o.video.muted = true;
         o.root.removeAttribute('data-sound-blocked');
       });
