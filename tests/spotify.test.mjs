@@ -72,7 +72,7 @@ test('owner setup is disabled by default and callback rejects missing session', 
 });
 test('protected setup, callback account binding and encrypted handoff', async () => {
   const previous = { ...process.env }; const fetchBefore = globalThis.fetch;
-  Object.assign(process.env, env, { SPOTIFY_REDIRECT_URI: 'https://portfolio-five-eta-38.vercel.app/api/spotify/callback', SPOTIFY_SETUP_SECRET: 'random-test-password-with-32-characters' });
+  Object.assign(process.env, env, { SPOTIFY_REDIRECT_URI: 'https://nopsfrgithub.vercel.app/api/spotify/callback', SPOTIFY_SETUP_SECRET: 'random-test-password-with-32-characters' });
   try {
     const res = response(); await authorize({ method: 'POST', body: { secret: 'wrong' }, headers: {} }, res); assert.equal(res.statusCode, 403);
     const begin = response(); await authorize({ method: 'POST', body: { secret: process.env.SPOTIFY_SETUP_SECRET }, headers: {} }, begin); assert.equal(begin.statusCode, 303);

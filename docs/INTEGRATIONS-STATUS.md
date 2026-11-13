@@ -15,7 +15,7 @@ Run `node scripts/spotify-diagnose.mjs` to see configuration presence, sanitized
 ### Exact Vercel setup after review
 
 1. Vercel > nopsfrs-projects > the portfolio project > Settings > Environment Variables.
-2. Add server-only SPOTIFY_CLIENT_ID, a ROTATED SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI = https://portfolio-five-eta-38.vercel.app/api/spotify/callback, and a random 32+-character SPOTIFY_SETUP_SECRET. Choose Production (and Preview only if deliberately testing there). None use a PUBLIC_ prefix.
+2. Add server-only SPOTIFY_CLIENT_ID, a ROTATED SPOTIFY_CLIENT_SECRET, SPOTIFY_REDIRECT_URI = https://nopsfrgithub.vercel.app/api/spotify/callback, and a random 32+-character SPOTIFY_SETUP_SECRET. Choose Production (and Preview only if deliberately testing there). None use a PUBLIC_ prefix.
 3. In Spotify Dashboard > the app > Settings > Redirect URIs, register that exact production callback. In User Management, ensure the owner account is allowed. The scope list remains user-read-currently-playing, user-read-playback-state, user-read-recently-played, user-top-read. These endpoints remain documented for development mode; restrictions and missing scopes are handled explicitly.
 4. A reviewed deployment of the API files is needed before the production authorize/callback URLs work. This task does NOT deploy or push. For authorization before deployment use the loopback setup documented in SPOTIFY.md.
 5. Visit /api/spotify/authorize on the deployed production domain, enter the temporary setup password and authorize the correct Spotify owner. The callback checks the owner profile and signed state/session, and returns an encrypted handoff only.
